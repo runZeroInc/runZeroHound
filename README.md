@@ -7,26 +7,47 @@ Bring runZero Exposure Management into BloodHound via [OpenGraph](https://bloodh
 ### Setup BloodHound CE With 'pg' Graph DB
 
 1. Ensure that you have Docker or Podman (in Docker-compatibility mode). The command “docker compose ls” should not return an error.
-2. Git clone the BloodHound source tree:
-```git clone https://github.com/SpecterOps/BloodHound.git``
-3. Open a terminal in the BloodHound/examples/docker-compoose subdirectory
-4. Adjust docker-compose.yml to enable the “pg” graph-db driver
-```bhe_graph_driver=pg``
-5. Adjust bloodhound.config.json to set the graph_driver to “pg”
-```"graph_driver": "pg",```
-6. Run “docker compose up” to launch BloodHound
-7. Copy the initial admin password shown in the output
-8. Login to http://127.0.0.1:8080/ui/login with username admin and your password
-9. Change the password to something else and remember or save it
-10. Hurray! At this point you are ready to load and explore data
+   
+3. Git clone the BloodHound source tree:
+   
+```
+git clone https://github.com/SpecterOps/BloodHound.git
+```
+
+4. Open a terminal in the BloodHound/examples/docker-compoose subdirectory
+5. 
+6. Adjust docker-compose.yml to enable the “pg” graph-db driver
+
+```
+bhe_graph_driver=pg
+```
+
+6. Adjust bloodhound.config.json to set the graph_driver to “pg”
+
+```
+"graph_driver": "pg",
+```
+
+7. Run “docker compose up” to launch BloodHound
+8. Copy the initial admin password shown in the output
+9. Login to http://127.0.0.1:8080/ui/login with username admin and your password
+10. Change the password to something else and remember or save it
+11. Hurray! At this point you are ready to load and explore data
 
 ### Setup runZeroHound
 
 1. Ensure that you have a recent version of Go installed (1.25+)
 2. Git clone the runZeroHound source tree
-```git clone https://github.com/runZeroInc/runZeroHound.git``
+
+```
+git clone https://github.com/runZeroInc/runZeroHound.git
+```
+
 3. Ensure that the tool runs:
-```go run main.go -h```
+
+```
+go run main.go -h
+```
 
 ### Download Your runZero Asset Inventory in JSONL Format
 
@@ -39,12 +60,20 @@ Bring runZero Exposure Management into BloodHound via [OpenGraph](https://bloodh
 
 1. Open the runZeroHound directory in your terminal
 2. Run the convert command to create an OpenGraph JSON
-```go run main.go convert <runZeroInventory.jsonl> opengraph.json```
+
+```
+go run main.go convert <runZeroInventory.jsonl> opengraph.json
+```
+
 3. Use the Quick Upload option on the left and drag your opengraph.json onto it
 4. Watch the File Ingest history at http://127.0.0.1:8080/ui/administration/file-ingest
 5. Once import completes, access Explore and then select the Cypher tab
 6. Enter a test query to verify your data:
-```match (n:RZNetwork) where n.network_address = '0.0.0.0' return n```
+
+```
+match (n:RZNetwork) where n.network_address = '0.0.0.0' return n
+```
+
 7. Confirm that this query shows the RZ-NETWORK-PUBLIC subnet node
 
 ### TODO: Configure Custom Icons
