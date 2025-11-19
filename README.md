@@ -2,6 +2,8 @@
 
 Bring runZero Exposure Management into BloodHound via [OpenGraph](https://bloodhound.specterops.io/opengraph/overview).
 
+Read our [initial blog post](https://www.runzero.com/blog/introducing-runzerohound/).
+
 ## Getting Started
 
 ### Setup BloodHound CE With 'pg' Graph DB
