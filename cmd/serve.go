@@ -8,6 +8,8 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"slices"
+	"strings"
 
 	"github.com/runZeroInc/runZeroHound/pkg/bloodhound"
 	"github.com/spf13/cobra"
@@ -38,12 +40,13 @@ var serveCmd = &cobra.Command{
 }
 
 type frontendNode struct {
-	ID         string         `json:"id"`
-	Label      string         `json:"label"`
-	Kind       string         `json:"kind"`
-	X          float64        `json:"x"`
-	Y          float64        `json:"y"`
-	Properties map[string]any `json:"properties,omitempty"`
+	ID          string         `json:"id"`
+	Label       string         `json:"label"`
+	Kind        string         `json:"kind"`
+	X           float64        `json:"x"`
+	Y           float64        `json:"y"`
+	MultiSubnet bool           `json:"multiSubnet,omitempty"`
+	Properties  map[string]any `json:"properties,omitempty"`
 }
 
 type frontendEdge struct {
@@ -103,7 +106,7 @@ func runServe(cmd *cobra.Command, args []string) {
 	fmt.Printf("runZeroHound graph explorer\n")
 	fmt.Printf("  Graph: %d nodes, %d edges\n", len(fg.Nodes), len(fg.Edges))
 	fmt.Printf("  URL:   http://%s\n", addr)
-	rlog("info", "starting server on %s", addr)
+	rlog("info", "starting server on http://%s", addr)
 
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		fmt.Fprintf(os.Stderr, "Server error: %v\n", err)
@@ -114,10 +117,17 @@ func runServe(cmd *cobra.Command, args []string) {
 func transformGraphForFrontend(graph *bloodhound.Graph) *frontendGraph {
 	nodeMap := make(map[string]*bloodhound.Node, len(graph.Nodes))
 	for _, node := range graph.Nodes {
+		if slices.Contains(node.Kinds, "RZService") {
+			// Skip services
+			continue
+		}
+		if slices.Contains(node.Kinds, "RZNetwork") && strings.Contains(fmt.Sprint(node.Properties["displayname"]), ":") {
+			// Skip IPv6 for now
+			continue
+		}
 		nodeMap[node.ID] = node
 	}
 
-	// Build hierarchy: parent → children (for layout positioning)
 	childrenOf := make(map[string][]string)
 	primaryParent := make(map[string]string)
 
@@ -128,8 +138,16 @@ func transformGraphForFrontend(graph *bloodhound.Graph) *frontendGraph {
 		if _, ok := nodeMap[edge.End.Value]; !ok {
 			continue
 		}
-		switch edge.Kind {
-		case "RZSubnetContains", "RZHasService":
+		if edge.Kind == "RZHasService" || edge.Kind == "RunsOnAsset" {
+			// Skip services
+			continue
+		}
+		if strings.Contains(fmt.Sprint(edge.End.Value), ":") {
+			// Skip IPv6 for now
+			continue
+		}
+
+		if edge.Kind == "RZSubnetContains" {
 			childrenOf[edge.Start.Value] = append(childrenOf[edge.Start.Value], edge.End.Value)
 			if _, exists := primaryParent[edge.End.Value]; !exists {
 				primaryParent[edge.End.Value] = edge.Start.Value
@@ -137,16 +155,38 @@ func transformGraphForFrontend(graph *bloodhound.Graph) *frontendGraph {
 		}
 	}
 
-	// Group nodes by kind
+	// Count subnet parents per asset (for multi-subnet detection)
+	subnetParentCount := make(map[string]int)
+	for _, edge := range graph.Edges {
+		if edge.Kind == "RZSubnetContains" {
+			if _, ok := nodeMap[edge.Start.Value]; ok {
+				if _, ok := nodeMap[edge.End.Value]; ok {
+					subnetParentCount[edge.End.Value]++
+				}
+			}
+		}
+	}
+
+	// Group non-service nodes by kind
 	byKind := make(map[string][]string)
 	for _, node := range graph.Nodes {
 		kind := graphNodeKind(node)
 		byKind[kind] = append(byKind[kind], node.ID)
 	}
 
-	positions := computeHierarchicalLayout(byKind, childrenOf, primaryParent)
+	// Identify Global Internet nodes by displayname
+	globalInternetIDs := make(map[string]bool)
+	for _, node := range graph.Nodes {
+		if dn, ok := node.Properties["displayname"]; ok {
+			if s, ok := dn.(string); ok && s == "Global Internet" {
+				globalInternetIDs[node.ID] = true
+			}
+		}
+	}
 
-	// Build frontend nodes
+	positions := computeHierarchicalLayout(byKind, childrenOf, primaryParent, globalInternetIDs)
+
+	// Build frontend nodes (skip services)
 	fg := &frontendGraph{
 		Nodes: make([]frontendNode, 0, len(graph.Nodes)),
 		Edges: make([]frontendEdge, 0, len(graph.Edges)),
@@ -161,13 +201,15 @@ func transformGraphForFrontend(graph *bloodhound.Graph) *frontendGraph {
 			}
 		}
 		pos := positions[node.ID]
+		multiSubnet := kind == "RZAsset" && subnetParentCount[node.ID] > 1
 		fg.Nodes = append(fg.Nodes, frontendNode{
-			ID:         node.ID,
-			Label:      label,
-			Kind:       kind,
-			X:          pos[0],
-			Y:          pos[1],
-			Properties: node.Properties,
+			ID:          node.ID,
+			Label:       label,
+			Kind:        kind,
+			X:           pos[0],
+			Y:           pos[1],
+			MultiSubnet: multiSubnet,
+			Properties:  node.Properties,
 		})
 	}
 
@@ -192,14 +234,35 @@ func computeHierarchicalLayout(
 	byKind map[string][]string,
 	childrenOf map[string][]string,
 	primaryParent map[string]string,
+	globalInternetIDs map[string]bool,
 ) map[string][2]float64 {
 	positions := make(map[string][2]float64)
 
 	// Networks in a circle at the center
 	networks := byKind["RZNetwork"]
 	networkRadius := math.Max(float64(len(networks))*40, 300)
-	for i, id := range networks {
-		angle := 2 * math.Pi * float64(i) / math.Max(float64(len(networks)), 1)
+
+	// Separate Global Internet nodes from regular networks
+	var regularNetworks []string
+	var globalNetworks []string
+	for _, id := range networks {
+		if globalInternetIDs[id] {
+			globalNetworks = append(globalNetworks, id)
+		} else {
+			regularNetworks = append(regularNetworks, id)
+		}
+	}
+
+	// Position Global Internet nodes at the far left with vertical spacing
+	globalX := -networkRadius * 1.25
+	for i, id := range globalNetworks {
+		offset := float64(i) * 10
+		positions[id] = [2]float64{globalX, offset}
+	}
+
+	// Regular networks in a circle at the center
+	for i, id := range regularNetworks {
+		angle := 2 * math.Pi * float64(i) / math.Max(float64(len(regularNetworks)), 1)
 		positions[id] = [2]float64{
 			networkRadius * math.Cos(angle),
 			networkRadius * math.Sin(angle),
@@ -231,38 +294,6 @@ func computeHierarchicalLayout(
 		positions[assetID] = [2]float64{
 			parentPos[0] + assetRadius*math.Cos(angle),
 			parentPos[1] + assetRadius*math.Sin(angle),
-		}
-	}
-
-	// Services around their parent asset
-	assetSvcCount := make(map[string]int)
-	assetSvcIndex := make(map[string]int)
-	for _, svcID := range byKind["RZService"] {
-		parent := primaryParent[svcID]
-		if parent != "" {
-			assetSvcCount[parent]++
-		}
-	}
-	for _, svcID := range byKind["RZService"] {
-		parent := primaryParent[svcID]
-		if parent == "" {
-			positions[svcID] = [2]float64{0, 0}
-			continue
-		}
-		parentPos, ok := positions[parent]
-		if !ok {
-			positions[svcID] = [2]float64{0, 0}
-			continue
-		}
-		count := assetSvcCount[parent]
-		idx := assetSvcIndex[parent]
-		assetSvcIndex[parent]++
-
-		svcRadius := math.Max(float64(count)*3, 18)
-		angle := 2 * math.Pi * float64(idx) / math.Max(float64(count), 1)
-		positions[svcID] = [2]float64{
-			parentPos[0] + svcRadius*math.Cos(angle),
-			parentPos[1] + svcRadius*math.Sin(angle),
 		}
 	}
 
