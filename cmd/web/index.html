@@ -393,6 +393,7 @@ const app = Vue.createApp({
             globalInternetNodes: new Set(),
             vlanNodes: new Set(),
             multiSubnetNodes: new Set(),
+            hoveredNode: null,
         };
     },
 
@@ -623,6 +624,18 @@ const app = Vue.createApp({
                         return res;
                     }
 
+                    // Hover: highlight hovered node and neighbors
+                    if (self.hoveredNode) {
+                        if (node === self.hoveredNode) {
+                            res.zIndex = 10;
+                            res.forceLabel = true;
+                            res.size = (data.size || 5) * 1.4;
+                        } else if (self.graph.neighbors(self.hoveredNode).includes(node)) {
+                            res.zIndex = 5;
+                            res.forceLabel = true;
+                        }
+                    }
+
                     if (self.pathMode && self.pathNodes.includes(node)) {
                         res.color = '#ffd60a';
                         res.size = (data.size || 5) * 2;
@@ -686,6 +699,15 @@ const app = Vue.createApp({
                         return res;
                     }
 
+                    // Hover: highlight edges connected to hovered node
+                    if (self.hoveredNode) {
+                        if (source === self.hoveredNode || target === self.hoveredNode) {
+                            res.color = '#8b949e';
+                            res.size = 1.5;
+                            res.zIndex = 5;
+                        }
+                    }
+
                     // Global Internet edges are distinctly colored
                     if (self.globalInternetNodes.has(source) || self.globalInternetNodes.has(target)) {
                         res.color = GLOBAL_INTERNET_COLOR;
@@ -709,17 +731,22 @@ const app = Vue.createApp({
                 self.toggleCollapse(node);
             });
 
-            renderer.on('enterNode', () => {
+            renderer.on('enterNode', ({ node }) => {
+                self.hoveredNode = node;
                 container.style.cursor = 'pointer';
+                renderer.refresh();
             });
 
             renderer.on('leaveNode', () => {
+                self.hoveredNode = null;
                 container.style.cursor = 'default';
+                renderer.refresh();
             });
 
             renderer.on('clickStage', () => {
                 if (!self.pathMode) {
                     self.selectedNodeInfo = null;
+                    self.hoveredNode = null;
                     self.stopPulse();
                     self.updateVisibleCounts();
                     renderer.refresh();
@@ -953,6 +980,7 @@ const app = Vue.createApp({
             this.shortestPath = null;
             this.shortestPathEdges = new Set();
             this.selectedNodeInfo = null;
+            this.hoveredNode = null;
             this.stopPulse();
             this.updateVisibleCounts();
             this.refreshSigma();

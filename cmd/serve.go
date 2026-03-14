@@ -193,6 +193,9 @@ func transformGraphForFrontend(graph *bloodhound.Graph) *frontendGraph {
 	}
 
 	for _, node := range graph.Nodes {
+		if _, ok := nodeMap[node.ID]; !ok {
+			continue
+		}
 		kind := graphNodeKind(node)
 		label := node.ID
 		if dn, ok := node.Properties["displayname"]; ok {
@@ -240,7 +243,7 @@ func computeHierarchicalLayout(
 
 	// Networks in a circle at the center
 	networks := byKind["RZNetwork"]
-	networkRadius := math.Max(float64(len(networks))*40, 300)
+	networkRadius := math.Max(float64(len(networks))*60, 400)
 
 	// Separate Global Internet nodes from regular networks
 	var regularNetworks []string
@@ -254,7 +257,7 @@ func computeHierarchicalLayout(
 	}
 
 	// Position Global Internet nodes at the far left with vertical spacing
-	globalX := -networkRadius * 1.25
+	globalX := -networkRadius * 1.3
 	for i, id := range globalNetworks {
 		offset := float64(i) * 10
 		positions[id] = [2]float64{globalX, offset}
