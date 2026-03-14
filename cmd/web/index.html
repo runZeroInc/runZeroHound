@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>runZeroHound — Graph Explorer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            overflow: hidden;
+            height: 100vh;
+        }
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            z-index: 10;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        .toolbar-section {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .spacer { flex: 1; }
+        .logo {
+            font-weight: 700;
+            font-size: 13px;
+            color: #58a6ff;
+            white-space: nowrap;
+            margin-right: 8px;
+        }
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .search-box input {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 5px 10px;
+            color: #c9d1d9;
+            font-size: 12px;
+            width: 220px;
+            outline: none;
+        }
+        .search-box input:focus { border-color: #58a6ff; }
+        .search-count {
+            position: absolute;
+            right: 8px;
+            font-size: 10px;
+            color: #8b949e;
+            pointer-events: none;
+        }
+        .btn {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 5px 10px;
+            color: #c9d1d9;
+            font-size: 11px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .btn:hover { background: #30363d; }
+        .btn.active { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+        .btn.danger { color: #f85149; }
+        .stats {
+            font-size: 11px;
+            color: #8b949e;
+            white-space: nowrap;
+        }
+        .main-content {
+            flex: 1;
+            position: relative;
+            display: flex;
+            overflow: hidden;
+        }
+        #sigma-container {
+            flex: 1;
+            position: relative;
+        }
+        .info-panel {
+            width: 300px;
+            background: #161b22;
+            border-left: 1px solid #30363d;
+            padding: 12px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .info-panel h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f0f6fc;
+            margin-bottom: 6px;
+            word-break: break-all;
+        }
+        .kind-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .info-panel .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            color: #8b949e;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .properties { font-size: 11px; }
+        .prop-row {
+            padding: 3px 0;
+            border-bottom: 1px solid #21262d;
+        }
+        .prop-key { color: #8b949e; font-size: 10px; display: block; }
+        .prop-value { color: #c9d1d9; word-break: break-all; }
+        .legend {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(22, 27, 34, 0.92);
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 8px 10px;
+            z-index: 5;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            padding: 1px 0;
+        }
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .path-info {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(22, 27, 34, 0.95);
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 12px;
+            z-index: 5;
+            white-space: nowrap;
+        }
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #0d1117;
+            z-index: 100;
+            font-size: 15px;
+            color: #8b949e;
+            gap: 12px;
+        }
+        .spinner {
+            width: 32px; height: 32px;
+            border: 3px solid #30363d;
+            border-top-color: #58a6ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div v-if="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <div>Loading graph data…</div>
+    </div>
+
+    <header class="toolbar" v-show="!loading">
+        <div class="toolbar-section">
+            <span class="logo">🐕 runZeroHound</span>
+            <div class="search-box">
+                <input
+                    v-model="searchQuery"
+                    @input="onSearch"
+                    @keyup.escape="clearSearch"
+                    placeholder="Search nodes (regex)…"
+                />
+                <span v-if="matchedNodes.size > 0" class="search-count">{{ matchedNodes.size }}</span>
+            </div>
+        </div>
+        <div class="toolbar-section">
+            <button class="btn" @click="collapseAll">⊟ Collapse All</button>
+            <button class="btn" @click="expandAll">⊞ Expand All</button>
+            <button class="btn" :class="{ active: pathMode }" @click="togglePathMode">
+                🔗 {{ pathMode ? 'Path Mode ON' : 'Shortest Path' }}
+            </button>
+            <button class="btn danger" @click="clearAll">✕ Clear</button>
+        </div>
+        <div class="spacer"></div>
+        <div class="toolbar-section">
+            <span class="stats">
+                {{ visibleNodeCount }}/{{ totalNodes }} nodes ·
+                {{ visibleEdgeCount }}/{{ totalEdges }} edges
+            </span>
+        </div>
+    </header>
+
+    <div class="main-content" v-show="!loading">
+        <div id="sigma-container"></div>
+
+        <div class="legend">
+            <div class="legend-item" v-for="(color, kind) in kindColors" :key="kind">
+                <div class="legend-dot" :style="{ backgroundColor: color }"></div>
+                <span>{{ kind }}</span>
+            </div>
+        </div>
+
+        <div class="path-info" v-if="pathMode">
+            <template v-if="pathNodes.length === 0">Click a node to set the <b>start</b></template>
+            <template v-else-if="pathNodes.length === 1">
+                Start: <b>{{ pathStartLabel }}</b> — click another node for <b>end</b>
+            </template>
+            <template v-else-if="shortestPath">
+                Shortest path: <b>{{ shortestPath.length - 1 }}</b> hops
+            </template>
+            <template v-else>No path found between selected nodes</template>
+        </div>
+
+        <div class="info-panel" v-if="selectedNodeInfo">
+            <button class="close-btn" @click="selectedNodeInfo = null; refreshSigma()">✕</button>
+            <h3>{{ selectedNodeInfo.label }}</h3>
+            <div class="kind-badge" :style="{ backgroundColor: kindColors[selectedNodeInfo.kind] || '#555' }">
+                {{ selectedNodeInfo.kind }}
+            </div>
+            <div class="properties">
+                <div class="prop-row">
+                    <span class="prop-key">id</span>
+                    <span class="prop-value">{{ selectedNodeInfo.id }}</span>
+                </div>
+                <div v-for="(value, key) in selectedNodeInfo.properties" :key="key" class="prop-row">
+                    <span class="prop-key">{{ key }}</span>
+                    <span class="prop-value">{{ formatValue(value) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/graphology@0.25.4/dist/graphology.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sigma@2.4.0/build/sigma.min.js"></script>
+
+<script>
+const KIND_COLORS = {
+    RZNetwork: '#4cc9f0',
+    RZAsset: '#f72585',
+    RZService: '#7209b7',
+    RZDomain: '#4361ee',
+    RZVLAN: '#3a86ff',
+};
+const KIND_SIZES = {
+    RZNetwork: 14,
+    RZAsset: 7,
+    RZService: 3,
+    RZDomain: 12,
+    RZVLAN: 12,
+};
+
+const PARENT_EDGE_KINDS = new Set([
+    'RZSubnetContains', 'RZDomainContains', 'RZVLANContains', 'RZHasService',
+]);
+
+function bfsShortestPath(graph, source, target) {
+    if (source === target) return [source];
+    const visited = new Set([source]);
+    const prev = new Map();
+    const queue = [source];
+    while (queue.length > 0) {
+        const node = queue.shift();
+        for (const neighbor of graph.neighbors(node)) {
+            if (!visited.has(neighbor)) {
+                visited.add(neighbor);
+                prev.set(neighbor, node);
+                if (neighbor === target) {
+                    const path = [target];
+                    let cur = target;
+                    while (prev.has(cur)) {
+                        cur = prev.get(cur);
+                        path.unshift(cur);
+                    }
+                    return path;
+                }
+                queue.push(neighbor);
+            }
+        }
+    }
+    return null;
+}
+
+function getPathEdges(graph, path) {
+    const edges = new Set();
+    for (let i = 0; i < path.length - 1; i++) {
+        const a = path[i], b = path[i + 1];
+        graph.forEachEdge(a, (edge, attrs, src, tgt) => {
+            if ((src === a && tgt === b) || (src === b && tgt === a)) {
+                edges.add(edge);
+            }
+        });
+    }
+    return edges;
+}
+
+const app = Vue.createApp({
+    data() {
+        return {
+            loading: true,
+            graph: null,
+            renderer: null,
+            searchQuery: '',
+            matchedNodes: new Set(),
+            collapsedNodes: new Set(),
+            hiddenNodes: new Set(),
+            pathMode: false,
+            pathNodes: [],
+            shortestPath: null,
+            shortestPathEdges: new Set(),
+            selectedNodeInfo: null,
+            hoveredNode: null,
+            totalNodes: 0,
+            totalEdges: 0,
+            visibleNodeCount: 0,
+            visibleEdgeCount: 0,
+            kindColors: KIND_COLORS,
+            childrenOf: new Map(),
+            parentsOf: new Map(),
+        };
+    },
+
+    computed: {
+        pathStartLabel() {
+            if (this.pathNodes.length > 0 && this.graph) {
+                try {
+                    return this.graph.getNodeAttribute(this.pathNodes[0], 'label') || this.pathNodes[0];
+                } catch(e) { return this.pathNodes[0]; }
+            }
+            return '';
+        }
+    },
+
+    async mounted() {
+        try {
+            const resp = await fetch('/api/graph');
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const data = await resp.json();
+            this.initGraph(data);
+        } catch (err) {
+            console.error('Failed to load graph:', err);
+            this.loading = false;
+        }
+    },
+
+    methods: {
+        initGraph(data) {
+            const graph = new graphology();
+
+            const nodeIds = new Set();
+            data.nodes.forEach(node => {
+                nodeIds.add(node.id);
+                graph.addNode(node.id, {
+                    x: node.x,
+                    y: node.y,
+                    size: KIND_SIZES[node.kind] || 5,
+                    color: KIND_COLORS[node.kind] || '#666',
+                    label: node.label,
+                    kind: node.kind,
+                    properties: node.properties || {},
+                });
+            });
+
+            const addedPairs = new Set();
+            data.edges.forEach((edge) => {
+                if (!nodeIds.has(edge.source) || !nodeIds.has(edge.target)) return;
+                if (edge.source === edge.target) return;
+                const pairKey = edge.source < edge.target
+                    ? edge.source + '|||' + edge.target
+                    : edge.target + '|||' + edge.source;
+                if (addedPairs.has(pairKey)) return;
+                addedPairs.add(pairKey);
+                try {
+                    graph.addEdge(edge.source, edge.target, {
+                        color: '#30363d',
+                        size: 0.5,
+                        kind: edge.kind,
+                    });
+                } catch(e) {}
+            });
+
+            data.edges.forEach(edge => {
+                if (!nodeIds.has(edge.source) || !nodeIds.has(edge.target)) return;
+                if (PARENT_EDGE_KINDS.has(edge.kind)) {
+                    if (!this.childrenOf.has(edge.source))
+                        this.childrenOf.set(edge.source, new Set());
+                    this.childrenOf.get(edge.source).add(edge.target);
+
+                    if (!this.parentsOf.has(edge.target))
+                        this.parentsOf.set(edge.target, new Set());
+                    this.parentsOf.get(edge.target).add(edge.source);
+                }
+            });
+
+            this.graph = graph;
+            this.totalNodes = graph.order;
+            this.totalEdges = graph.size;
+            this.updateVisibleCounts();
+
+            this.loading = false;
+            this.$nextTick(() => { this.initSigma(); });
+        },
+
+        initSigma() {
+            const container = document.getElementById('sigma-container');
+            if (!container) return;
+
+            const self = this;
+            const renderer = new Sigma(this.graph, container, {
+                renderLabels: true,
+                labelRenderedSizeThreshold: 6,
+                labelDensity: 0.07,
+                labelGridCellSize: 80,
+                labelFont: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+                labelColor: { color: '#c9d1d9' },
+                labelSize: 11,
+                defaultEdgeColor: '#30363d',
+                defaultNodeColor: '#555',
+                stagePadding: 40,
+                minCameraRatio: 0.005,
+                maxCameraRatio: 50,
+                zIndex: true,
+
+                nodeReducer(node, data) {
+                    const res = { ...data };
+
+                    if (self.hiddenNodes.has(node)) {
+                        res.hidden = true;
+                        return res;
+                    }
+
+                    if (self.collapsedNodes.has(node)) {
+                        res.label = '⊞ ' + data.label;
+                    }
+
+                    if (self.shortestPath) {
+                        if (self.shortestPath.includes(node)) {
+                            res.color = '#ffd60a';
+                            res.size = (data.size || 5) * 2.5;
+                            res.zIndex = 10;
+                            res.forceLabel = true;
+                        } else {
+                            res.color = '#161b22';
+                            res.size = (data.size || 5) * 0.4;
+                            res.zIndex = 0;
+                            res.label = '';
+                        }
+                        return res;
+                    }
+
+                    if (self.matchedNodes.size > 0) {
+                        if (self.matchedNodes.has(node)) {
+                            res.color = '#ffd60a';
+                            res.size = (data.size || 5) * 2;
+                            res.zIndex = 10;
+                            res.forceLabel = true;
+                        } else {
+                            res.color = '#161b22';
+                            res.size = (data.size || 5) * 0.4;
+                            res.zIndex = 0;
+                            res.label = '';
+                        }
+                        return res;
+                    }
+
+                    if (self.hoveredNode) {
+                        if (node === self.hoveredNode) {
+                            res.zIndex = 10;
+                            res.forceLabel = true;
+                            res.size = (data.size || 5) * 1.5;
+                        } else if (self.graph.neighbors(self.hoveredNode).includes(node)) {
+                            res.zIndex = 5;
+                            res.forceLabel = true;
+                        } else {
+                            res.color = '#161b22';
+                            res.size = (data.size || 5) * 0.4;
+                            res.label = '';
+                        }
+                    }
+
+                    if (self.pathMode && self.pathNodes.includes(node)) {
+                        res.color = '#ffd60a';
+                        res.size = (data.size || 5) * 2;
+                        res.zIndex = 10;
+                        res.forceLabel = true;
+                    }
+
+                    return res;
+                },
+
+                edgeReducer(edge, data) {
+                    const res = { ...data };
+                    const source = self.graph.source(edge);
+                    const target = self.graph.target(edge);
+
+                    if (self.hiddenNodes.has(source) || self.hiddenNodes.has(target)) {
+                        res.hidden = true;
+                        return res;
+                    }
+
+                    if (self.shortestPath) {
+                        if (self.shortestPathEdges.has(edge)) {
+                            res.color = '#ffd60a';
+                            res.size = 3;
+                            res.zIndex = 10;
+                        } else {
+                            res.hidden = true;
+                        }
+                        return res;
+                    }
+
+                    if (self.matchedNodes.size > 0) {
+                        if (self.matchedNodes.has(source) || self.matchedNodes.has(target)) {
+                            res.color = '#30363d';
+                            res.size = 0.8;
+                        } else {
+                            res.hidden = true;
+                        }
+                        return res;
+                    }
+
+                    if (self.hoveredNode) {
+                        if (source === self.hoveredNode || target === self.hoveredNode) {
+                            res.color = '#8b949e';
+                            res.size = 1.5;
+                            res.zIndex = 5;
+                        } else {
+                            res.hidden = true;
+                        }
+                        return res;
+                    }
+
+                    return res;
+                },
+            });
+
+            renderer.on('clickNode', ({ node }) => {
+                if (self.pathMode) {
+                    self.handlePathClick(node);
+                } else {
+                    self.showNodeInfo(node);
+                }
+            });
+
+            renderer.on('doubleClickNode', ({ node, event }) => {
+                if (event && event.preventDefault) event.preventDefault();
+                self.toggleCollapse(node);
+            });
+
+            renderer.on('enterNode', ({ node }) => {
+                self.hoveredNode = node;
+                container.style.cursor = 'pointer';
+                renderer.refresh();
+            });
+
+            renderer.on('leaveNode', () => {
+                self.hoveredNode = null;
+                container.style.cursor = 'default';
+                renderer.refresh();
+            });
+
+            renderer.on('clickStage', () => {
+                if (!self.pathMode) {
+                    self.selectedNodeInfo = null;
+                    self.hoveredNode = null;
+                    renderer.refresh();
+                }
+            });
+
+            renderer.on('doubleClickStage', ({ event }) => {
+                if (event && event.preventDefault) event.preventDefault();
+            });
+
+            this.renderer = renderer;
+        },
+
+        refreshSigma() {
+            if (this.renderer) this.renderer.refresh();
+        },
+
+        updateVisibleCounts() {
+            this.visibleNodeCount = this.totalNodes - this.hiddenNodes.size;
+            let hiddenEdges = 0;
+            if (this.graph) {
+                this.graph.forEachEdge((edge, attrs, source, target) => {
+                    if (this.hiddenNodes.has(source) || this.hiddenNodes.has(target)) hiddenEdges++;
+                });
+            }
+            this.visibleEdgeCount = this.totalEdges - hiddenEdges;
+        },
+
+        /* ---- Search ---- */
+        onSearch() {
+            this.matchedNodes = new Set();
+            const q = this.searchQuery.trim();
+            if (!q) { this.refreshSigma(); return; }
+
+            let testFn;
+            try {
+                const re = new RegExp(q, 'i');
+                testFn = (s) => re.test(s);
+            } catch(e) {
+                const lower = q.toLowerCase();
+                testFn = (s) => s.toLowerCase().includes(lower);
+            }
+
+            this.graph.forEachNode((id, attrs) => {
+                if (this.hiddenNodes.has(id)) return;
+                if (testFn(attrs.label || '') || testFn(id) || testFn(attrs.kind || '')) {
+                    this.matchedNodes.add(id);
+                    return;
+                }
+                if (attrs.properties) {
+                    for (const [k, v] of Object.entries(attrs.properties)) {
+                        const s = typeof v === 'string' ? v : JSON.stringify(v);
+                        if (testFn(s) || testFn(k)) {
+                            this.matchedNodes.add(id);
+                            return;
+                        }
+                    }
+                }
+            });
+            this.refreshSigma();
+        },
+
+        clearSearch() {
+            this.searchQuery = '';
+            this.matchedNodes = new Set();
+            this.refreshSigma();
+        },
+
+        /* ---- Collapse / Expand ---- */
+        toggleCollapse(nodeId) {
+            if (this.collapsedNodes.has(nodeId)) {
+                this.collapsedNodes.delete(nodeId);
+            } else {
+                const children = this.childrenOf.get(nodeId);
+                if (children && children.size > 0) {
+                    this.collapsedNodes.add(nodeId);
+                }
+            }
+            this.recomputeHidden();
+            this.updateVisibleCounts();
+            this.refreshSigma();
+        },
+
+        collapseAll() {
+            this.childrenOf.forEach((children, parent) => {
+                if (children.size > 0) this.collapsedNodes.add(parent);
+            });
+            this.recomputeHidden();
+            this.updateVisibleCounts();
+            this.refreshSigma();
+        },
+
+        expandAll() {
+            this.collapsedNodes = new Set();
+            this.hiddenNodes = new Set();
+            this.updateVisibleCounts();
+            this.refreshSigma();
+        },
+
+        recomputeHidden() {
+            this.hiddenNodes = new Set();
+            for (let pass = 0; pass < 4; pass++) {
+                let changed = false;
+                this.collapsedNodes.forEach(parentId => {
+                    const children = this.childrenOf.get(parentId);
+                    if (!children) return;
+                    children.forEach(childId => {
+                        if (this.hiddenNodes.has(childId)) return;
+                        const parents = this.parentsOf.get(childId);
+                        if (!parents) return;
+                        const allCollapsedOrHidden = [...parents].every(
+                            p => this.collapsedNodes.has(p) || this.hiddenNodes.has(p)
+                        );
+                        if (allCollapsedOrHidden) {
+                            this.hiddenNodes.add(childId);
+                            changed = true;
+                        }
+                    });
+                });
+                if (!changed) break;
+            }
+        },
+
+        /* ---- Shortest Path ---- */
+        togglePathMode() {
+            this.pathMode = !this.pathMode;
+            if (!this.pathMode) {
+                this.pathNodes = [];
+                this.shortestPath = null;
+                this.shortestPathEdges = new Set();
+            }
+            this.refreshSigma();
+        },
+
+        handlePathClick(node) {
+            if (this.pathNodes.length === 0) {
+                this.pathNodes = [node];
+                this.shortestPath = null;
+                this.shortestPathEdges = new Set();
+            } else if (this.pathNodes.length === 1) {
+                if (node === this.pathNodes[0]) return;
+                this.pathNodes = [this.pathNodes[0], node];
+                this.computePath();
+            } else {
+                this.pathNodes = [node];
+                this.shortestPath = null;
+                this.shortestPathEdges = new Set();
+            }
+            this.refreshSigma();
+        },
+
+        computePath() {
+            const [source, target] = this.pathNodes;
+            this.shortestPath = bfsShortestPath(this.graph, source, target);
+            this.shortestPathEdges = new Set();
+            if (this.shortestPath) {
+                const edges = getPathEdges(this.graph, this.shortestPath);
+                this.shortestPathEdges = edges;
+            }
+        },
+
+        /* ---- Node Info ---- */
+        showNodeInfo(nodeId) {
+            const attrs = this.graph.getNodeAttributes(nodeId);
+            const props = {};
+            if (attrs.properties) {
+                Object.keys(attrs.properties).sort().forEach(k => {
+                    props[k] = attrs.properties[k];
+                });
+            }
+            this.selectedNodeInfo = {
+                id: nodeId,
+                label: attrs.label || nodeId,
+                kind: attrs.kind || 'Unknown',
+                properties: props,
+            };
+        },
+
+        /* ---- Clear ---- */
+        clearAll() {
+            this.searchQuery = '';
+            this.matchedNodes = new Set();
+            this.pathMode = false;
+            this.pathNodes = [];
+            this.shortestPath = null;
+            this.shortestPathEdges = new Set();
+            this.selectedNodeInfo = null;
+            this.hoveredNode = null;
+            this.refreshSigma();
+        },
+
+        formatValue(value) {
+            if (Array.isArray(value)) {
+                if (value.length === 0) return '—';
+                if (value.length <= 4) return value.join(', ');
+                return value.slice(0, 4).join(', ') + ' (+' + (value.length - 4) + ' more)';
+            }
+            if (typeof value === 'boolean') return value ? 'true' : 'false';
+            if (typeof value === 'object' && value !== null) return JSON.stringify(value);
+            if (value === '' || value === null || value === undefined) return '—';
+            return String(value);
+        },
+    }
+});
+
+app.mount('#app');
+</script>
+</body>
+</html>
