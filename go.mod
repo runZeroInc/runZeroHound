@@ -4,7 +4,7 @@ go 1.24.1
 
 require (
 	github.com/gofrs/uuid/v5 v5.4.0
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 )
 
 require (
