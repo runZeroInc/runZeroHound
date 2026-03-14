@@ -237,6 +237,10 @@
                 <div class="legend-dot" :style="{ backgroundColor: color }"></div>
                 <span>{{ kind }}</span>
             </div>
+            <div class="legend-item" v-if="globalInternetNodes.size > 0">
+                <div class="legend-dot" style="background-color: #ff6d00;"></div>
+                <span>Global Internet</span>
+            </div>
         </div>
 
         <div class="path-info" v-if="pathMode">
@@ -251,7 +255,7 @@
         </div>
 
         <div class="info-panel" v-if="selectedNodeInfo">
-            <button class="close-btn" @click="selectedNodeInfo = null; refreshSigma()">✕</button>
+            <button class="close-btn" @click="selectedNodeInfo = null; stopPulse(); resetServiceVisibility(); updateVisibleCounts(); refreshSigma()">✕</button>
             <h3>{{ selectedNodeInfo.label }}</h3>
             <div class="kind-badge" :style="{ backgroundColor: kindColors[selectedNodeInfo.kind] || '#555' }">
                 {{ selectedNodeInfo.kind }}
@@ -290,9 +294,41 @@ const KIND_SIZES = {
     RZVLAN: 12,
 };
 
+const GLOBAL_INTERNET_COLOR = '#ff6d00';
+
 const PARENT_EDGE_KINDS = new Set([
     'RZSubnetContains', 'RZDomainContains', 'RZVLANContains', 'RZHasService',
 ]);
+
+function interpolateColor(c1, c2, t) {
+    const h = s => parseInt(s, 16);
+    const r1 = h(c1.slice(1,3)), g1 = h(c1.slice(3,5)), b1 = h(c1.slice(5,7));
+    const r2 = h(c2.slice(1,3)), g2 = h(c2.slice(3,5)), b2 = h(c2.slice(5,7));
+    const r = Math.round(r1 + (r2 - r1) * t);
+    const g = Math.round(g1 + (g2 - g1) * t);
+    const b = Math.round(b1 + (b2 - b1) * t);
+    return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+function bfsDistances(graph, origin, hiddenNodes) {
+    const distances = new Map();
+    distances.set(origin, 0);
+    const queue = [origin];
+    let maxDist = 0;
+    while (queue.length > 0) {
+        const current = queue.shift();
+        const currentDist = distances.get(current);
+        for (const neighbor of graph.neighbors(current)) {
+            if (!distances.has(neighbor) && !hiddenNodes.has(neighbor)) {
+                const d = currentDist + 1;
+                distances.set(neighbor, d);
+                if (d > maxDist) maxDist = d;
+                queue.push(neighbor);
+            }
+        }
+    }
+    return { distances, maxDist };
+}
 
 function bfsShortestPath(graph, source, target) {
     if (source === target) return [source];
@@ -357,7 +393,20 @@ const app = Vue.createApp({
             kindColors: KIND_COLORS,
             childrenOf: new Map(),
             parentsOf: new Map(),
+            hiddenServiceNodes: new Set(),
+            globalInternetNodes: new Set(),
         };
+    },
+
+    created() {
+        // Non-reactive pulse animation state (avoids Vue reactivity overhead at 60fps)
+        this._pulseOrigin = null;
+        this._pulseDistances = new Map();
+        this._pulseMaxDistance = 0;
+        this._pulseProgress = 0;
+        this._pulseStartTime = 0;
+        this._pulseAnimating = false;
+        this._pulseAnimationId = null;
     },
 
     computed: {
@@ -432,6 +481,18 @@ const app = Vue.createApp({
                 }
             });
 
+            // Hide RZService nodes by default; detect Global Internet nodes
+            graph.forEachNode((id, attrs) => {
+                if (attrs.kind === 'RZService') {
+                    this.hiddenServiceNodes.add(id);
+                }
+                if (attrs.label === 'Global Internet') {
+                    this.globalInternetNodes.add(id);
+                    graph.setNodeAttribute(id, 'color', GLOBAL_INTERNET_COLOR);
+                    graph.setNodeAttribute(id, 'size', 18);
+                }
+            });
+
             this.graph = graph;
             this.totalNodes = graph.order;
             this.totalEdges = graph.size;
@@ -469,6 +530,11 @@ const app = Vue.createApp({
                         return res;
                     }
 
+                    if (self.hiddenServiceNodes.has(node)) {
+                        res.hidden = true;
+                        return res;
+                    }
+
                     if (self.collapsedNodes.has(node)) {
                         res.label = '⊞ ' + data.label;
                     }
@@ -499,6 +565,16 @@ const app = Vue.createApp({
                             res.size = (data.size || 5) * 0.4;
                             res.zIndex = 0;
                             res.label = '';
+                        }
+                        return res;
+                    }
+
+                    // Pulse animation: highlight origin, skip hover dimming
+                    if (self._pulseAnimating) {
+                        if (node === self._pulseOrigin) {
+                            res.size = (data.size || 5) * 1.8;
+                            res.zIndex = 10;
+                            res.forceLabel = true;
                         }
                         return res;
                     }
@@ -538,6 +614,11 @@ const app = Vue.createApp({
                         return res;
                     }
 
+                    if (self.hiddenServiceNodes.has(source) || self.hiddenServiceNodes.has(target)) {
+                        res.hidden = true;
+                        return res;
+                    }
+
                     if (self.shortestPath) {
                         if (self.shortestPathEdges.has(edge)) {
                             res.color = '#ffd60a';
@@ -559,6 +640,28 @@ const app = Vue.createApp({
                         return res;
                     }
 
+                    // Pulse animation on edges
+                    if (self._pulseAnimating && self._pulseDistances.size > 0) {
+                        const sourceDist = self._pulseDistances.get(source);
+                        const targetDist = self._pulseDistances.get(target);
+                        if (sourceDist !== undefined && targetDist !== undefined) {
+                            const edgeDist = Math.max(sourceDist, targetDist);
+                            const front = self._pulseProgress * (self._pulseMaxDistance + 3);
+                            const width = Math.max(self._pulseMaxDistance * 0.25, 2);
+                            const dist = edgeDist - front;
+                            if (dist < 0 && Math.abs(dist) < width) {
+                                const intensity = 1 - Math.abs(dist) / width;
+                                res.color = interpolateColor('#30363d', '#58a6ff', intensity);
+                                res.size = 0.5 + intensity * 2.5;
+                            }
+                        }
+                        if (self.globalInternetNodes.has(source) || self.globalInternetNodes.has(target)) {
+                            res.color = GLOBAL_INTERNET_COLOR;
+                            res.size = 1.2;
+                        }
+                        return res;
+                    }
+
                     if (self.hoveredNode) {
                         if (source === self.hoveredNode || target === self.hoveredNode) {
                             res.color = '#8b949e';
@@ -570,6 +673,12 @@ const app = Vue.createApp({
                         return res;
                     }
 
+                    // Global Internet edges are distinctly colored
+                    if (self.globalInternetNodes.has(source) || self.globalInternetNodes.has(target)) {
+                        res.color = GLOBAL_INTERNET_COLOR;
+                        res.size = 1.2;
+                    }
+
                     return res;
                 },
             });
@@ -578,7 +687,7 @@ const app = Vue.createApp({
                 if (self.pathMode) {
                     self.handlePathClick(node);
                 } else {
-                    self.showNodeInfo(node);
+                    self.handleNodeClick(node);
                 }
             });
 
@@ -603,6 +712,9 @@ const app = Vue.createApp({
                 if (!self.pathMode) {
                     self.selectedNodeInfo = null;
                     self.hoveredNode = null;
+                    self.stopPulse();
+                    self.resetServiceVisibility();
+                    self.updateVisibleCounts();
                     renderer.refresh();
                 }
             });
@@ -619,11 +731,14 @@ const app = Vue.createApp({
         },
 
         updateVisibleCounts() {
-            this.visibleNodeCount = this.totalNodes - this.hiddenNodes.size;
+            const allHidden = new Set();
+            this.hiddenNodes.forEach(n => allHidden.add(n));
+            this.hiddenServiceNodes.forEach(n => allHidden.add(n));
+            this.visibleNodeCount = this.totalNodes - allHidden.size;
             let hiddenEdges = 0;
             if (this.graph) {
                 this.graph.forEachEdge((edge, attrs, source, target) => {
-                    if (this.hiddenNodes.has(source) || this.hiddenNodes.has(target)) hiddenEdges++;
+                    if (allHidden.has(source) || allHidden.has(target)) hiddenEdges++;
                 });
             }
             this.visibleEdgeCount = this.totalEdges - hiddenEdges;
@@ -645,7 +760,7 @@ const app = Vue.createApp({
             }
 
             this.graph.forEachNode((id, attrs) => {
-                if (this.hiddenNodes.has(id)) return;
+                if (this.hiddenNodes.has(id) || this.hiddenServiceNodes.has(id)) return;
                 if (testFn(attrs.label || '') || testFn(id) || testFn(attrs.kind || '')) {
                     this.matchedNodes.add(id);
                     return;
@@ -779,6 +894,75 @@ const app = Vue.createApp({
             };
         },
 
+        /* ---- Node Click with Services & Pulse ---- */
+        handleNodeClick(nodeId) {
+            this.resetServiceVisibility();
+            const attrs = this.graph.getNodeAttributes(nodeId);
+            if (attrs.kind === 'RZAsset') {
+                const children = this.childrenOf.get(nodeId);
+                if (children) {
+                    children.forEach(childId => {
+                        const childKind = this.graph.getNodeAttribute(childId, 'kind');
+                        if (childKind === 'RZService') {
+                            this.hiddenServiceNodes.delete(childId);
+                        }
+                    });
+                }
+            }
+            this.updateVisibleCounts();
+            this.showNodeInfo(nodeId);
+            this.hoveredNode = null;
+            this.startPulse(nodeId);
+        },
+
+        startPulse(nodeId) {
+            this.stopPulse();
+            const allHidden = new Set([...this.hiddenNodes, ...this.hiddenServiceNodes]);
+            const { distances, maxDist } = bfsDistances(this.graph, nodeId, allHidden);
+            this._pulseOrigin = nodeId;
+            this._pulseDistances = distances;
+            this._pulseMaxDistance = maxDist;
+            this._pulseProgress = 0;
+            this._pulseStartTime = performance.now();
+            this._pulseAnimating = true;
+            this._animatePulse();
+        },
+
+        _animatePulse() {
+            if (!this._pulseAnimating) return;
+            const elapsed = performance.now() - this._pulseStartTime;
+            const duration = 3000;
+            this._pulseProgress = Math.min(elapsed / duration, 1);
+            this.refreshSigma();
+            if (this._pulseProgress < 1) {
+                this._pulseAnimationId = requestAnimationFrame(() => this._animatePulse());
+            } else {
+                this._pulseAnimating = false;
+                this._pulseAnimationId = null;
+                this.refreshSigma();
+            }
+        },
+
+        stopPulse() {
+            this._pulseAnimating = false;
+            if (this._pulseAnimationId) {
+                cancelAnimationFrame(this._pulseAnimationId);
+                this._pulseAnimationId = null;
+            }
+            this._pulseOrigin = null;
+            this._pulseDistances = new Map();
+            this._pulseProgress = 0;
+        },
+
+        resetServiceVisibility() {
+            if (!this.graph) return;
+            this.graph.forEachNode((id, attrs) => {
+                if (attrs.kind === 'RZService') {
+                    this.hiddenServiceNodes.add(id);
+                }
+            });
+        },
+
         /* ---- Clear ---- */
         clearAll() {
             this.searchQuery = '';
@@ -789,6 +973,9 @@ const app = Vue.createApp({
             this.shortestPathEdges = new Set();
             this.selectedNodeInfo = null;
             this.hoveredNode = null;
+            this.stopPulse();
+            this.resetServiceVisibility();
+            this.updateVisibleCounts();
             this.refreshSigma();
         },
 
