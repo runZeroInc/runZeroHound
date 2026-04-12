@@ -52,6 +52,9 @@ Supported input types (auto-detected):
   qualys    Qualys VM scan XML report
   masscan   Masscan XML (-oX) or JSON (-oJ) output
   shodan    Shodan JSONL export
+  qualys    Qualys VM scan XML report
+  masscan   Masscan XML (-oX) or JSON (-oJ) output
+  shodan    Shodan JSONL export
 
 Use -o/--output to specify the output file (default: stdout).
 `,

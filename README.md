@@ -88,16 +88,24 @@ API interaction and we plan to add a helper tool to support this in the future.
 - **RZAsset** - Connected devices with IPs, open ports, and system info
     - Connected to services via RZHasService and RZRunsOnAsset edges
     - Connected to subnets via RZInsideOfSubnet and RZSubnetContains edges
+- **RZNmapHost / RZNessusHost / RZOpenVASHost / RZQualysHost / RZMasscanHost / RZShodanHost / RZNetBoxDevice / RZSNMPHost / RZNextnetHost** - Source-specific host nodes from non-runZero parsers
 - **RZService** - Identified services on assets
     - Connected to assets via RZHasService and RZRunsOnAsset edges
 - **RZSubnet** - Network subnets with CIDR notation and host counts
     - Connected to assets via RZInsideOfSubnet and RZSubnetContains edges
     - Subnets assume /24 and /56 masks for IPv4 and IPv6 respectively
     - External subnets are connected to an "Internet" node
+- **RZRouter** - Intermediate router hops from traceroute data
+    - Connected to assets via RZTracerouteHop and RZRoutesTo edges
+    - Connected to their subnet via RZInsideOfSubnet
+- **RZSubAsset** - Indirectly-discovered network entities (ARP cache, MAC table, CDP/LLDP neighbours)
+    - Connected to parent host via RZHasSubAsset and RZSubAssetOf edges
 - **RZDomain** - Active Directory domain name if available
     - Connected to assets via RZPartOfDomain and RZDomainContains edges
 - **RZVLAN**   - VLAN IDs if available from asset attributes
     - Connected to assets via RZPartOfVLAN and RZVLANContains edges
+- **RZSSHHostKey / RZTLSCert / RZSMBGUID / RZSNMPv3EngineID** - Fingerprint correlation nodes
+    - Multiple assets sharing the same fingerprint link to the same node, enabling cross-source correlation
 
 ### Node Properties
 
@@ -208,3 +216,53 @@ return p
 
 runZeroHound is not an officially supported runZero product, but we still want to hear your feedback and bug reports.
 Please open an issue in this repository or email support[at]runZero.com.
+
+## Supported Data Sources
+
+runZeroHound can ingest data from any of the following sources:
+
+| Source | Format | Detection | Key Data Extracted |
+|--------|--------|-----------|-------------------|
+| **runZero** | JSONL / JSONL.gz | gzip header or JSON lines | Full asset model with all attributes, services, IPs, MACs, domains, VLANs |
+| **Nmap** | XML (-oX) | `<nmaprun` XML tag | IPs, MACs, hostnames, OS, services, SSH keys, TLS certs, SMB GUIDs, SNMP engine IDs, traceroute hops |
+| **Nessus** | .nessus XML | Extension or `NessusClientData` tag | IPs, MACs, hostnames, OS, services, SSH keys, TLS certs, SMB GUIDs, SNMP engine IDs, traceroute hops |
+| **OpenVAS/GVM** | XML | `<report` + `openvas`/`gvm` | IPs, MACs, hostnames, OS, services, SSH keys, TLS certs, SMB GUIDs, SNMP engine IDs |
+| **Qualys** | VM scan XML | `<SCAN` + `<IP` tags | IPs, MACs, hostnames, OS, services, SSH keys, TLS certs, SMB GUIDs, SNMP engine IDs |
+| **Masscan** | XML or JSON | `scanner="masscan"` or JSON with `ip`+`ports` | IPs, open ports, service banners |
+| **Shodan** | JSONL | `ip_str` in JSON | IPs, hostnames, OS, services, TLS certs, SSH keys, vulnerabilities |
+| **NetBox** | JSON API export | `count`+`results` JSON | IPs, hostnames, device types, roles, platforms, sites, racks |
+| **snmpwalk** | Text output | OID = TYPE: VALUE pattern | IPs, MACs, hostnames, OS (sysDescr), SNMP engine IDs, ARP cache, MAC table |
+| **nextnet** | .nxt JSONL | `.nxt` extension | IPs, NetBIOS names, MACs, secondary addresses, SNMP engine IDs |
+
+### Ideal Nmap Command
+
+For the best data from Nmap for use with runZeroHound, see [docs/nmap-commands.md](docs/nmap-commands.md).
+
+Quick reference for a comprehensive scan:
+
+```bash
+sudo nmap -sS -sU -sV -O --traceroute \
+  --script ssh-hostkey,ssl-cert,smb2-security-mode,snmp-info,nbstat \
+  -p T:22,80,443,445,3389,8080,8443,U:161,137 \
+  -oX scan.xml 192.168.1.0/24
+```
+
+### nextnet Scanner
+
+runZeroHound includes a built-in network scanner (`nextnet`) that probes for:
+- **NetBIOS** (UDP 137): Discovers hostnames, domains, MAC addresses, and multi-homed interface addresses
+- **SNMP** (UDP 161): Discovers sysDescr, sysName, SNMP engine IDs, interface addresses, ARP cache, and MAC tables
+
+```bash
+go run main.go nextnet 192.168.1.0/24 10.0.0.0/8
+```
+
+### Cross-Source Correlation
+
+When loading data from multiple sources, runZeroHound automatically correlates assets using shared cryptographic identities:
+- **SSH host keys** — Same host key fingerprint from Nmap, Nessus, and runZero links them as the same device
+- **TLS certificates** — Shared certificate SHA-1 fingerprints connect scanners observing the same endpoint
+- **SMB GUIDs** — Windows machine GUIDs link SMB-visible hosts across sources
+- **SNMPv3 Engine IDs** — Unique SNMP engine identifiers correlate managed network devices
+
+These fingerprints are normalised to a consistent lowercase colon-hex format across all parsers.
