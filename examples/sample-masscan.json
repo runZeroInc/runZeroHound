@@ -1,0 +1,15 @@
+[
+  {"ip": "192.0.2.10", "timestamp": "1710432001", "ports": [{"port": 22, "proto": "tcp", "status": "open", "ttl": 63, "service": {"name": "ssh", "banner": "SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6"}}]},
+  {"ip": "192.0.2.10", "timestamp": "1710432001", "ports": [{"port": 25, "proto": "tcp", "status": "open", "ttl": 63, "service": {"name": "smtp", "banner": "220 mail.example.com ESMTP Postfix"}}]},
+  {"ip": "192.0.2.10", "timestamp": "1710432001", "ports": [{"port": 443, "proto": "tcp", "status": "open", "ttl": 63, "service": {"name": "https"}}]},
+  {"ip": "198.51.100.5", "timestamp": "1710432002", "ports": [{"port": 53, "proto": "tcp", "status": "open", "ttl": 127, "service": {"name": "dns"}}]},
+  {"ip": "198.51.100.5", "timestamp": "1710432002", "ports": [{"port": 88, "proto": "tcp", "status": "open", "ttl": 127, "service": {"name": "kerberos"}}]},
+  {"ip": "198.51.100.5", "timestamp": "1710432002", "ports": [{"port": 445, "proto": "tcp", "status": "open", "ttl": 127, "service": {"name": "smb"}}]},
+  {"ip": "198.51.100.5", "timestamp": "1710432002", "ports": [{"port": 3389, "proto": "tcp", "status": "open", "ttl": 127, "service": {"name": "ms-wbt-server"}}]},
+  {"ip": "203.0.113.50", "timestamp": "1710432003", "ports": [{"port": 22, "proto": "tcp", "status": "open", "ttl": 254, "service": {"name": "ssh", "banner": "SSH-2.0-Cisco-1.25"}}]},
+  {"ip": "203.0.113.50", "timestamp": "1710432003", "ports": [{"port": 80, "proto": "tcp", "status": "open", "ttl": 254, "service": {"name": "http"}}]},
+  {"ip": "192.0.2.200", "timestamp": "1710432004", "ports": [{"port": 80, "proto": "tcp", "status": "open", "ttl": 63, "service": {"name": "http", "banner": "HTTP/1.1 200 OK\r\nServer: Apache/2.4.58"}}]},
+  {"ip": "192.0.2.200", "timestamp": "1710432004", "ports": [{"port": 443, "proto": "tcp", "status": "open", "ttl": 63, "service": {"name": "https"}}]},
+  {"ip": "192.0.2.200", "timestamp": "1710432004", "ports": [{"port": 8080, "proto": "tcp", "status": "open", "ttl": 63, "service": {"name": "http-proxy"}}]},
+  {"ip": "192.0.2.200", "timestamp": "1710432004", "ports": [{"port": 8443, "proto": "tcp", "status": "open", "ttl": 63, "service": {"name": "https-alt"}}]}
+]
