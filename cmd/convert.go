@@ -53,6 +53,7 @@ Supported input types (auto-detected):
   masscan      Masscan XML (-oX) or JSON (-oJ) output
   shodan       Shodan JSONL export
   nexpose      Rapid7 Nexpose/InsightVM XML report
+  nextnet      nextnet scanner output (.nxt)
 
 Use -o/--output to specify the output file (default: stdout).
 `,
@@ -210,6 +211,14 @@ func generateOpenGraph(inputFiles []string, outputFD *os.File) error {
 			result, err := input.ParseNexpose(path)
 			if err != nil {
 				return fmt.Errorf("parse nexpose %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeNextnet:
+			result, err := input.ParseNextnet(path)
+			if err != nil {
+				return fmt.Errorf("parse nextnet %s: %w", path, err)
 			}
 			nodes, edges := input.BuildOpenGraph(result.Hosts)
 			mergeResult(nodes, edges)

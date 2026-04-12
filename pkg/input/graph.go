@@ -440,6 +440,8 @@ func sourceKind(ft FileType) string {
 		return "RZOneSixtyOneHost"
 	case FileTypeNexpose:
 		return "RZNexposeHost"
+	case FileTypeNextnet:
+		return "RZNextnetHost"
 	default:
 		return "RZAsset"
 	}

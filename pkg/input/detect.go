@@ -28,6 +28,7 @@ const (
 	FileTypeOneSixtyOne           // onesixtyone SNMP scanner output
 	FileTypeNexpose               // Rapid7 Nexpose/InsightVM XML report
 	FileTypeQualysCSV             // Qualys VM scan CSV report
+	FileTypeNextnet               // nextnet .nxt JSONL output
 )
 
 // String returns a human-readable name for the file type.
@@ -59,6 +60,8 @@ func (ft FileType) String() string {
 		return "nexpose"
 	case FileTypeQualysCSV:
 		return "qualys-csv"
+	case FileTypeNextnet:
+		return "nextnet"
 	default:
 		return "unknown"
 	}
@@ -66,7 +69,7 @@ func (ft FileType) String() string {
 
 // DetectFileType inspects the path (and its contents) to determine the format.
 // Detection order:
-//  1. .nessus extension → Nessus
+//  1. extension-based detection (.nessus, .walk, .161, .nxt)
 //  2. gzip magic bytes → runZero gzip-compressed JSONL
 //  3. XML header dispatch: nmaprun → Nmap, NessusClientData → Nessus, OpenVAS report → OpenVAS
 //  4. JSON with count+results → NetBox
@@ -84,6 +87,9 @@ func DetectFileType(path string) (FileType, error) {
 	}
 	if strings.HasSuffix(lower, ".161") {
 		return FileTypeOneSixtyOne, nil
+	}
+	if strings.HasSuffix(lower, ".nxt") {
+		return FileTypeNextnet, nil
 	}
 
 	fd, err := os.Open(path) // #nosec G304

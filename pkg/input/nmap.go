@@ -28,8 +28,8 @@ type nmapHost struct {
 }
 
 type nmapTrace struct {
-	Port  string        `xml:"port,attr"`
-	Proto string        `xml:"proto,attr"`
+	Port  string         `xml:"port,attr"`
+	Proto string         `xml:"proto,attr"`
 	Hops  []nmapTraceHop `xml:"hop"`
 }
 
@@ -63,10 +63,10 @@ type nmapPorts struct {
 }
 
 type nmapPort struct {
-	Protocol string      `xml:"protocol,attr"`
-	PortID   string      `xml:"portid,attr"`
-	State    nmapState   `xml:"state"`
-	Service  nmapService `xml:"service"`
+	Protocol string       `xml:"protocol,attr"`
+	PortID   string       `xml:"portid,attr"`
+	State    nmapState    `xml:"state"`
+	Service  nmapService  `xml:"service"`
 	Scripts  []nmapScript `xml:"script"`
 }
 
