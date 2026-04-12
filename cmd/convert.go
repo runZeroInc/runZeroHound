@@ -49,6 +49,9 @@ Supported input types (auto-detected):
   nessus    Nessus vulnerability scanner report (.nessus)
   openvas   OpenVAS/GVM XML report
   netbox    NetBox DCIM/IPAM JSON API export
+  qualys    Qualys VM scan XML report
+  masscan   Masscan XML (-oX) or JSON (-oJ) output
+  shodan    Shodan JSONL export
 
 Use -o/--output to specify the output file (default: stdout).
 `,
@@ -166,6 +169,30 @@ func generateOpenGraph(inputFiles []string, outputFD *os.File) error {
 			result, err := input.ParseNetBox(path)
 			if err != nil {
 				return fmt.Errorf("parse netbox %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeQualys:
+			result, err := input.ParseQualys(path)
+			if err != nil {
+				return fmt.Errorf("parse qualys %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeMasscan:
+			result, err := input.ParseMasscan(path)
+			if err != nil {
+				return fmt.Errorf("parse masscan %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeShodan:
+			result, err := input.ParseShodan(path)
+			if err != nil {
+				return fmt.Errorf("parse shodan %s: %w", path, err)
 			}
 			nodes, edges := input.BuildOpenGraph(result.Hosts)
 			mergeResult(nodes, edges)

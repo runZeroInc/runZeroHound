@@ -22,6 +22,9 @@ const (
 	FileTypeNessus                // Nessus .nessus XML report
 	FileTypeOpenVAS               // OpenVAS/GVM XML report
 	FileTypeNetBox                // NetBox JSON API export
+	FileTypeQualys                // Qualys VM scan XML report
+	FileTypeMasscan               // Masscan XML or JSON output
+	FileTypeShodan                // Shodan JSONL export
 )
 
 // String returns a human-readable name for the file type.
@@ -43,6 +46,12 @@ func (ft FileType) String() string {
 		return "openvas"
 	case FileTypeNetBox:
 		return "netbox"
+	case FileTypeQualys:
+		return "qualys"
+	case FileTypeMasscan:
+		return "masscan"
+	case FileTypeShodan:
+		return "shodan"
 	default:
 		return "unknown"
 	}
@@ -95,13 +104,30 @@ func DetectFileType(path string) (FileType, error) {
 		case bytes.Contains(trimmed, []byte("NessusClientData")):
 			return FileTypeNessus, nil
 		case bytes.Contains(trimmed, []byte("<nmaprun")):
+			// Distinguish masscan XML from nmap XML
+			if bytes.Contains(trimmed, []byte(`scanner="masscan"`)) {
+				return FileTypeMasscan, nil
+			}
 			return FileTypeNmapXML, nil
 		case bytes.Contains(trimmed, []byte("<report")) &&
 			(bytes.Contains(trimmed, []byte("openvas")) ||
 				bytes.Contains(trimmed, []byte("gvm")) ||
 				bytes.Contains(trimmed, []byte("<results"))):
 			return FileTypeOpenVAS, nil
+		case bytes.Contains(trimmed, []byte("<SCAN")) &&
+			bytes.Contains(trimmed, []byte("<IP")):
+			return FileTypeQualys, nil
 		}
+	}
+
+	// 4b. Shodan JSONL detection: first line is a JSON object with "ip_str" key
+	if looksLikeShodan(header) {
+		return FileTypeShodan, nil
+	}
+
+	// 4c. Masscan JSON detection: array of objects with "ip" and "ports" keys
+	if looksLikeMasscanJSON(header) {
+		return FileTypeMasscan, nil
 	}
 
 	// 5. JSON with NetBox shape: {"count": N, "results": [...]}
@@ -139,6 +165,29 @@ func looksLikeSNMPWalk(data []byte) bool {
 		}
 	}
 	return false
+}
+
+// looksLikeShodan returns true when the first line looks like a Shodan JSONL
+// record: a JSON object with an "ip_str" key.
+func looksLikeShodan(data []byte) bool {
+	s := string(data)
+	firstLine := strings.SplitN(s, "\n", 2)[0]
+	firstLine = strings.TrimSpace(firstLine)
+	return strings.HasPrefix(firstLine, "{") && strings.Contains(firstLine, `"ip_str"`)
+}
+
+// looksLikeMasscanJSON returns true when the header looks like Masscan JSON
+// output: an array of objects with "ip" and "ports" keys (but not "ip_str"
+// which would indicate Shodan).
+func looksLikeMasscanJSON(data []byte) bool {
+	s := string(data)
+	trimmed := strings.TrimSpace(s)
+	if !strings.HasPrefix(trimmed, "[") && !strings.HasPrefix(trimmed, "{") {
+		return false
+	}
+	return strings.Contains(s, `"ip"`) &&
+		strings.Contains(s, `"ports"`) &&
+		!strings.Contains(s, `"ip_str"`)
 }
 
 // looksLikeNetBox returns true when the header bytes look like a NetBox API

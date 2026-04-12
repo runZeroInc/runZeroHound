@@ -343,6 +343,12 @@ func sourceKind(ft FileType) string {
 		return "RZOpenVASHost"
 	case FileTypeNetBox:
 		return "RZNetBoxDevice"
+	case FileTypeQualys:
+		return "RZQualysHost"
+	case FileTypeMasscan:
+		return "RZMasscanHost"
+	case FileTypeShodan:
+		return "RZShodanHost"
 	default:
 		return "RZAsset"
 	}
