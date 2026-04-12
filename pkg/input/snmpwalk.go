@@ -62,9 +62,9 @@ func parseSNMPWalkReader(r io.Reader, hint string) (*ParseResult, error) {
 		// Support "# Target: <ip>" comments to separate per-host blocks
 		if strings.HasPrefix(line, "#") {
 			if strings.Contains(line, "Target:") || strings.Contains(line, "target:") {
-				parts := strings.SplitN(line, ":", 3)
-				if len(parts) == 3 {
-					ip := strings.TrimSpace(parts[2])
+				parts := strings.SplitN(line, ":", 2)
+				if len(parts) >= 2 {
+					ip := strings.TrimSpace(parts[1])
 					if ip != "" {
 						// Save current host if it has any data
 						if len(current.Attributes) > 0 || len(current.Addresses) > 0 {

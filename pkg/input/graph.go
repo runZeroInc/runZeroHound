@@ -135,7 +135,7 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 			}
 			network := ipNet.String()
 			ip := net.ParseIP(addr)
-			if ip == nil || ip.IsLinkLocalUnicast() || ip.IsLoopback() || ip.IsMulticast() || ip.IsUnspecified() {
+			if shouldSkipIP(ip) {
 				continue
 			}
 			subnets[network]++
@@ -219,7 +219,7 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 						continue
 					}
 					rIP := net.ParseIP(rAddr)
-					if rIP == nil || rIP.IsLinkLocalUnicast() || rIP.IsLoopback() {
+					if shouldSkipIP(rIP) {
 						continue
 					}
 					network := ipNet.String()
@@ -394,6 +394,12 @@ func isPublicFingerprint(fpKey string) bool {
 		return true
 	}
 	return false
+}
+
+// shouldSkipIP returns true if the IP address should be excluded from graph topology
+// (link-local, loopback, multicast, or unspecified addresses).
+func shouldSkipIP(ip net.IP) bool {
+	return ip == nil || ip.IsLinkLocalUnicast() || ip.IsLoopback() || ip.IsMulticast() || ip.IsUnspecified()
 }
 
 // sanitizeFP makes a fingerprint value safe for use in a node ID.
