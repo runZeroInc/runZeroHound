@@ -199,7 +199,7 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 				routerNodes[routerID] = true
 				routerProps := map[string]any{
 					"displayname":  hop.Addresses[0],
-					"ip_addresses": strings.Join(hop.Addresses, ","),
+				"ip_addresses": strings.Join(hop.Addresses, ","),
 					"ttl":          hop.TTL,
 				}
 				if hop.RTT > 0 {
@@ -226,7 +226,7 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 						continue
 					}
 					rIP := net.ParseIP(rAddr)
-					if shouldSkipIP(rIP) {
+				if shouldSkipIP(rIP) {
 						continue
 					}
 					network := ipNet.String()

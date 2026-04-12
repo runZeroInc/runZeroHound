@@ -65,6 +65,7 @@ func nextnetRecordToHost(rec *NextnetRecord) *ParsedHost {
 
 	ph := &ParsedHost{
 		Source:     FileTypeNextnet,
+		Sources:    []string{"nextnet"},
 		Attributes: make(map[string]string),
 		UniqueKeys: make(map[string]string),
 	}
@@ -125,7 +126,11 @@ func extractNextnetFingerprint(ph *ParsedHost, key, value string) {
 	case k == "snmpv3_engine_id" || k == "engine_id" || strings.Contains(k, "engineid"):
 		ph.UniqueKeys["snmpv3_engine_id"] = value
 	case k == "hwaddr" || k == "mac":
-		ph.Attributes["mac_address"] = value
+		mac := normalizeMACAddress(value)
+		if mac != "" {
+			ph.MACs = appendUnique(ph.MACs, mac)
+			ph.Attributes["mac_address"] = mac
+		}
 	case k == "domain":
 		ph.Attributes["netbios_domain"] = value
 	case k == "username":
