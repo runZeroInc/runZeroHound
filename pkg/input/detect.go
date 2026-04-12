@@ -101,8 +101,6 @@ func DetectFileType(path string) (FileType, error) {
 				bytes.Contains(trimmed, []byte("gvm")) ||
 				bytes.Contains(trimmed, []byte("<results"))):
 			return FileTypeOpenVAS, nil
-		case bytes.Contains(trimmed, []byte("<nmaprun")):
-			return FileTypeNmapXML, nil
 		}
 	}
 

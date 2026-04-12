@@ -252,6 +252,9 @@ func normalizeFingerprint(fp string) string {
 }
 
 // isFingerprintHex returns true if s looks like a colon-separated hex fingerprint.
+// We require at least 8 colon-separated pairs (64-bit minimum) so that short
+// hex strings like SMB GUIDs or serial numbers are not misidentified.
+// SHA-1 fingerprints have 20 pairs; MD5 has 16 pairs — both exceed this threshold.
 func isFingerprintHex(s string) bool {
 	parts := strings.Split(s, ":")
 	if len(parts) < 8 {

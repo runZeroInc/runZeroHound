@@ -188,22 +188,23 @@ func normalizeMACFromHexString(s string) string {
 	return strings.ToLower(strings.Join(parts, ":"))
 }
 
-// extractIPFromName tries to find an IPv4 address in a file name.
+// extractIPFromName tries to find a valid IPv4 address in a file name.
+// For example "192.168.1.1.txt" → "192.168.1.1".
 func extractIPFromName(name string) string {
-	// Strip directory and extension
+	// Strip directory
 	base := name
 	if idx := strings.LastIndex(name, "/"); idx >= 0 {
 		base = name[idx+1:]
 	}
+	// Try stripping the last extension first ("192.168.1.1.txt" → "192.168.1.1")
 	if idx := strings.LastIndex(base, "."); idx >= 0 {
-		// Keep only if remainder looks like an IP
 		candidate := base[:idx]
-		if strings.Count(candidate, ".") == 3 {
+		if net.ParseIP(candidate) != nil {
 			return candidate
 		}
 	}
-	// Check the whole base name
-	if strings.Count(base, ".") == 3 {
+	// Try the whole base name without extension
+	if net.ParseIP(base) != nil {
 		return base
 	}
 	return ""

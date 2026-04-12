@@ -104,7 +104,11 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 			)
 		}
 
-		// Subnet nodes and edges
+		// Subnet nodes and edges.
+		// We use /24 for IPv4 and /56 for IPv6 as aggregation boundaries —
+		// /24 is the common "class C" that ops teams think in, and /56 is
+		// the typical ISP delegation for IPv6. These boundaries are chosen
+		// for graph readability; they do not represent actual routing topology.
 		for _, addr := range ph.Addresses {
 			mask := "24"
 			if strings.Contains(addr, ":") {
