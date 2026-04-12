@@ -140,7 +140,7 @@ func AddressesFromCIDR(cidr string, o chan<- string) {
 	}
 	ip4 := ipNet.IP.To4()
 	if ip4 == nil {
-		fmt.Fprintf(os.Stderr, "invalid IPv4 CIDR %s\n", cidr)
+		fmt.Fprintf(os.Stderr, "skipping IPv6 CIDR %s (only IPv4 is currently supported)\n", cidr)
 		return
 	}
 	net_base, err := IPv4_to_UInt(ipNet.IP.String())
