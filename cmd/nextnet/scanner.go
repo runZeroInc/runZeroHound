@@ -91,6 +91,7 @@ func Scanner(cidrs []string, ppsRate int, output *os.File) error {
 	// Reset and initialize probes for this scan
 	probes = nil
 	probes = append(probes, new(ProbeNetbios))
+	probes = append(probes, new(ProbeSNMP))
 	for _, probe := range probes {
 		probe.Initialize()
 		probe.SetOutput(cOut)
