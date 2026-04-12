@@ -223,6 +223,12 @@ func sourceKind(ft FileType) string {
 		return "RZSNMPHost"
 	case FileTypeNextnet:
 		return "RZNextnetHost"
+	case FileTypeNessus:
+		return "RZNessusHost"
+	case FileTypeOpenVAS:
+		return "RZOpenVASHost"
+	case FileTypeNetBox:
+		return "RZNetBoxDevice"
 	default:
 		return "RZAsset"
 	}

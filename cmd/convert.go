@@ -46,6 +46,9 @@ Supported input types (auto-detected):
   nmap      Nmap XML output (-oX)
   snmpwalk  net-snmp snmpwalk text output
   nextnet   nextnet scanner output (.nxt)
+  nessus    Nessus vulnerability scanner report (.nessus)
+  openvas   OpenVAS/GVM XML report
+  netbox    NetBox DCIM/IPAM JSON API export
 
 Use -o/--output to specify the output file (default: stdout).
 `,
@@ -139,6 +142,30 @@ func generateOpenGraph(inputFiles []string, outputFD *os.File) error {
 			result, err := input.ParseNextnet(path)
 			if err != nil {
 				return fmt.Errorf("parse nextnet %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeNessus:
+			result, err := input.ParseNessus(path)
+			if err != nil {
+				return fmt.Errorf("parse nessus %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeOpenVAS:
+			result, err := input.ParseOpenVAS(path)
+			if err != nil {
+				return fmt.Errorf("parse openvas %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeNetBox:
+			result, err := input.ParseNetBox(path)
+			if err != nil {
+				return fmt.Errorf("parse netbox %s: %w", path, err)
 			}
 			nodes, edges := input.BuildOpenGraph(result.Hosts)
 			mergeResult(nodes, edges)

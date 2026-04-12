@@ -19,6 +19,9 @@ const (
 	FileTypeNmapXML               // Nmap XML output (-oX)
 	FileTypeSNMPWalk              // net-snmp snmpwalk text output
 	FileTypeNextnet               // nextnet .nxt JSONL output
+	FileTypeNessus                // Nessus .nessus XML report
+	FileTypeOpenVAS               // OpenVAS/GVM XML report
+	FileTypeNetBox                // NetBox JSON API export
 )
 
 // String returns a human-readable name for the file type.
@@ -34,6 +37,12 @@ func (ft FileType) String() string {
 		return "snmpwalk"
 	case FileTypeNextnet:
 		return "nextnet"
+	case FileTypeNessus:
+		return "nessus"
+	case FileTypeOpenVAS:
+		return "openvas"
+	case FileTypeNetBox:
+		return "netbox"
 	default:
 		return "unknown"
 	}
@@ -42,14 +51,23 @@ func (ft FileType) String() string {
 // DetectFileType inspects the path (and its contents) to determine the format.
 // Detection order:
 //  1. .nxt extension → nextnet
-//  2. gzip magic bytes → runZero gzip-compressed JSONL
-//  3. XML / nmaprun header → Nmap XML
-//  4. snmpwalk OID pattern → snmpwalk
-//  5. fallback → runZero JSONL
+//  2. .nessus extension → Nessus
+//  3. gzip magic bytes → runZero gzip-compressed JSONL
+//  4. XML header dispatch: nmaprun → Nmap, NessusClientData → Nessus, OpenVAS report → OpenVAS
+//  5. JSON with count+results → NetBox
+//  6. snmpwalk OID pattern → snmpwalk
+//  7. fallback → runZero JSONL
 func DetectFileType(path string) (FileType, error) {
+	lower := strings.ToLower(path)
+
 	// 1. Extension-based detection for nextnet
-	if strings.HasSuffix(strings.ToLower(path), ".nxt") {
+	if strings.HasSuffix(lower, ".nxt") {
 		return FileTypeNextnet, nil
+	}
+
+	// 2. Extension-based detection for Nessus
+	if strings.HasSuffix(lower, ".nessus") {
+		return FileTypeNessus, nil
 	}
 
 	fd, err := os.Open(path) // #nosec G304
@@ -65,23 +83,40 @@ func DetectFileType(path string) (FileType, error) {
 	}
 	header = header[:n]
 
-	// 2. gzip magic bytes → runZero gzip JSONL
+	// 3. gzip magic bytes → runZero gzip JSONL
 	if len(header) >= 2 && header[0] == 0x1f && header[1] == 0x8b {
 		return FileTypeRunZeroGZIP, nil
 	}
 
-	// 3. XML / Nmap header
+	// 4. XML dispatch
 	trimmed := bytes.TrimSpace(header)
-	if bytes.HasPrefix(trimmed, []byte("<?xml")) || bytes.Contains(trimmed, []byte("<nmaprun")) {
-		return FileTypeNmapXML, nil
+	if bytes.HasPrefix(trimmed, []byte("<?xml")) || bytes.HasPrefix(trimmed, []byte("<")) {
+		switch {
+		case bytes.Contains(trimmed, []byte("NessusClientData")):
+			return FileTypeNessus, nil
+		case bytes.Contains(trimmed, []byte("<nmaprun")):
+			return FileTypeNmapXML, nil
+		case bytes.Contains(trimmed, []byte("<report")) &&
+			(bytes.Contains(trimmed, []byte("openvas")) ||
+				bytes.Contains(trimmed, []byte("gvm")) ||
+				bytes.Contains(trimmed, []byte("<results"))):
+			return FileTypeOpenVAS, nil
+		case bytes.Contains(trimmed, []byte("<nmaprun")):
+			return FileTypeNmapXML, nil
+		}
 	}
 
-	// 4. snmpwalk OID pattern
+	// 5. JSON with NetBox shape: {"count": N, "results": [...]}
+	if looksLikeNetBox(header) {
+		return FileTypeNetBox, nil
+	}
+
+	// 6. snmpwalk OID pattern
 	if looksLikeSNMPWalk(header) {
 		return FileTypeSNMPWalk, nil
 	}
 
-	// 5. Fallback to runZero JSONL
+	// 7. Fallback to runZero JSONL
 	return FileTypeRunZeroJSONL, nil
 }
 
@@ -106,4 +141,13 @@ func looksLikeSNMPWalk(data []byte) bool {
 		}
 	}
 	return false
+}
+
+// looksLikeNetBox returns true when the header bytes look like a NetBox API
+// response: a JSON object with both "count" and "results" keys.
+func looksLikeNetBox(data []byte) bool {
+	s := string(data)
+	return strings.Contains(s, `"count"`) &&
+		strings.Contains(s, `"results"`) &&
+		strings.HasPrefix(strings.TrimSpace(s), "{")
 }

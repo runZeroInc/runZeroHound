@@ -233,3 +233,213 @@ func TestBuildOpenGraph(t *testing.T) {
 		t.Errorf("expected 1 RZSSHHostKey fingerprint node, got %d", fpCount)
 	}
 }
+
+// TestParseNessus validates Nessus .nessus XML parsing.
+func TestParseNessus(t *testing.T) {
+	content := `<?xml version="1.0" ?>
+<NessusClientData_v2>
+  <Policy><policyName>Test</policyName></Policy>
+  <Report name="Test Scan">
+    <ReportHost name="10.0.0.1">
+      <HostProperties>
+        <tag name="host-ip">10.0.0.1</tag>
+        <tag name="host-fqdn">myhost.example.com</tag>
+        <tag name="operating-system">Linux Kernel 5.15</tag>
+        <tag name="mac-address">aa:bb:cc:dd:ee:ff</tag>
+      </HostProperties>
+      <ReportItem port="22" svc_name="ssh" protocol="tcp" severity="0"
+                  pluginID="53491" pluginName="SSH Host Key Fingerprint">
+        <plugin_output>RSA key fingerprint : ab:cd:ef:12:34:56:78:90:ab:cd:ef:12:34:56:78:90</plugin_output>
+      </ReportItem>
+      <ReportItem port="443" svc_name="https" protocol="tcp" severity="0"
+                  pluginID="10863" pluginName="SSL Certificate Information">
+        <plugin_output>Subject: CN=myhost
+SHA-1 Fingerprint: AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD</plugin_output>
+      </ReportItem>
+      <ReportItem port="445" svc_name="cifs" protocol="tcp" severity="0"
+                  pluginID="10785" pluginName="SMB Info">
+        <plugin_output>Server GUID : 12345678-ABCD-EF01-2345-6789ABCDEF01</plugin_output>
+      </ReportItem>
+    </ReportHost>
+  </Report>
+</NessusClientData_v2>`
+
+	path := filepath.Join(t.TempDir(), "scan.nessus")
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := input.ParseNessus(path)
+	if err != nil {
+		t.Fatalf("ParseNessus: %v", err)
+	}
+	if len(result.Hosts) != 1 {
+		t.Fatalf("got %d hosts, want 1", len(result.Hosts))
+	}
+	h := result.Hosts[0]
+
+	if len(h.Addresses) == 0 || h.Addresses[0] != "10.0.0.1" {
+		t.Errorf("unexpected address: %v", h.Addresses)
+	}
+	if len(h.Names) == 0 || h.Names[0] != "myhost.example.com" {
+		t.Errorf("unexpected names: %v", h.Names)
+	}
+	if h.OS != "Linux Kernel 5.15" {
+		t.Errorf("unexpected OS: %q", h.OS)
+	}
+	if _, ok := h.UniqueKeys["ssh_hostkey_fp"]; !ok {
+		t.Error("expected ssh_hostkey_fp")
+	}
+	if _, ok := h.UniqueKeys["tls_cert_fp"]; !ok {
+		t.Error("expected tls_cert_fp")
+	}
+	if _, ok := h.UniqueKeys["smb_guid"]; !ok {
+		t.Error("expected smb_guid")
+	}
+}
+
+// TestParseOpenVAS validates OpenVAS/GVM XML report parsing.
+func TestParseOpenVAS(t *testing.T) {
+	content := `<?xml version="1.0"?>
+<report id="test-id" type="scan" xmlns:gvm="http://www.openvas.org/omp/gvm-2">
+  <results max="10" start="1">
+    <result id="r1">
+      <name>SSH Host Key Fingerprint</name>
+      <host><ip>10.0.0.2</ip><hostname>server.example.com</hostname></host>
+      <port>22/tcp</port>
+      <nvt oid="1.3.6.1.4.1.25623.1.0.103997">
+        <name>SSH Host Key Fingerprint</name>
+        <family>General</family>
+        <cvss_base>0.0</cvss_base>
+        <tags>summary=key fp retrieved</tags>
+      </nvt>
+      <description>RSA key fingerprint: ab:cd:ef:12:34:56:78:90:ab:cd:ef:12:34:56:78:90</description>
+      <severity>0.0</severity>
+    </result>
+    <result id="r2">
+      <name>SNMP Detection</name>
+      <host><ip>10.0.0.2</ip><hostname></hostname></host>
+      <port>161/udp</port>
+      <nvt oid="1.3.6.1.4.1.25623.1.0.10264">
+        <name>SNMP Detection</name>
+        <family>Service detection</family>
+        <cvss_base>5.0</cvss_base>
+        <tags>summary=SNMP open</tags>
+      </nvt>
+      <description>Engine ID: 800000090300AABBCCDDEEFF</description>
+      <severity>5.0</severity>
+    </result>
+  </results>
+  <host>
+    <ip>10.0.0.2</ip>
+    <detail><name>OS</name><value>Ubuntu 22.04</value><source><type>nvt</type><name>oid</name></source></detail>
+  </host>
+</report>`
+
+	path := filepath.Join(t.TempDir(), "openvas.xml")
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := input.ParseOpenVAS(path)
+	if err != nil {
+		t.Fatalf("ParseOpenVAS: %v", err)
+	}
+	if len(result.Hosts) != 1 {
+		t.Fatalf("got %d hosts, want 1", len(result.Hosts))
+	}
+	h := result.Hosts[0]
+
+	if len(h.Addresses) == 0 || h.Addresses[0] != "10.0.0.2" {
+		t.Errorf("unexpected address: %v", h.Addresses)
+	}
+	if _, ok := h.UniqueKeys["ssh_hostkey_fp"]; !ok {
+		t.Error("expected ssh_hostkey_fp")
+	}
+	if _, ok := h.UniqueKeys["snmpv3_engine_id"]; !ok {
+		t.Error("expected snmpv3_engine_id")
+	}
+}
+
+// TestParseNetBox validates NetBox JSON API export parsing.
+func TestParseNetBox(t *testing.T) {
+	content := `{
+  "count": 2,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "name": "router01",
+      "device_type": {"id": 1, "name": "CSR1000v", "slug": "csr1000v"},
+      "device_role": {"id": 1, "name": "Router", "slug": "router"},
+      "platform": {"id": 1, "name": "Cisco IOS-XE", "slug": "cisco-ios-xe"},
+      "site": {"id": 1, "name": "Main Office", "slug": "main-office"},
+      "rack": {"id": 1, "name": "Rack A01", "slug": "rack-a01"},
+      "status": {"value": "active", "label": "Active"},
+      "primary_ip4": {"id": 1, "address": "192.168.1.1/24", "family": {"value": 4, "label": "IPv4"}},
+      "primary_ip6": null,
+      "comments": "",
+      "custom_fields": {}
+    },
+    {
+      "id": 2,
+      "name": "server01",
+      "device_type": {"id": 2, "name": "PowerEdge R740", "slug": "r740"},
+      "device_role": {"id": 2, "name": "Server", "slug": "server"},
+      "platform": {"id": 2, "name": "Ubuntu 22.04", "slug": "ubuntu-2204"},
+      "site": {"id": 1, "name": "Main Office", "slug": "main-office"},
+      "rack": {"id": 1, "name": "Rack A01", "slug": "rack-a01"},
+      "status": {"value": "active", "label": "Active"},
+      "primary_ip4": {"id": 2, "address": "192.168.1.2/24", "family": {"value": 4, "label": "IPv4"}},
+      "primary_ip6": null,
+      "comments": "Web server",
+      "custom_fields": {"criticality": "high"}
+    }
+  ]
+}`
+
+	path := filepath.Join(t.TempDir(), "netbox.json")
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := input.ParseNetBox(path)
+	if err != nil {
+		t.Fatalf("ParseNetBox: %v", err)
+	}
+	if len(result.Hosts) != 2 {
+		t.Fatalf("got %d hosts, want 2", len(result.Hosts))
+	}
+
+	// Check first device
+	var router, server *input.ParsedHost
+	for _, h := range result.Hosts {
+		if len(h.Names) > 0 && h.Names[0] == "router01" {
+			router = h
+		} else if len(h.Names) > 0 && h.Names[0] == "server01" {
+			server = h
+		}
+	}
+
+	if router == nil {
+		t.Fatal("router01 not found")
+	}
+	if len(router.Addresses) == 0 || router.Addresses[0] != "192.168.1.1" {
+		t.Errorf("router01 address: %v", router.Addresses)
+	}
+	if router.Attributes["device_role"] != "Router" {
+		t.Errorf("router01 role: %q", router.Attributes["device_role"])
+	}
+	if router.OS != "Cisco IOS-XE" {
+		t.Errorf("router01 OS: %q", router.OS)
+	}
+
+	if server == nil {
+		t.Fatal("server01 not found")
+	}
+	if server.Attributes["cf_criticality"] != "high" {
+		t.Errorf("server01 custom field: %q", server.Attributes["cf_criticality"])
+	}
+}
+
