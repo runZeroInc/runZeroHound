@@ -1,0 +1,53 @@
+# Example net-snmp snmpwalk output
+# Generated with: snmpwalk -v2c -c public 192.168.1.20
+# Target: 192.168.1.20
+
+SNMPv2-MIB::sysDescr.0 = STRING: Cisco IOS Software, Version 15.2(4)M7, RELEASE SOFTWARE (fc4)
+SNMPv2-MIB::sysObjectID.0 = OID: SNMPv2-SMI::enterprises.9.1.2126
+DISMAN-EVENT-MIB::sysUpTimeInstance = Timeticks: (3812400) 10:35:24.00
+SNMPv2-MIB::sysContact.0 = STRING: admin@home.lab
+SNMPv2-MIB::sysName.0 = STRING: switch.home.lab
+SNMPv2-MIB::sysLocation.0 = STRING: Server Room, Rack 2
+SNMPv2-MIB::sysServices.0 = INTEGER: 6
+IF-MIB::ifNumber.0 = INTEGER: 4
+IF-MIB::ifDescr.1 = STRING: GigabitEthernet0/0
+IF-MIB::ifDescr.2 = STRING: GigabitEthernet0/1
+IF-MIB::ifDescr.3 = STRING: GigabitEthernet0/2
+IF-MIB::ifDescr.4 = STRING: Loopback0
+IF-MIB::ifType.1 = INTEGER: ethernetCsmacd(6)
+IF-MIB::ifType.2 = INTEGER: ethernetCsmacd(6)
+IF-MIB::ifType.4 = INTEGER: softwareLoopback(24)
+IF-MIB::ifPhysAddress.1 = Hex-STRING: AA BB CC DD EE 03
+IF-MIB::ifPhysAddress.2 = Hex-STRING: AA BB CC DD EE 04
+IF-MIB::ifPhysAddress.3 = Hex-STRING: AA BB CC DD EE 05
+IF-MIB::ifAdminStatus.1 = INTEGER: up(1)
+IF-MIB::ifAdminStatus.2 = INTEGER: up(1)
+IF-MIB::ifOperStatus.1 = INTEGER: up(1)
+IF-MIB::ifOperStatus.2 = INTEGER: up(1)
+IP-MIB::ipAdEntAddr.192.168.1.20 = IpAddress: 192.168.1.20
+IP-MIB::ipAdEntAddr.10.10.10.1 = IpAddress: 10.10.10.1
+IP-MIB::ipAdEntNetMask.192.168.1.20 = IpAddress: 255.255.255.0
+IP-MIB::ipAdEntNetMask.10.10.10.1 = IpAddress: 255.255.255.0
+SNMP-FRAMEWORK-MIB::snmpEngineID.0 = Hex-STRING: 80 00 00 09 03 4D 59 20 52 6F 75 74 65 72
+SNMP-FRAMEWORK-MIB::snmpEngineBoots.0 = Gauge32: 42
+SNMP-FRAMEWORK-MIB::snmpEngineTime.0 = Gauge32: 381240
+
+# Target: 192.168.1.21
+
+SNMPv2-MIB::sysDescr.0 = STRING: Linux ubuntu-server 5.15.0-100-generic #110-Ubuntu SMP Thu Feb 22 14:47:48 UTC 2024 x86_64
+SNMPv2-MIB::sysObjectID.0 = OID: NET-SNMP-MIB::netSnmpAgentOIDs.10
+DISMAN-EVENT-MIB::sysUpTimeInstance = Timeticks: (12345678) 1 day, 10:17:36.78
+SNMPv2-MIB::sysContact.0 = STRING: sysadmin@home.lab
+SNMPv2-MIB::sysName.0 = STRING: ubuntu-server
+SNMPv2-MIB::sysLocation.0 = STRING: Server Room, Rack 1
+SNMPv2-MIB::sysServices.0 = INTEGER: 72
+IF-MIB::ifNumber.0 = INTEGER: 2
+IF-MIB::ifDescr.1 = STRING: ens3
+IF-MIB::ifDescr.2 = STRING: lo
+IF-MIB::ifPhysAddress.1 = Hex-STRING: AA BB CC DD EE 06
+IF-MIB::ifAdminStatus.1 = INTEGER: up(1)
+IF-MIB::ifOperStatus.1 = INTEGER: up(1)
+IP-MIB::ipAdEntAddr.192.168.1.21 = IpAddress: 192.168.1.21
+IP-MIB::ipAdEntNetMask.192.168.1.21 = IpAddress: 255.255.255.0
+SNMP-FRAMEWORK-MIB::snmpEngineID.0 = Hex-STRING: 80 00 1F 88 04 12 34 56 78 9A BC DE F0 12 34 56
+SNMP-FRAMEWORK-MIB::snmpEngineBoots.0 = Gauge32: 5

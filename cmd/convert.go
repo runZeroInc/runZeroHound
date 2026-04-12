@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/runZeroInc/runZeroHound/pkg/bloodhound"
+	"github.com/runZeroInc/runZeroHound/pkg/input"
 	"github.com/runZeroInc/runZeroHound/pkg/runzero"
 	"github.com/runZeroInc/runZeroHound/pkg/runzero/models"
 	"github.com/runZeroInc/runZeroHound/pkg/runzero/sanitize"
@@ -21,39 +22,47 @@ import (
 )
 
 type ConvertSettings struct {
-	Prefix    string
-	InputFile string
-	OutputFD  *os.File
-	Type      string
+	Prefix     string
+	OutputFile string
+	OutputFD   *os.File
+	Type       string
 }
 
 var convertSettings = ConvertSettings{}
 
 func init() {
 	convertCmd.Flags().StringVarP(&convertSettings.Type, "type", "t", "opengraph", "Specify the type of graph to generate")
+	convertCmd.Flags().StringVarP(&convertSettings.OutputFile, "output", "o", "-", "Output file path ('-' for stdout)")
 	rootCmd.AddCommand(convertCmd)
 }
 
 var convertCmd = &cobra.Command{
-	Use:   "convert <assets.jsonl> <bloodhound-assets.json>",
-	Short: "Generate graph data from a runZero asset export",
-	Run:   generateGraph,
+	Use:   "convert <input1> [input2 ...]",
+	Short: "Generate graph data from one or more network scan files",
+	Long: `Convert one or more input files into BloodHound OpenGraph format.
+
+Supported input types (auto-detected):
+  runzero   runZero asset export (.json.gz or .jsonl)
+  nmap      Nmap XML output (-oX)
+  snmpwalk  net-snmp snmpwalk text output
+  nextnet   nextnet scanner output (.nxt)
+
+Use -o/--output to specify the output file (default: stdout).
+`,
+	Run: generateGraph,
 }
 
 func generateGraph(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
-		fmt.Printf("Usage: %s graph [options] <input.json> <output>\n", ToolName)
+		fmt.Printf("Usage: %s convert [options] <input1> [input2 ...]\n", ToolName)
 		return
 	}
-	convertSettings.InputFile = args[0]
-	outFile := "-"
-	if len(args) > 1 && args[1] != "" {
-		outFile = args[1]
-	}
+
+	outFile := convertSettings.OutputFile
 	outFd := os.Stdout
 	if outFile != "-" {
 		var err error
-		outFd, err = os.Create(outFile)
+		outFd, err = os.Create(outFile) // #nosec G304
 		if err != nil {
 			fmt.Printf("error creating output file %s: %v\n", outFile, err)
 			return
@@ -64,7 +73,7 @@ func generateGraph(cmd *cobra.Command, args []string) {
 
 	switch convertSettings.Type {
 	case "opengraph":
-		err := generateOpenGraph(convertSettings.InputFile, convertSettings.OutputFD)
+		err := generateOpenGraph(args, convertSettings.OutputFD)
 		if err != nil {
 			fmt.Printf("error generating OpenGraph: %v\n", err)
 		}
@@ -73,24 +82,79 @@ func generateGraph(cmd *cobra.Command, args []string) {
 	}
 }
 
-func generateOpenGraph(inputFile string, outputFD *os.File) error {
-	assets, err := loadGraphAssets()
-	if err != nil {
-		return err
+func generateOpenGraph(inputFiles []string, outputFD *os.File) error {
+	allNodes := []*bloodhound.Node{}
+	allEdges := []*bloodhound.Edge{}
+
+	// Track which subnet / domain / vlan nodes have already been added so we
+	// don't duplicate them when merging results across multiple input files.
+	addedNodes := make(map[string]bool)
+
+	mergeResult := func(nodes []*bloodhound.Node, edges []*bloodhound.Edge) {
+		for _, n := range nodes {
+			if !addedNodes[n.ID] {
+				addedNodes[n.ID] = true
+				allNodes = append(allNodes, n)
+			}
+		}
+		allEdges = append(allEdges, edges...)
 	}
 
-	nodes, edges, err := buildOpenGraph(assets)
-	if err != nil {
-		return err
+	for _, path := range inputFiles {
+		ft, err := input.DetectFileType(path)
+		if err != nil {
+			return fmt.Errorf("cannot detect type of %s: %w", path, err)
+		}
+		rlog("info", "processing %s as %s", path, ft)
+
+		switch ft {
+		case input.FileTypeRunZeroGZIP, input.FileTypeRunZeroJSONL:
+			assets, err := loadGraphAssets(path)
+			if err != nil {
+				return fmt.Errorf("load runzero %s: %w", path, err)
+			}
+			nodes, edges, err := buildOpenGraph(assets)
+			if err != nil {
+				return fmt.Errorf("build graph from %s: %w", path, err)
+			}
+			mergeResult(nodes, edges)
+
+		case input.FileTypeNmapXML:
+			result, err := input.ParseNmapXML(path)
+			if err != nil {
+				return fmt.Errorf("parse nmap %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeSNMPWalk:
+			result, err := input.ParseSNMPWalk(path)
+			if err != nil {
+				return fmt.Errorf("parse snmpwalk %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeNextnet:
+			result, err := input.ParseNextnet(path)
+			if err != nil {
+				return fmt.Errorf("parse nextnet %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		default:
+			return fmt.Errorf("unsupported file type for %s", path)
+		}
 	}
 
 	g := &bloodhound.GraphContainer{
 		Metadata: map[string]any{
-			"source_kind": "RunZero",
+			"source_kind": "RunZeroHound",
 		},
 		Graph: &bloodhound.Graph{
-			Nodes: nodes,
-			Edges: edges,
+			Nodes: allNodes,
+			Edges: allEdges,
 		},
 	}
 
@@ -98,22 +162,19 @@ func generateOpenGraph(inputFile string, outputFD *os.File) error {
 	if err != nil {
 		return err
 	}
-	_, err = convertSettings.OutputFD.Write(data)
-	if err != nil {
+	if _, err = outputFD.Write(data); err != nil {
 		return fmt.Errorf("error writing output: %v", err)
 	}
 
-	err = convertSettings.OutputFD.Close()
-	if err != nil {
+	if err = outputFD.Close(); err != nil {
 		return fmt.Errorf("error closing output: %v", err)
 	}
 
-	rlog("info", "OpenGraph generation complete with %d nodes and %d edges", len(nodes), len(edges))
-
+	rlog("info", "OpenGraph generation complete with %d nodes and %d edges", len(allNodes), len(allEdges))
 	return nil
 }
 
-func loadGraphAssets() ([]*models.Asset, error) {
+func loadGraphAssets(path string) ([]*models.Asset, error) {
 	wg := sync.WaitGroup{}
 	fdc := make(chan string, 1)
 	assets := make([]*models.Asset, 0)
@@ -147,11 +208,10 @@ func loadGraphAssets() ([]*models.Asset, error) {
 		}
 	}
 
-	fd, err := os.Open(convertSettings.InputFile)
+	fd, err := os.Open(path) // #nosec G304
 	if err != nil {
 		return nil, err
 	}
-	// #nosec
 	defer fd.Close()
 
 	for i := 0; i < runtime.NumCPU(); i++ {
