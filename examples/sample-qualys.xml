@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SCAN>
+  <IP value="192.0.2.10" name="mail.example.com">
+    <OS>Linux 5.15</OS>
+    <INFOS>
+      <CAT port="22" protocol="tcp" value="SSH">
+        <INFO number="38050">
+          <RESULT><![CDATA[
+SSH service detected on port 22.
+SSH version: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6
+SSH host key fingerprint: ssh-ed25519 SHA256:AbCdEfGhIjKlMnOpQrStUvWxYz0123456789aBcDeFg
+SSH host key fingerprint: ssh-rsa SHA256:ZyXwVuTsRqPoNmLkJiHgFeDcBa9876543210zYxWvUt
+MAC address: 02:42:c0:00:02:0a
+          ]]></RESULT>
+        </INFO>
+      </CAT>
+      <CAT port="443" protocol="tcp" value="HTTP over SSL">
+        <INFO number="86002">
+          <RESULT><![CDATA[
+TLS/SSL certificate information:
+  Subject: CN=mail.example.com, O=Example Corp, L=San Francisco, ST=California, C=US
+  Issuer: CN=Example Intermediate CA, O=Example Corp, C=US
+  Serial: 0A:1B:2C:3D:4E:5F:6A:7B
+  Valid from: 2024-01-15 to 2025-01-15
+  SHA-1 fingerprint: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0
+  SHA-256 fingerprint: aabbccdd11223344556677889900aabbccddeeff00112233445566778899aabb
+          ]]></RESULT>
+        </INFO>
+      </CAT>
+    </INFOS>
+    <SERVICES>
+      <CAT port="22" protocol="tcp" value="SSH">
+        <SERVICE number="27300">
+          <RESULT><![CDATA[
+OpenSSH 8.9p1 Ubuntu-3ubuntu0.6 detected on port 22/tcp.
+          ]]></RESULT>
+        </SERVICE>
+      </CAT>
+      <CAT port="443" protocol="tcp" value="HTTPS">
+        <SERVICE number="27302">
+          <RESULT><![CDATA[
+nginx/1.24.0 detected on port 443/tcp.
+          ]]></RESULT>
+        </SERVICE>
+      </CAT>
+      <CAT port="25" protocol="tcp" value="SMTP">
+        <SERVICE number="27303">
+          <RESULT><![CDATA[
+Postfix smtpd detected on port 25/tcp.
+          ]]></RESULT>
+        </SERVICE>
+      </CAT>
+    </SERVICES>
+    <VULNS>
+      <CAT port="443" protocol="tcp" value="Web Server">
+        <VULN number="38169">
+          <RESULT><![CDATA[
+SSL/TLS server supports TLSv1.0 which is deprecated.
+          ]]></RESULT>
+        </VULN>
+      </CAT>
+    </VULNS>
+  </IP>
+
+  <IP value="198.51.100.5" name="dc01.example.com">
+    <OS>Windows Server 2022 Standard</OS>
+    <INFOS>
+      <CAT port="445" protocol="tcp" value="SMB">
+        <INFO number="90748">
+          <RESULT><![CDATA[
+SMB service detected on port 445.
+NetBIOS name: DC01
+Domain: EXAMPLE
+SMB server GUID: 4a3b2c1d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+          ]]></RESULT>
+        </INFO>
+      </CAT>
+      <CAT port="3389" protocol="tcp" value="RDP">
+        <INFO number="91390">
+          <RESULT><![CDATA[
+Remote Desktop Protocol detected on port 3389.
+TLS certificate fingerprint: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1
+NLA (Network Level Authentication) is enabled.
+          ]]></RESULT>
+        </INFO>
+      </CAT>
+    </INFOS>
+    <SERVICES>
+      <CAT port="53" protocol="tcp" value="DNS">
+        <SERVICE number="27305">
+          <RESULT><![CDATA[
+Microsoft DNS detected on port 53/tcp.
+          ]]></RESULT>
+        </SERVICE>
+      </CAT>
+      <CAT port="88" protocol="tcp" value="Kerberos">
+        <SERVICE number="27306">
+          <RESULT><![CDATA[
+Microsoft Windows Kerberos detected on port 88/tcp.
+          ]]></RESULT>
+        </SERVICE>
+      </CAT>
+      <CAT port="389" protocol="tcp" value="LDAP">
+        <SERVICE number="27307">
+          <RESULT><![CDATA[
+Microsoft Windows Active Directory LDAP detected on port 389/tcp.
+          ]]></RESULT>
+        </SERVICE>
+      </CAT>
+      <CAT port="445" protocol="tcp" value="SMB">
+        <SERVICE number="27308">
+          <RESULT><![CDATA[
+Windows Server 2022 SMB detected on port 445/tcp.
+          ]]></RESULT>
+        </SERVICE>
+      </CAT>
+    </SERVICES>
+    <VULNS>
+      <CAT port="389" protocol="tcp" value="LDAP">
+        <VULN number="38601">
+          <RESULT><![CDATA[
+LDAP service allows anonymous binds.
+          ]]></RESULT>
+        </VULN>
+      </CAT>
+    </VULNS>
+  </IP>
+
+  <IP value="203.0.113.50" name="switch01.example.com">
+    <OS>Cisco IOS 15.2</OS>
+    <INFOS>
+      <CAT port="22" protocol="tcp" value="SSH">
+        <INFO number="38050">
+          <RESULT><![CDATA[
+SSH service detected on port 22.
+SSH version: SSH-2.0-Cisco-1.25
+SSH host key fingerprint: ssh-rsa SHA256:MnOpQrStUvWxYz0123456789aBcDeFgHiJkLmNoPqRs
+MAC address: 00:1a:2b:3c:4d:5e
+          ]]></RESULT>
+        </INFO>
+      </CAT>
+      <CAT port="161" protocol="udp" value="SNMP">
+        <INFO number="78030">
+          <RESULT><![CDATA[
+SNMP service detected on port 161/udp.
+SNMP engine ID: 80:00:00:09:03:00:1a:2b:3c:4d:5e
+sysDescr: Cisco IOS Software, C3750E Software (C3750E-UNIVERSALK9-M), Version 15.2(4)E10
+sysName: switch01.example.com
+          ]]></RESULT>
+        </INFO>
+      </CAT>
+    </INFOS>
+    <SERVICES>
+      <CAT port="22" protocol="tcp" value="SSH">
+        <SERVICE number="27300">
+          <RESULT><![CDATA[
+Cisco SSH 1.25 detected on port 22/tcp.
+          ]]></RESULT>
+        </SERVICE>
+      </CAT>
+      <CAT port="161" protocol="udp" value="SNMP">
+        <SERVICE number="27310">
+          <RESULT><![CDATA[
+SNMPv2c detected on port 161/udp.
+          ]]></RESULT>
+        </SERVICE>
+      </CAT>
+    </SERVICES>
+  </IP>
+</SCAN>
