@@ -6,8 +6,15 @@ type ParsedHost struct {
 	// Source is the file type that produced this record.
 	Source FileType
 
+	// Sources tracks every data source that contributed to this host.
+	// Each entry is a short label such as "nmap-xml", "nessus", "runzero-jsonl".
+	Sources []string
+
 	// Primary IP addresses observed for this host.
 	Addresses []string
+
+	// MAC addresses observed for this host (normalised to aa:bb:cc:dd:ee:ff).
+	MACs []string
 
 	// Hostnames / DNS names.
 	Names []string
@@ -18,12 +25,50 @@ type ParsedHost struct {
 	// Services observed on the host.
 	Services []ParsedService
 
+	// TracerouteHops holds layer-3 path information discovered during scanning.
+	// Each hop represents an intermediate router between the scanner and this host.
+	TracerouteHops []TracerouteHop
+
+	// SubAssets are related network entities discovered through this host
+	// (e.g. SNMP ARP cache entries, MAC table entries, CDP/LLDP neighbours).
+	SubAssets []SubAsset
+
 	// Generic key→value attributes from the source data.
 	Attributes map[string]string
 
 	// Unique fingerprints used for cross-source correlation.
 	// Keys:   "ssh_hostkey_fp", "tls_cert_fp", "smb_guid", "snmpv3_engine_id"
 	UniqueKeys map[string]string
+}
+
+// TracerouteHop represents a single router hop in a traceroute path.
+type TracerouteHop struct {
+	// TTL is the time-to-live / hop number (1-based).
+	TTL int
+	// Addresses contains one or more IP addresses for this hop.
+	// Multi-homed routers may have multiple addresses visible from different probes.
+	Addresses []string
+	// RTT is the round-trip time in milliseconds (if available, 0 otherwise).
+	RTT float64
+	// Hostname is the reverse-DNS name of the hop (if available).
+	Hostname string
+}
+
+// SubAsset represents a network entity discovered indirectly through a host,
+// such as ARP cache entries, MAC table entries, or CDP/LLDP neighbours.
+type SubAsset struct {
+	// Type classifies the sub-asset: "arp", "mac_table", "cdp_neighbor", "lldp_neighbor".
+	Type string
+	// Addresses holds IP addresses associated with this sub-asset.
+	Addresses []string
+	// MACs holds MAC addresses associated with this sub-asset.
+	MACs []string
+	// Interface is the local interface on the parent host (e.g. "Gi0/1", "eth0").
+	Interface string
+	// VLAN is the VLAN ID if known.
+	VLAN string
+	// Attributes holds extra key→value metadata.
+	Attributes map[string]string
 }
 
 // ParsedService represents one observed network service.

@@ -40,6 +40,7 @@ func parseSNMPWalkReader(r io.Reader, hint string) (*ParseResult, error) {
 	// current host being populated
 	current := &ParsedHost{
 		Source:     FileTypeSNMPWalk,
+		Sources:    []string{"snmpwalk"},
 		Attributes: make(map[string]string),
 		UniqueKeys: make(map[string]string),
 	}
@@ -71,6 +72,7 @@ func parseSNMPWalkReader(r io.Reader, hint string) (*ParseResult, error) {
 						}
 						current = &ParsedHost{
 							Source:     FileTypeSNMPWalk,
+							Sources:    []string{"snmpwalk"},
 							Attributes: make(map[string]string),
 							UniqueKeys: make(map[string]string),
 							Addresses:  []string{ip},
@@ -156,6 +158,7 @@ func processSNMPOID(ph *ParsedHost, oid, _ /*typeName*/, value string) {
 		// Hex-STRING: AA BB CC DD EE FF → aa:bb:cc:dd:ee:ff
 		mac := normalizeMACFromHexString(value)
 		if mac != "" {
+			ph.MACs = appendUnique(ph.MACs, mac)
 			ph.Attributes["mac_address"] = mac
 		}
 	// SNMPv3 Engine ID
@@ -175,6 +178,41 @@ func processSNMPOID(ph *ParsedHost, oid, _ /*typeName*/, value string) {
 			if net.ParseIP(ip) != nil {
 				ph.Addresses = appendUnique(ph.Addresses, ip)
 			}
+		}
+
+	// ARP cache entries: ipNetToMedia table
+	// OID: ipNetToMediaPhysAddress.<ifIndex>.<ip> = MAC
+	case strings.HasPrefix(base, "ipnettomediaphysaddress"):
+		mac := normalizeMACFromHexString(value)
+		if mac != "" && mac != "00:00:00:00:00:00" {
+			// Extract IP from OID suffix: ipnettomediaphysaddress.<ifIndex>.<ip>
+			parts := strings.SplitN(base, ".", 3)
+			if len(parts) >= 3 {
+				ip := parts[2]
+				if net.ParseIP(ip) != nil {
+					ph.SubAssets = append(ph.SubAssets, SubAsset{
+						Type:      "arp",
+						Addresses: []string{ip},
+						MACs:      []string{mac},
+						Attributes: map[string]string{
+							"interface_index": parts[1],
+						},
+					})
+				}
+			}
+		}
+
+	// MAC address table: dot1dTpFdbAddress
+	case strings.HasPrefix(base, "dot1dtpfdbaddress"):
+		mac := normalizeMACFromHexString(value)
+		if mac != "" && mac != "00:00:00:00:00:00" {
+			ph.SubAssets = append(ph.SubAssets, SubAsset{
+				Type: "mac_table",
+				MACs: []string{mac},
+				Attributes: map[string]string{
+					"source_oid": oid,
+				},
+			})
 		}
 	}
 }

@@ -121,6 +121,7 @@ func buildOpenVASResult(report *openvasReport) *ParseResult {
 		if !ok {
 			ph := &ParsedHost{
 				Source:     FileTypeOpenVAS,
+				Sources:    []string{"openvas"},
 				Addresses:  []string{ip},
 				Attributes: make(map[string]string),
 				UniqueKeys: make(map[string]string),
@@ -137,7 +138,9 @@ func buildOpenVASResult(report *openvasReport) *ParseResult {
 					ph.Names = appendUnique(ph.Names, hn)
 				}
 				if mac := details["MAC"]; mac != "" {
-					ph.Attributes["mac_address"] = mac
+					normalized := normalizeMACAddress(mac)
+					ph.MACs = appendUnique(ph.MACs, normalized)
+					ph.Attributes["mac_address"] = normalized
 				}
 			}
 			hd = &hostData{ip: ip, hostname: hostname, ph: ph}

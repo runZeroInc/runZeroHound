@@ -17,6 +17,12 @@ import (
 // smb_guid, snmpv3_engine_id) those fingerprints become separate "fingerprint"
 // nodes.  Edges from asset → fingerprint node allow BloodHound to link assets
 // across different scanners that share the same cryptographic identity.
+//
+// Traceroute hops are emitted as RZRouter nodes with edges to both the asset
+// and the subnet they belong to.
+//
+// SubAssets (ARP cache, MAC table entries) are emitted as RZSubAsset nodes
+// linked to the parent host.
 func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge) {
 	nodes := []*bloodhound.Node{}
 	edges := []*bloodhound.Edge{}
@@ -26,6 +32,9 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 	// fingerprintNodes tracks already-created fingerprint nodes so we don't
 	// duplicate them when multiple hosts carry the same fingerprint.
 	fingerprintNodes := make(map[string]bool)
+
+	// routerNodes tracks already-created traceroute router nodes.
+	routerNodes := make(map[string]bool)
 
 	for _, ph := range hosts {
 		if len(ph.Addresses) == 0 {
@@ -43,6 +52,9 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 			"source":      ph.Source.String(),
 			"ip_addresses": ph.Addresses,
 		}
+		if len(ph.Sources) > 0 {
+			props["sources"] = ph.Sources
+		}
 		if len(ph.Names) > 0 {
 			props["names"] = ph.Names
 			props["name"] = ph.Names[0]
@@ -52,6 +64,9 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 		}
 		if len(ph.Services) > 0 {
 			props["service_count"] = len(ph.Services)
+		}
+		if len(ph.MACs) > 0 {
+			props["mac_addresses"] = ph.MACs
 		}
 
 		// Flatten attributes (sorted for determinism)
@@ -164,6 +179,101 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 			edges = append(edges,
 				edgeBetween(nodeID, edgeKind, fpNodeID),
 				edgeBetween(fpNodeID, edgeKind+"By", nodeID),
+			)
+		}
+
+		// Traceroute hop → RZRouter nodes
+		for _, hop := range ph.TracerouteHops {
+			if len(hop.Addresses) == 0 {
+				continue
+			}
+			routerID := "rz-router-" + strings.ReplaceAll(hop.Addresses[0], ":", "-")
+			if !routerNodes[routerID] {
+				routerNodes[routerID] = true
+				routerProps := map[string]any{
+					"displayname":  hop.Addresses[0],
+					"ip_addresses": hop.Addresses,
+					"ttl":          hop.TTL,
+				}
+				if hop.RTT > 0 {
+					routerProps["rtt_ms"] = hop.RTT
+				}
+				if hop.Hostname != "" {
+					routerProps["hostname"] = hop.Hostname
+				}
+				routerNode := &bloodhound.Node{
+					ID:         routerID,
+					Kinds:      []string{"RZRouter"},
+					Properties: routerProps,
+				}
+				nodes = append(nodes, routerNode)
+
+				// Link router to its subnet
+				for _, rAddr := range hop.Addresses {
+					rMask := "24"
+					if strings.Contains(rAddr, ":") {
+						rMask = "56"
+					}
+					_, ipNet, err := net.ParseCIDR(rAddr + "/" + rMask)
+					if err != nil {
+						continue
+					}
+					rIP := net.ParseIP(rAddr)
+					if rIP == nil || rIP.IsLinkLocalUnicast() || rIP.IsLoopback() {
+						continue
+					}
+					network := ipNet.String()
+					subnets[network]++
+					subnetID := "rz-network-" + network
+					edges = append(edges,
+						edgeBetween(routerID, "RZInsideOfSubnet", subnetID),
+						edgeBetween(subnetID, "RZSubnetContains", routerID),
+					)
+				}
+			}
+			edges = append(edges,
+				edgeBetween(nodeID, "RZTracerouteHop", routerID),
+				edgeBetween(routerID, "RZRoutesTo", nodeID),
+			)
+		}
+
+		// SubAsset nodes (ARP cache, MAC table entries)
+		for i, sa := range ph.SubAssets {
+			saID := fmt.Sprintf("%s-sub-%d", nodeID, i)
+			saLabel := sa.Type
+			if len(sa.Addresses) > 0 {
+				saLabel = fmt.Sprintf("%s/%s", sa.Type, sa.Addresses[0])
+			} else if len(sa.MACs) > 0 {
+				saLabel = fmt.Sprintf("%s/%s", sa.Type, sa.MACs[0])
+			}
+			saProps := map[string]any{
+				"displayname": saLabel,
+				"type":        sa.Type,
+			}
+			if len(sa.Addresses) > 0 {
+				saProps["ip_addresses"] = sa.Addresses
+			}
+			if len(sa.MACs) > 0 {
+				saProps["mac_addresses"] = sa.MACs
+			}
+			if sa.Interface != "" {
+				saProps["interface"] = sa.Interface
+			}
+			if sa.VLAN != "" {
+				saProps["vlan"] = sa.VLAN
+			}
+			for k, v := range sa.Attributes {
+				saProps["attr_"+k] = v
+			}
+			saNode := &bloodhound.Node{
+				ID:         saID,
+				Kinds:      []string{"RZSubAsset"},
+				Properties: saProps,
+			}
+			nodes = append(nodes, saNode)
+			edges = append(edges,
+				edgeBetween(nodeID, "RZHasSubAsset", saID),
+				edgeBetween(saID, "RZSubAssetOf", nodeID),
 			)
 		}
 	}

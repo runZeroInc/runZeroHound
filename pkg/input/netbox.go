@@ -167,6 +167,7 @@ func parseNetBoxDevices(results []json.RawMessage) (*ParseResult, error) {
 func netboxDeviceToHost(dev *netboxDevice) *ParsedHost {
 	ph := &ParsedHost{
 		Source:     FileTypeNetBox,
+		Sources:    []string{"netbox"},
 		Attributes: make(map[string]string),
 		UniqueKeys: make(map[string]string),
 	}
@@ -259,6 +260,7 @@ func parseNetBoxIPAddresses(results []json.RawMessage) (*ParseResult, error) {
 			if !exists {
 				ph = &ParsedHost{
 					Source:     FileTypeNetBox,
+					Sources:    []string{"netbox"},
 					Attributes: make(map[string]string),
 					UniqueKeys: make(map[string]string),
 				}
@@ -277,6 +279,7 @@ func parseNetBoxIPAddresses(results []json.RawMessage) (*ParseResult, error) {
 			// Unassigned IP — create a minimal host
 			ph := &ParsedHost{
 				Source:     FileTypeNetBox,
+				Sources:    []string{"netbox"},
 				Addresses:  []string{ip},
 				Attributes: map[string]string{"source": "netbox"},
 				UniqueKeys: make(map[string]string),

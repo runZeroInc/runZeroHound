@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -60,6 +61,7 @@ const (
 	nessusPluginSMBNative    = "10785" // Microsoft Windows SMB NativeLanManager
 	nessusPluginSNMPSettings = "40448" // SNMP Agent Default Community Names
 	nessusPluginSNMPEngine   = "161"   // SNMP Request
+	nessusPluginTraceroute   = "10287" // Traceroute Information
 )
 
 // reSSHFP matches RSA/ECDSA/ED25519 fingerprint lines like:
@@ -75,6 +77,9 @@ var reSMBGUID = regexp.MustCompile(`(?i)(?:guid|GUID)\s*[=:]\s*(\{?[0-9a-fA-F\-]
 
 // reSNMPEngine matches SNMPv3 engine ID hex strings.
 var reSNMPEngine = regexp.MustCompile(`(?i)engine\s*id\s*[=:]\s*([0-9a-fA-F]{10,})`)
+
+// reTracerouteHop matches lines like "1  192.168.1.1" or "  2  10.0.0.1  1.234 ms"
+var reTracerouteHop = regexp.MustCompile(`^\s*(\d+)\s+([\d.]+(?:\.\d+){3})\b`)
 
 // ParseNessus parses a .nessus XML report file into ParsedHosts.
 func ParseNessus(path string) (*ParseResult, error) {
@@ -103,6 +108,7 @@ func ParseNessus(path string) (*ParseResult, error) {
 func parseNessusHost(rh *nessusReportHost) *ParsedHost {
 	ph := &ParsedHost{
 		Source:     FileTypeNessus,
+		Sources:    []string{"nessus"},
 		Attributes: make(map[string]string),
 		UniqueKeys: make(map[string]string),
 	}
@@ -141,7 +147,9 @@ func parseNessusHost(rh *nessusReportHost) *ParsedHost {
 
 	// MAC
 	if mac := props["mac-address"]; mac != "" {
-		ph.Attributes["mac_address"] = mac
+		normalized := normalizeMACAddress(mac)
+		ph.MACs = appendUnique(ph.MACs, normalized)
+		ph.Attributes["mac_address"] = normalized
 	}
 
 	// System type
@@ -243,12 +251,89 @@ func extractNessusFingerprints(ph *ParsedHost, item *nessusReportItem) {
 				ph.Attributes["snmpv3_engine_id"] = eid
 			}
 		}
+
+	case nessusPluginTraceroute:
+		// Parse traceroute hops from plugin 10287 output.
+		// Lines typically look like: "1  192.168.1.1\n2  10.0.0.1\n..."
+		for _, line := range strings.Split(out, "\n") {
+			if m := reTracerouteHop.FindStringSubmatch(line); len(m) >= 3 {
+				ttl, _ := strconv.Atoi(m[1])
+				ip := strings.TrimSpace(m[2])
+				if ttl > 0 && ip != "" {
+					ph.TracerouteHops = append(ph.TracerouteHops, TracerouteHop{
+						TTL:       ttl,
+						Addresses: []string{ip},
+					})
+				}
+			}
+		}
 	}
 }
 
-// normalizeFingerprint strips spaces from a fingerprint string.
+// normalizeFingerprint strips spaces and normalises a fingerprint string to
+// lowercase colon-separated hex when applicable.  SHA256:... base64 fingerprints
+// are left as-is.
 func normalizeFingerprint(fp string) string {
-	return strings.TrimSpace(fp)
+	fp = strings.TrimSpace(fp)
+	if strings.HasPrefix(fp, "SHA256:") {
+		return fp
+	}
+	return normalizeHexFingerprint(fp)
+}
+
+// normalizeHexFingerprint converts a hex fingerprint to lowercase colon-separated form.
+// Input may be "AA:BB:CC", "AABBCC", "AA BB CC", or "aa:bb:cc".
+func normalizeHexFingerprint(fp string) string {
+	fp = strings.TrimSpace(fp)
+	if fp == "" {
+		return ""
+	}
+	// Already colon-separated → just lowercase
+	if strings.Contains(fp, ":") {
+		return strings.ToLower(fp)
+	}
+	// Space-separated → colon-separate and lowercase
+	if strings.Contains(fp, " ") {
+		parts := strings.Fields(fp)
+		return strings.ToLower(strings.Join(parts, ":"))
+	}
+	// Continuous hex string → insert colons every 2 chars
+	fp = strings.ToLower(fp)
+	var out strings.Builder
+	for i, c := range fp {
+		if i > 0 && i%2 == 0 {
+			out.WriteByte(':')
+		}
+		out.WriteRune(c)
+	}
+	return out.String()
+}
+
+// normalizeMACAddress converts a MAC address to the canonical aa:bb:cc:dd:ee:ff form.
+func normalizeMACAddress(mac string) string {
+	mac = strings.TrimSpace(mac)
+	if mac == "" {
+		return ""
+	}
+	// Handle space-separated hex: "AA BB CC DD EE FF"
+	if strings.Contains(mac, " ") {
+		parts := strings.Fields(mac)
+		if len(parts) == 6 {
+			return strings.ToLower(strings.Join(parts, ":"))
+		}
+	}
+	// Handle dash-separated: "AA-BB-CC-DD-EE-FF"
+	mac = strings.ReplaceAll(mac, "-", ":")
+	// Already colon-separated
+	if strings.Contains(mac, ":") {
+		return strings.ToLower(mac)
+	}
+	// Continuous hex: "AABBCCDDEEFF"
+	if len(mac) == 12 {
+		mac = strings.ToLower(mac)
+		return mac[0:2] + ":" + mac[2:4] + ":" + mac[4:6] + ":" + mac[6:8] + ":" + mac[8:10] + ":" + mac[10:12]
+	}
+	return strings.ToLower(mac)
 }
 
 // isFingerprintHex returns true if s looks like a colon-separated hex fingerprint.

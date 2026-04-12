@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -23,6 +24,20 @@ type nmapHost struct {
 	Hostnames nmapHostnames `xml:"hostnames"`
 	Ports     nmapPorts     `xml:"ports"`
 	OS        nmapOS        `xml:"os"`
+	Trace     nmapTrace     `xml:"trace"`
+}
+
+type nmapTrace struct {
+	Port  string        `xml:"port,attr"`
+	Proto string        `xml:"proto,attr"`
+	Hops  []nmapTraceHop `xml:"hop"`
+}
+
+type nmapTraceHop struct {
+	TTL    string `xml:"ttl,attr"`
+	IPAddr string `xml:"ipaddr,attr"`
+	RTT    string `xml:"rtt,attr"`
+	Host   string `xml:"host,attr"`
 }
 
 type nmapStatus struct {
@@ -141,6 +156,7 @@ func ParseNmapXML(path string) (*ParseResult, error) {
 func parseNmapHost(h *nmapHost) *ParsedHost {
 	ph := &ParsedHost{
 		Source:     FileTypeNmapXML,
+		Sources:    []string{"nmap-xml"},
 		Attributes: make(map[string]string),
 		UniqueKeys: make(map[string]string),
 	}
@@ -150,7 +166,11 @@ func parseNmapHost(h *nmapHost) *ParsedHost {
 		case "ipv4", "ipv6":
 			ph.Addresses = append(ph.Addresses, addr.Addr)
 		case "mac":
-			ph.Attributes["mac_address"] = addr.Addr
+			mac := normalizeMACAddress(addr.Addr)
+			if mac != "" {
+				ph.MACs = appendUnique(ph.MACs, mac)
+				ph.Attributes["mac_address"] = mac
+			}
 		}
 	}
 
@@ -197,6 +217,21 @@ func parseNmapHost(h *nmapHost) *ParsedHost {
 		}
 
 		ph.Services = append(ph.Services, svc)
+	}
+
+	// Extract traceroute hops
+	for _, hop := range h.Trace.Hops {
+		if hop.IPAddr == "" {
+			continue
+		}
+		ttl, _ := strconv.Atoi(hop.TTL)
+		rtt, _ := strconv.ParseFloat(hop.RTT, 64)
+		ph.TracerouteHops = append(ph.TracerouteHops, TracerouteHop{
+			TTL:       ttl,
+			Addresses: []string{hop.IPAddr},
+			RTT:       rtt,
+			Hostname:  hop.Host,
+		})
 	}
 
 	return ph
