@@ -105,7 +105,7 @@ func DetectFileType(path string) (FileType, error) {
 	}
 	header = header[:n]
 
-	// 2. gzip magic bytes → runZero gzip JSONL
+	// 3. gzip magic bytes → runZero gzip JSONL
 	if len(header) >= 2 && header[0] == 0x1f && header[1] == 0x8b {
 		return FileTypeRunZeroGZIP, nil
 	}

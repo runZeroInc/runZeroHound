@@ -1,0 +1,177 @@
+<?xml version="1.0" ?>
+<!-- Example Nessus scan report (.nessus format)
+     Scan performed against a small lab network.
+     Sensitive data redacted; fingerprints are illustrative. -->
+<NessusClientData_v2>
+  <Policy>
+    <policyName>Lab Scan Policy</policyName>
+    <Preferences>
+      <ServerPreferences>
+        <preference><name>max_hosts</name><value>30</value></preference>
+      </ServerPreferences>
+    </Preferences>
+  </Policy>
+  <Report name="Lab Network Scan" xmlns:cm="http://www.nessus.org/cm">
+
+    <!-- ======================================================
+         Host 1: Linux router / gateway (192.168.1.1)
+         ====================================================== -->
+    <ReportHost name="192.168.1.1">
+      <HostProperties>
+        <tag name="host-ip">192.168.1.1</tag>
+        <tag name="host-fqdn">router.home.lab</tag>
+        <tag name="operating-system">Linux Kernel 5.15</tag>
+        <tag name="system-type">router</tag>
+        <tag name="mac-address">aa:bb:cc:dd:ee:01</tag>
+        <tag name="LastAuthenticatedResults">1712000000</tag>
+        <tag name="HOST_START">Mon Apr  1 00:00:01 2024</tag>
+        <tag name="HOST_END">Mon Apr  1 00:01:30 2024</tag>
+      </HostProperties>
+
+      <!-- Plugin 19506: Nessus Scan Information -->
+      <ReportItem port="0" svc_name="general" protocol="tcp" severity="0"
+                  pluginID="19506" pluginName="Nessus Scan Information">
+        <plugin_output>Information about this scan:
+Nessus version: 10.6.0
+Plugin feed version: 202403271234
+Scanner IP: 192.168.1.50
+Port scanner(s): nessus_syn_scanner
+        </plugin_output>
+      </ReportItem>
+
+      <!-- Plugin 10267: SSH Server Type and Version -->
+      <ReportItem port="22" svc_name="ssh" protocol="tcp" severity="0"
+                  pluginID="10267" pluginName="SSH Server Type and Version Information">
+        <plugin_output>SSH protocol version : 2.0
+SSH server type and version information :
+Remote protocol version : 2.0
+Remote server version : OpenSSH_8.9p1
+Server Supported Authentications : publickey,keyboard-interactive,password
+        </plugin_output>
+      </ReportItem>
+
+      <!-- Plugin 53491: SSH Host Key Fingerprint -->
+      <ReportItem port="22" svc_name="ssh" protocol="tcp" severity="0"
+                  pluginID="53491" pluginName="SSH Host Key Fingerprint">
+        <plugin_output>The following public key fingerprints were found :
+
+RSA key fingerprint : ab:cd:ef:12:34:56:78:90:ab:cd:ef:12:34:56:78:90
+        </plugin_output>
+      </ReportItem>
+
+      <!-- Plugin 10863: SSL Certificate Information -->
+      <ReportItem port="443" svc_name="https" protocol="tcp" severity="0"
+                  pluginID="10863" pluginName="SSL Certificate Information">
+        <plugin_output>Subject: CN=router.home.lab, O=Home Lab, C=US
+Issuer: CN=Home Lab CA
+
+SHA-1 Fingerprint: AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD
+
+Not valid before: Jan  1 00:00:00 2024 GMT
+Not valid after : Jan  1 00:00:00 2025 GMT
+        </plugin_output>
+      </ReportItem>
+
+      <!-- Plugin 11219: Nessus SYN Scanner -->
+      <ReportItem port="80" svc_name="www" protocol="tcp" severity="0"
+                  pluginID="11219" pluginName="Nessus SYN scanner">
+        <plugin_output>Port 80/tcp was found to be open</plugin_output>
+      </ReportItem>
+
+      <!-- Plugin 11219: SNMP open -->
+      <ReportItem port="161" svc_name="snmp" protocol="udp" severity="0"
+                  pluginID="11219" pluginName="Nessus SYN scanner">
+        <plugin_output>Port 161/udp was found to be open</plugin_output>
+      </ReportItem>
+    </ReportHost>
+
+    <!-- ======================================================
+         Host 2: Windows Server (192.168.1.10)
+         ====================================================== -->
+    <ReportHost name="192.168.1.10">
+      <HostProperties>
+        <tag name="host-ip">192.168.1.10</tag>
+        <tag name="host-fqdn">winserver.home.lab</tag>
+        <tag name="netbios-name">WINSERVER</tag>
+        <tag name="operating-system">Windows Server 2019 Datacenter</tag>
+        <tag name="system-type">general-purpose</tag>
+        <tag name="mac-address">aa:bb:cc:dd:ee:02</tag>
+        <tag name="HOST_START">Mon Apr  1 00:01:30 2024</tag>
+        <tag name="HOST_END">Mon Apr  1 00:03:00 2024</tag>
+      </HostProperties>
+
+      <!-- Plugin 10785: SMB NativeLanManager (includes GUID) -->
+      <ReportItem port="445" svc_name="cifs" protocol="tcp" severity="0"
+                  pluginID="10785" pluginName="Microsoft Windows SMB NativeLanManager Remote System Information Disclosure">
+        <plugin_output>The remote Operating System is : Windows Server 2019 Datacenter
+The remote native LAN manager is : Windows Server 2019
+
+Server GUID : 12345678-ABCD-EF01-2345-6789ABCDEF01
+        </plugin_output>
+      </ReportItem>
+
+      <!-- Plugin 10863: SSL Certificate on RDP (port 3389) -->
+      <ReportItem port="3389" svc_name="msrdp" protocol="tcp" severity="1"
+                  pluginID="10863" pluginName="SSL Certificate Information">
+        <plugin_output>Subject: CN=WINSERVER
+Issuer: CN=WINSERVER
+
+SHA-1 Fingerprint: 11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44
+
+Not valid before: Jan  1 00:00:00 2024 GMT
+Not valid after : Jan  1 00:00:00 2025 GMT
+        </plugin_output>
+      </ReportItem>
+
+      <!-- Plugin 53491: SSH Host Key (WSL/OpenSSH on Windows) -->
+      <ReportItem port="22" svc_name="ssh" protocol="tcp" severity="0"
+                  pluginID="53491" pluginName="SSH Host Key Fingerprint">
+        <plugin_output>RSA key fingerprint : fe:dc:ba:09:87:65:43:21:fe:dc:ba:09:87:65:43:21</plugin_output>
+      </ReportItem>
+
+      <!-- Plugin 11219: Ports open -->
+      <ReportItem port="80" svc_name="www" protocol="tcp" severity="0"
+                  pluginID="11219" pluginName="Nessus SYN scanner">
+        <plugin_output>Port 80/tcp was found to be open</plugin_output>
+      </ReportItem>
+
+      <ReportItem port="443" svc_name="https" protocol="tcp" severity="0"
+                  pluginID="11219" pluginName="Nessus SYN scanner">
+        <plugin_output>Port 443/tcp was found to be open</plugin_output>
+      </ReportItem>
+    </ReportHost>
+
+    <!-- ======================================================
+         Host 3: Cisco switch (192.168.1.20)
+         ====================================================== -->
+    <ReportHost name="192.168.1.20">
+      <HostProperties>
+        <tag name="host-ip">192.168.1.20</tag>
+        <tag name="host-fqdn">switch.home.lab</tag>
+        <tag name="operating-system">Cisco IOS 15.2</tag>
+        <tag name="system-type">router</tag>
+        <tag name="mac-address">aa:bb:cc:dd:ee:03</tag>
+        <tag name="HOST_START">Mon Apr  1 00:03:00 2024</tag>
+        <tag name="HOST_END">Mon Apr  1 00:04:00 2024</tag>
+      </HostProperties>
+
+      <!-- Plugin 40448: SNMP Agent Default Community Names -->
+      <ReportItem port="161" svc_name="snmp" protocol="udp" severity="2"
+                  pluginID="40448" pluginName="SNMP Agent Default Community Names">
+        <plugin_output>It is possible to obtain the remote system information through SNMP.
+
+Community: public
+Engine ID: 800000090300aabbccddeeff
+        </plugin_output>
+      </ReportItem>
+
+      <!-- Plugin 10267: SSH -->
+      <ReportItem port="22" svc_name="ssh" protocol="tcp" severity="0"
+                  pluginID="10267" pluginName="SSH Server Type and Version Information">
+        <plugin_output>Remote server version : Cisco_1.25
+        </plugin_output>
+      </ReportItem>
+    </ReportHost>
+
+  </Report>
+</NessusClientData_v2>
