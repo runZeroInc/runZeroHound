@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"strings"
 )
@@ -45,7 +46,7 @@ func parseSNMPWalkReader(r io.Reader, hint string) (*ParseResult, error) {
 
 	// Try to extract an IP from the file-name hint (e.g. "192.168.1.1.txt")
 	if ip := extractIPFromName(hint); ip != "" {
-		current.Addresses = append(current.Addresses, ip)
+		current.Addresses = appendUnique(current.Addresses, ip)
 	}
 
 	scanner := bufio.NewScanner(r)
@@ -166,12 +167,12 @@ func processSNMPOID(ph *ParsedHost, oid, _ /*typeName*/, value string) {
 		}
 	// IP address from ipAdEntAddr table
 	case strings.HasPrefix(base, "ipadentaddr"):
-		// base looks like "ipadentaddr.192.168.1.1" - extract the IP
+		// base looks like "ipadentaddr.192.168.1.1" - extract the IP suffix
 		parts := strings.SplitN(base, ".", 2)
 		if len(parts) == 2 && parts[1] != "" {
 			ip := parts[1]
-			// Validate it looks like an IP
-			if strings.Count(ip, ".") == 3 {
+			// Validate using net.ParseIP to ensure correctness
+			if net.ParseIP(ip) != nil {
 				ph.Addresses = appendUnique(ph.Addresses, ip)
 			}
 		}

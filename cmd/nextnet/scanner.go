@@ -120,8 +120,13 @@ func Scanner(cidrs []string, ppsRate int, output *os.File) error {
 				fmt.Fprintf(os.Stderr, "error marshaling result: %v: %s\n", found, err)
 				continue
 			}
-			output.Write(j)         // #nosec G104
-			output.Write([]byte("\n")) // #nosec G104
+			if _, werr := output.Write(j); werr != nil {
+				fmt.Fprintf(os.Stderr, "error writing result: %s\n", werr)
+				continue
+			}
+			if _, werr := output.Write([]byte("\n")); werr != nil {
+				fmt.Fprintf(os.Stderr, "error writing newline: %s\n", werr)
+			}
 		}
 		wo.Done()
 	}()

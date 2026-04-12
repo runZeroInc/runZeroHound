@@ -12,7 +12,7 @@ import (
 func TestDetectFileType(t *testing.T) {
 	dir := t.TempDir()
 
-	write := func(name, content string) string {
+	writeFile := func(name, content string) string {
 		path := filepath.Join(dir, name)
 		if err := os.WriteFile(path, []byte(content), 0600); err != nil {
 			t.Fatalf("write %s: %v", name, err)
@@ -21,57 +21,36 @@ func TestDetectFileType(t *testing.T) {
 	}
 
 	tests := []struct {
-		name    string
-		path    string
-		content string
-		want    input.FileType
+		filename string
+		content  string
+		want     input.FileType
 	}{
 		{
-			name:    "nextnet by extension",
-			path:    filepath.Join(dir, "scan.nxt"),
-			content: `{"host":"1.2.3.4","probe":"netbios"}`,
-			want:    input.FileTypeNextnet,
+			filename: "scan.nxt",
+			content:  `{"host":"1.2.3.4","probe":"netbios"}`,
+			want:     input.FileTypeNextnet,
 		},
 		{
-			name:    "nmap xml",
-			path:    filepath.Join(dir, "scan.xml"),
-			content: `<?xml version="1.0"?><nmaprun></nmaprun>`,
-			want:    input.FileTypeNmapXML,
+			filename: "scan.xml",
+			content:  `<?xml version="1.0"?><nmaprun></nmaprun>`,
+			want:     input.FileTypeNmapXML,
 		},
 		{
-			name:    "snmpwalk text",
-			path:    filepath.Join(dir, "scan.txt"),
-			content: "SNMPv2-MIB::sysDescr.0 = STRING: Linux\nSNMPv2-MIB::sysName.0 = STRING: router\n",
-			want:    input.FileTypeSNMPWalk,
+			filename: "scan.txt",
+			content:  "SNMPv2-MIB::sysDescr.0 = STRING: Linux\nSNMPv2-MIB::sysName.0 = STRING: router\n",
+			want:     input.FileTypeSNMPWalk,
 		},
 		{
-			name:    "runzero jsonl fallback",
-			path:    filepath.Join(dir, "assets.jsonl"),
-			content: `{"id":"aaa","addresses":["1.2.3.4"]}`,
-			want:    input.FileTypeRunZeroJSONL,
+			filename: "assets.jsonl",
+			content:  `{"id":"aaa","addresses":["1.2.3.4"]}`,
+			want:     input.FileTypeRunZeroJSONL,
 		},
 	}
 
 	for _, tc := range tests {
 		tc := tc
-		// Write content if path doesn't already exist (nextnet uses pre-set path)
-		if _, err := os.Stat(tc.path); os.IsNotExist(err) {
-			if err2 := os.WriteFile(tc.path, []byte(tc.content), 0600); err2 != nil {
-				t.Fatalf("%s: write: %v", tc.name, err2)
-			}
-		} else {
-			write(filepath.Base(tc.path), tc.content)
-		}
-		// For nextnet, the path is already set correctly; for others use the written path
-		path := tc.path
-		if tc.want == input.FileTypeNextnet {
-			// create the file at the .nxt path
-			if err := os.WriteFile(tc.path, []byte(tc.content), 0600); err != nil {
-				t.Fatalf("write nxt: %v", err)
-			}
-		}
-
-		t.Run(tc.name, func(t *testing.T) {
+		path := writeFile(tc.filename, tc.content)
+		t.Run(tc.filename, func(t *testing.T) {
 			got, err := input.DetectFileType(path)
 			if err != nil {
 				t.Fatalf("DetectFileType(%s): %v", path, err)

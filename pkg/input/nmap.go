@@ -103,7 +103,10 @@ func ParseNmapXML(path string) (*ParseResult, error) {
 	// Peek for gzip header
 	var r io.Reader = fd
 	peekBuf := make([]byte, 2)
-	n, _ := fd.Read(peekBuf)
+	n, readErr := fd.Read(peekBuf)
+	if readErr != nil && readErr != io.EOF {
+		return nil, fmt.Errorf("nmap: read header %s: %w", path, readErr)
+	}
 	if _, err2 := fd.Seek(0, io.SeekStart); err2 != nil {
 		return nil, err2
 	}
