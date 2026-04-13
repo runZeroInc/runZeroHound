@@ -289,6 +289,9 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 	domains := make(map[string]uint64)
 	vlans := make(map[string]uint64)
 
+	// Collect asset references for the relationship extractors (second pass).
+	assetRefs := make([]assetNodeRef, 0, len(assets))
+
 	bCount := 0
 
 	for _, asset := range assets {
@@ -519,6 +522,9 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 		// Add the Asset node
 		nodes = append(nodes, assetNode)
 
+		// Collect ref for second-pass relationship extraction
+		assetRefs = append(assetRefs, assetNodeRef{nodeID: nodeID, asset: asset})
+
 		// Create and link the Service nodes
 		for sk, svc := range asset.Services {
 			svcNodeID := fmt.Sprintf("rz-service-%s-%s", asset.ID.String(), sk)
@@ -677,6 +683,11 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 		}
 	}
 
+	// --- Second pass: extract protocol-specific relationships ---
+	relNodes, relEdges := extractAllRelationships(assetRefs)
+	nodes = append(nodes, relNodes...)
+	edges = append(edges, relEdges...)
+
 	// Build the subnet nodes and edges
 	for network := range subnets {
 		bip := strings.Split(network, "/")
@@ -720,7 +731,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 	}
 
 	// Always create the internet node to represent the public internet
-	network := "Global Internet"
+	network := "Public Internet"
 	nodes = append(nodes, &bloodhound.Node{
 		ID:    "rz-network-public",
 		Kinds: []string{"RZNetwork"},

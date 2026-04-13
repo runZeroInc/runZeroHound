@@ -78,6 +78,34 @@ match (n:RZNetwork) where n.network_address = '0.0.0.0' return n
 
 7. Confirm that this query shows the RZ-NETWORK-PUBLIC subnet node
 
+### Upload Directly to BloodHound CE via CLI
+
+Instead of manually dragging the file, you can upload using the `upload` command:
+
+```
+# Set credentials via environment variables
+export BLOODHOUND_URL=http://127.0.0.1:8080
+export BLOODHOUND_TOKEN_ID=<your-token-id>
+export BLOODHOUND_TOKEN_KEY=<your-token-key>
+
+# Upload the graph
+go run main.go upload opengraph.json
+```
+
+Or pass credentials as flags:
+
+```
+go run main.go upload \
+  --url http://127.0.0.1:8080 \
+  --token-id <id> \
+  --token-key <key> \
+  opengraph.json
+```
+
+To create an API token in BloodHound CE, navigate to Administration → API Tokens.
+
+Use `--insecure` to skip TLS verification for self-signed certificates.
+
 ### TODO: Configure Custom Icons
 
 BloodHound OpenGraph supports custom icons for specific node types. Setting this up requires a bit of
@@ -106,6 +134,21 @@ API interaction and we plan to add a helper tool to support this in the future.
     - Connected to assets via RZPartOfVLAN and RZVLANContains edges
 - **RZSSHHostKey / RZTLSCert / RZSMBGUID / RZSNMPv3EngineID** - Fingerprint correlation nodes
     - Multiple assets sharing the same fingerprint link to the same node, enabling cross-source correlation
+- **RZGateway** - BACnet / CIP / Modbus / KNXnet gateway controllers
+    - Connected to child devices via RZHasGateway and RZHasGatewayAssets edges
+- **RZSSHKey** - SSH host key fingerprint entities (SHA-256)
+    - Connected to assets via RZHasSSHKey, linked to services via RZHasSSHService
+- **RZTLSCert** (from runZero data) - TLS certificate entities (SHA-1 fingerprint)
+    - Connected to assets via RZHasTLSCert, linked to services via RZHasTLSService
+- **RZSNMPEngineID** (from runZero data) - SNMPv3 Engine ID entities
+    - Connected to assets via RZHasSNMPEngineID, linked to services via RZHasSNMPService
+- **RZIPMICredential** - IPMI service credential/configuration entities
+    - Connected to assets via RZHasIPMICredential, linked to services via RZHasIPMIService
+- **RZMACAddress** - MAC address entities with vendor lookup
+    - Connected to assets via RZHasMAC and RZHasMACHost, linked to vendor via RZHasMACVendor
+- **RZMACVendor** - MAC OUI vendor entities (name, country, registration date)
+- **RZSwitch** - Layer-2 switches discovered via SNMP/switch attributes
+    - Connected to assets via RZHasSwitch and RZHasSwitchAssets
 
 ### Node Properties
 
@@ -167,6 +210,8 @@ Service nodes also include flattened attributes, prefixed by "attr_"
 - `host_count`: Number of hosts in VLAN
 
 ## Example Cypher Queries
+
+For a comprehensive list of Cypher queries covering all node and edge types, see [QUERIES.md](QUERIES.md).
 
 Please see the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cypher-search) for more details.
 
