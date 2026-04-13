@@ -109,7 +109,8 @@ Queries to verify your import and understand the shape of your data.
 
 ```cypher
 MATCH (n)
-RETURN labels(n) AS kind, count(n) AS total
+WITH labels(n) AS kind, count(n) AS total
+RETURN kind, total
 ORDER BY total DESC
 ```
 
@@ -118,7 +119,8 @@ ORDER BY total DESC
 
 ```cypher
 MATCH ()-[r]->()
-RETURN type(r) AS edge_type, count(r) AS total
+WITH type(r) AS edge_type, count(r) AS total
+RETURN edge_type, total
 ORDER BY total DESC
 ```
 
@@ -155,7 +157,8 @@ LIMIT 50
 ```cypher
 MATCH (a:RZAsset)
 WHERE a.category IS NOT NULL
-RETURN a.category, count(a) AS total
+WITH a.category AS category, count(a) AS total
+RETURN category, total
 ORDER BY total DESC
 ```
 
@@ -165,7 +168,8 @@ ORDER BY total DESC
 ```cypher
 MATCH (a:RZAsset)
 WHERE a.os IS NOT NULL
-RETURN a.os, count(a) AS total
+WITH a.os AS os, count(a) AS total
+RETURN os, total
 ORDER BY total DESC
 LIMIT 20
 ```
@@ -176,7 +180,8 @@ LIMIT 20
 ```cypher
 MATCH (a:RZAsset)
 WHERE a.hw IS NOT NULL
-RETURN a.hw, count(a) AS total
+WITH a.hw AS hw, count(a) AS total
+RETURN hw, total
 ORDER BY total DESC
 LIMIT 20
 ```
@@ -189,7 +194,8 @@ LIMIT 20
 ```cypher
 MATCH (svc:RZService)
 WHERE svc.port IS NOT NULL
-RETURN svc.port + '/' + svc.transport AS port, count(svc) AS total
+WITH svc.port + '/' + svc.transport AS port, count(svc) AS total
+RETURN port, total
 ORDER BY total DESC
 LIMIT 20
 ```
@@ -231,7 +237,8 @@ ORDER BY d.host_count DESC
 
 ```cypher
 MATCH (a:RZAsset)-[:RZHasMAC]->(mac:RZMACAddress)-[:RZHasMACVendor]->(v:RZMACVendor)
-RETURN v.vendor, v.country, count(DISTINCT a) AS asset_count
+WITH v, count(DISTINCT a) AS asset_count
+RETURN v.vendor, v.country, asset_count
 ORDER BY asset_count DESC
 LIMIT 20
 ```
@@ -311,7 +318,8 @@ LIMIT 20
 
 ```cypher
 MATCH (ca:RZTLSCAChain)<-[:RZSignedByCA]-(a:RZAsset)
-RETURN ca.issuer, ca.ca_sha1, count(a) AS signed_count
+WITH ca, count(a) AS signed_count
+RETURN ca.issuer, ca.ca_sha1, signed_count
 ORDER BY signed_count DESC
 LIMIT 20
 ```
@@ -342,8 +350,9 @@ LIMIT 20
 
 ```cypher
 MATCH (eid:RZSNMPEngineID)
-RETURN eid.vendor, count(eid) AS count
-ORDER BY count DESC
+WITH eid.vendor AS vendor, count(eid) AS total
+RETURN vendor, total
+ORDER BY total DESC
 ```
 
 ### OT / Building Automation
@@ -353,7 +362,8 @@ ORDER BY count DESC
 
 ```cypher
 MATCH (gw:RZGateway)<-[:RZHasGateway]-(device:RZAsset)
-RETURN gw.displayname, gw.protocol, gw.ip, count(device) AS device_count
+WITH gw, count(device) AS device_count
+RETURN gw.displayname, gw.protocol, gw.ip, device_count
 ORDER BY device_count DESC
 LIMIT 20
 ```
@@ -382,8 +392,9 @@ ORDER BY gw.protocol, gw.ip
 
 ```cypher
 MATCH (dev:RZBACnetDevice)
-RETURN dev.vendor_name, dev.vendor_id, count(dev) AS count
-ORDER BY count DESC
+WITH dev.vendor_name AS vendor_name, dev.vendor_id AS vendor_id, count(dev) AS total
+RETURN vendor_name, vendor_id, total
+ORDER BY total DESC
 ```
 
 #### BACnet devices with location metadata
@@ -412,7 +423,8 @@ LIMIT 50
 
 ```cypher
 MATCH (oid:RZSNMPDeviceType)<-[:RZHasSNMPDeviceType]-(a:RZAsset)
-RETURN oid.sys_object_id, oid.sys_descr, count(a) AS device_count
+WITH oid, count(a) AS device_count
+RETURN oid.sys_object_id, oid.sys_descr, device_count
 ORDER BY device_count DESC
 LIMIT 20
 ```
@@ -447,7 +459,8 @@ LIMIT 20
 
 ```cypher
 MATCH (ntp:RZNTPReference)<-[:RZHasNTPReference]-(a:RZAsset)
-RETURN ntp.reference_id, ntp.stratum, ntp.version, count(a) AS client_count
+WITH ntp, count(a) AS client_count
+RETURN ntp.reference_id, ntp.stratum, ntp.version, client_count
 ORDER BY client_count DESC
 LIMIT 20
 ```
@@ -457,7 +470,8 @@ LIMIT 20
 
 ```cypher
 MATCH (ver:RZDNSVersion)<-[:RZHasDNSVersion]-(a:RZAsset)
-RETURN ver.version_bind, count(a) AS host_count
+WITH ver, count(a) AS host_count
+RETURN ver.version_bind, host_count
 ORDER BY host_count DESC
 LIMIT 20
 ```
@@ -489,7 +503,8 @@ ORDER BY assets_routed DESC
 
 ```cypher
 MATCH (sw:RZSwitch)-[:RZHasSwitchAssets]->(a:RZAsset)
-RETURN sw.displayname, sw.ip, count(a) AS connected_assets
+WITH sw, count(a) AS connected_assets
+RETURN sw.displayname, sw.ip, connected_assets
 ORDER BY connected_assets DESC
 ```
 
@@ -500,9 +515,9 @@ ORDER BY connected_assets DESC
 
 ```cypher
 MATCH (dom:RZNTLMDomain)<-[:RZNTLMPartOfDomain]-(comp:RZNTLMComputer)
-RETURN dom.dns_domain, dom.netbios_domain,
-       collect(comp.dns_computer) AS computers, count(comp) AS count
-ORDER BY count DESC
+WITH dom, collect(comp.dns_computer) AS computers, count(comp) AS total
+RETURN dom.dns_domain, dom.netbios_domain, computers, total
+ORDER BY total DESC
 ```
 
 #### NTLM computers with domain and Windows version
@@ -811,7 +826,8 @@ LIMIT 20
 
 ```cypher
 MATCH (sn:RZSerialNumber)<-[:RZHasSerialNumber]-(a:RZAsset)
-RETURN sn.source, count(DISTINCT sn) AS serial_count, count(DISTINCT a) AS asset_count
+WITH sn.source AS source, count(DISTINCT sn) AS serial_count, count(DISTINCT a) AS asset_count
+RETURN source, serial_count, asset_count
 ORDER BY serial_count DESC
 ```
 
@@ -913,7 +929,8 @@ LIMIT 10
 ```cypher
 MATCH (ntp:RZNTPReference)<-[:RZHasNTPReference]-(a:RZAsset)
 WHERE ntp.stratum = "1"
-RETURN ntp.reference_id, count(a) AS clients
+WITH ntp, count(a) AS clients
+RETURN ntp.reference_id, clients
 ORDER BY clients DESC
 LIMIT 10
 ```
