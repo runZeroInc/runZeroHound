@@ -28,6 +28,8 @@ type Asset struct {
 	FirstSeen            int64                        `json:"first_seen,omitempty"`
 	DetectedBy           string                       `json:"detected_by,omitempty"`
 	Type                 string                       `json:"type,omitempty"`
+	Category             string                       `json:"category,omitempty"`
+	Functions            []string                     `json:"functions,omitempty"`
 	OSVendor             string                       `json:"os_vendor,omitempty"`
 	OSProduct            string                       `json:"os_product,omitempty"`
 	OS                   string                       `json:"os,omitempty"`

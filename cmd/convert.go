@@ -356,7 +356,10 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 			labelSplit[1] = fmt.Sprintf("(%s)", host)
 			label = strings.Join(labelSplit, " ")
 		}
-		deviceType := "device"
+		deviceType := asset.Type
+		if deviceType == "" {
+			deviceType = "device"
+		}
 
 		nodeID := "rz-asset-" + asset.ID.String()
 
@@ -390,6 +393,8 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 				"names":                  asset.Names,
 				"domains":                asset.Domains,
 				"type":                   deviceType,
+				"category":               asset.Category,
+				"functions":              asset.Functions,
 				"os":                     asset.OS,
 				"hw":                     asset.HW,
 				"ip_addresses":           asset.Addresses,
