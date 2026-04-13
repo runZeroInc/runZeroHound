@@ -211,12 +211,10 @@ func extractOpenVASFingerprints(ph *ParsedHost, res *openvasResult) {
 
 	switch oid {
 	case oidSSHHostKey:
-		if m := reSSHFP.FindStringSubmatch(desc); len(m) >= 3 {
-			fp := normalizeFingerprint(m[2])
-			if fp != "" {
-				ph.UniqueKeys["ssh_hostkey_fp"] = fp
-				ph.Attributes["ssh_hostkey_fp"] = fp
-			}
+		fp := extractSSHFP(desc)
+		if fp != "" {
+			ph.UniqueKeys["ssh_hostkey_fp"] = fp
+			ph.Attributes["ssh_hostkey_fp"] = fp
 		}
 
 	case oidTLSCert, oidTLSCertDetails:
@@ -250,12 +248,10 @@ func extractOpenVASFingerprints(ph *ParsedHost, res *openvasResult) {
 	// Also do generic fingerprint extraction on all results
 	if _, ok := ph.UniqueKeys["ssh_hostkey_fp"]; !ok {
 		if strings.Contains(strings.ToLower(res.NVT.Name), "ssh") {
-			if m := reSSHFP.FindStringSubmatch(desc); len(m) >= 3 {
-				fp := normalizeFingerprint(m[2])
-				if fp != "" {
-					ph.UniqueKeys["ssh_hostkey_fp"] = fp
-					ph.Attributes["ssh_hostkey_fp"] = fp
-				}
+			fp := extractSSHFP(desc)
+			if fp != "" {
+				ph.UniqueKeys["ssh_hostkey_fp"] = fp
+				ph.Attributes["ssh_hostkey_fp"] = fp
 			}
 		}
 	}

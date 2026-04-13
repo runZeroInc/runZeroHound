@@ -247,7 +247,7 @@ func extractNmapScript(ph *ParsedHost, svc *ParsedService, script nmapScript) {
 		for _, elem := range script.Elems {
 			k := strings.ToLower(elem.Key)
 			if k == "fingerprint" || strings.Contains(k, "fp") {
-				if v := strings.TrimSpace(elem.Value); v != "" {
+				if v := strings.TrimSpace(elem.Value); v != "" && isHexString(v) {
 					ph.UniqueKeys["ssh_hostkey_fp"] = v
 					svc.Attributes["ssh_hostkey_fp"] = v
 				}
@@ -258,7 +258,7 @@ func extractNmapScript(ph *ParsedHost, svc *ParsedService, script nmapScript) {
 			for _, elem := range tbl.Elems {
 				k := strings.ToLower(elem.Key)
 				if k == "fingerprint" || strings.Contains(k, "fp") {
-					if v := strings.TrimSpace(elem.Value); v != "" {
+					if v := strings.TrimSpace(elem.Value); v != "" && isHexString(v) {
 						ph.UniqueKeys["ssh_hostkey_fp"] = v
 						svc.Attributes["ssh_hostkey_fp"] = v
 					}
@@ -270,7 +270,7 @@ func extractNmapScript(ph *ParsedHost, svc *ParsedService, script nmapScript) {
 		for _, elem := range script.Elems {
 			k := strings.ToLower(elem.Key)
 			if k == "sha1" || k == "sha-1" || k == "fingerprint" {
-				if v := strings.TrimSpace(elem.Value); v != "" {
+				if v := strings.TrimSpace(elem.Value); v != "" && isHexString(v) {
 					ph.UniqueKeys["tls_cert_fp"] = v
 					svc.Attributes["tls_cert_fp"] = v
 				}
@@ -280,7 +280,7 @@ func extractNmapScript(ph *ParsedHost, svc *ParsedService, script nmapScript) {
 			for _, elem := range tbl.Elems {
 				k := strings.ToLower(elem.Key)
 				if k == "sha1" || k == "sha-1" || k == "fingerprint" {
-					if v := strings.TrimSpace(elem.Value); v != "" {
+					if v := strings.TrimSpace(elem.Value); v != "" && isHexString(v) {
 						ph.UniqueKeys["tls_cert_fp"] = v
 						svc.Attributes["tls_cert_fp"] = v
 					}
@@ -304,8 +304,11 @@ func extractNmapScript(ph *ParsedHost, svc *ParsedService, script nmapScript) {
 		// SNMP engine ID
 		for _, elem := range script.Elems {
 			k := strings.ToLower(elem.Key)
-			if strings.Contains(k, "engine") {
+			if k == "snmpengineid" || k == "engineid" || k == "engine_id" {
 				if v := strings.TrimSpace(elem.Value); v != "" {
+					// Strip 0x prefix if present for consistent cross-source correlation
+					v = strings.TrimPrefix(v, "0x")
+					v = strings.TrimPrefix(v, "0X")
 					ph.UniqueKeys["snmpv3_engine_id"] = v
 					svc.Attributes["snmpv3_engine_id"] = v
 				}

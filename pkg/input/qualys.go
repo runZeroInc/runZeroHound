@@ -161,12 +161,10 @@ func extractQualysFingerprints(ph *ParsedHost, cat *qualysCat, entry *qualysEntr
 
 	// SSH fingerprint extraction
 	if strings.Contains(svcName, "ssh") || strings.Contains(strings.ToLower(result), "ssh") {
-		if m := reSSHFP.FindStringSubmatch(result); len(m) >= 3 {
-			fp := normalizeFingerprint(m[2])
-			if fp != "" {
-				ph.UniqueKeys["ssh_hostkey_fp"] = fp
-				ph.Attributes["ssh_hostkey_fp"] = fp
-			}
+		fp := extractSSHFP(result)
+		if fp != "" {
+			ph.UniqueKeys["ssh_hostkey_fp"] = fp
+			ph.Attributes["ssh_hostkey_fp"] = fp
 		}
 	}
 

@@ -67,16 +67,35 @@ const (
 // reSSHFP matches RSA/ECDSA/ED25519 fingerprint lines like:
 // "RSA key fingerprint: aa:bb:cc:..."
 // "SHA256:aBcDef..."
-var reSSHFP = regexp.MustCompile(`(?i)(fingerprint|sha256|md5)[\s:]+([0-9a-f]{2}(?::[0-9a-f]{2}){15,}|SHA256:[A-Za-z0-9+/]{43}=?)`)
+// "fingerprint: aa:bb:cc:..."
+var reSSHFP = regexp.MustCompile(`(?i)(?:fingerprint|sha256|md5)[\s:]+([0-9a-f]{2}(?::[0-9a-f]{2}){15,})|(?:SHA256:([A-Za-z0-9+/]{43}=?))`)
 
-// reTLSFP matches lines like: "SHA-1 Fingerprint: AA:BB:CC:..."
-var reTLSFP = regexp.MustCompile(`(?i)SHA[-\s]?1\s*(?:fingerprint|:)\s*([0-9A-Fa-f:]{59})`)
+// reTLSFP matches lines like: "SHA-1 Fingerprint: AA:BB:CC:..." or "SHA-1: AA:BB:CC:..."
+var reTLSFP = regexp.MustCompile(`(?i)SHA[-\s]?1\s*(?:fingerprint\s*[:=]\s*|[:=]\s*)([0-9A-Fa-f:]{59})`)
 
 // reSMBGUID matches Windows SMB2 session/server GUID values.
 var reSMBGUID = regexp.MustCompile(`(?i)(?:guid|GUID)\s*[=:]\s*(\{?[0-9a-fA-F\-]{36}\}?)`)
 
-// reSNMPEngine matches SNMPv3 engine ID hex strings.
-var reSNMPEngine = regexp.MustCompile(`(?i)engine\s*id\s*[=:]\s*([0-9a-fA-F]{10,})`)
+// reSNMPEngine matches SNMPv3 engine ID hex strings, optionally prefixed with 0x.
+var reSNMPEngine = regexp.MustCompile(`(?i)engine\s*id\s*[=:]\s*(?:0x)?([0-9a-fA-F]{10,})`)
+
+// extractSSHFP extracts the SSH host key fingerprint from text using reSSHFP.
+// Returns empty string if no match is found.
+func extractSSHFP(text string) string {
+	m := reSSHFP.FindStringSubmatch(text)
+	if m == nil {
+		return ""
+	}
+	// Group 1: colon-hex fingerprint
+	if m[1] != "" {
+		return normalizeFingerprint(m[1])
+	}
+	// Group 2: SHA256 base64 fingerprint (without SHA256: prefix)
+	if m[2] != "" {
+		return "SHA256:" + m[2]
+	}
+	return ""
+}
 
 // reTracerouteHop matches lines like "1  192.168.1.1" or "  2  10.0.0.1  1.234 ms"
 var reTracerouteHop = regexp.MustCompile(`^\s*(\d+)\s+([\d.]+(?:\.\d+){3})\b`)
@@ -202,12 +221,10 @@ func extractNessusFingerprints(ph *ParsedHost, item *nessusReportItem) {
 
 	switch item.PluginID {
 	case nessusPluginSSHHostKey:
-		if m := reSSHFP.FindStringSubmatch(out); len(m) >= 3 {
-			fp := normalizeFingerprint(m[2])
-			if fp != "" {
-				ph.UniqueKeys["ssh_hostkey_fp"] = fp
-				ph.Attributes["ssh_hostkey_fp"] = fp
-			}
+		fp := extractSSHFP(out)
+		if fp != "" {
+			ph.UniqueKeys["ssh_hostkey_fp"] = fp
+			ph.Attributes["ssh_hostkey_fp"] = fp
 		}
 
 	case nessusPluginTLSCert, nessusPluginTLSCert2:
@@ -354,6 +371,20 @@ func isFingerprintHex(s string) bool {
 			if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
 				return false
 			}
+		}
+	}
+	return true
+}
+
+// isHexString returns true if s is a non-empty string containing only hexadecimal
+// characters (0-9, a-f, A-F). Used to validate raw fingerprint values from parsers.
+func isHexString(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, c := range s {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
 		}
 	}
 	return true

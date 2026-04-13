@@ -8,8 +8,7 @@
           <RESULT><![CDATA[
 SSH service detected on port 22.
 SSH version: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6
-SSH host key fingerprint: ssh-ed25519 SHA256:AbCdEfGhIjKlMnOpQrStUvWxYz0123456789aBcDeFg
-SSH host key fingerprint: ssh-rsa SHA256:ZyXwVuTsRqPoNmLkJiHgFeDcBa9876543210zYxWvUt
+SSH host key fingerprint: ab:cd:ef:01:23:45:67:89:ab:cd:ef:01:23:45:67:89
 MAC address: 02:42:c0:00:02:0a
           ]]></RESULT>
         </INFO>
@@ -22,8 +21,8 @@ TLS/SSL certificate information:
   Issuer: CN=Example Intermediate CA, O=Example Corp, C=US
   Serial: 0A:1B:2C:3D:4E:5F:6A:7B
   Valid from: 2024-01-15 to 2025-01-15
-  SHA-1 fingerprint: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0
-  SHA-256 fingerprint: aabbccdd11223344556677889900aabbccddeeff00112233445566778899aabb
+  SHA-1 fingerprint: a1:b2:c3:d4:e5:f6:a7:b8:c9:d0:e1:f2:a3:b4:c5:d6:e7:f8:a9:b0
+  SHA-256 fingerprint: aa:bb:cc:dd:11:22:33:44:55:66:77:88:99:00:aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99:aa:bb
           ]]></RESULT>
         </INFO>
       </CAT>
@@ -79,7 +78,7 @@ SMB server GUID: 4a3b2c1d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
         <INFO number="91390">
           <RESULT><![CDATA[
 Remote Desktop Protocol detected on port 3389.
-TLS certificate fingerprint: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1
+SHA-1 Fingerprint: b2:c3:d4:e5:f6:a7:b8:c9:d0:e1:f2:a3:b4:c5:d6:e7:f8:a9:b0:c1
 NLA (Network Level Authentication) is enabled.
           ]]></RESULT>
         </INFO>
@@ -134,7 +133,7 @@ LDAP service allows anonymous binds.
           <RESULT><![CDATA[
 SSH service detected on port 22.
 SSH version: SSH-2.0-Cisco-1.25
-SSH host key fingerprint: ssh-rsa SHA256:MnOpQrStUvWxYz0123456789aBcDeFgHiJkLmNoPqRs
+SSH host key fingerprint: fa:ce:b0:0c:de:ad:01:23:45:67:89:ab:cd:ef:00:11
 MAC address: 00:1a:2b:3c:4d:5e
           ]]></RESULT>
         </INFO>
@@ -143,7 +142,7 @@ MAC address: 00:1a:2b:3c:4d:5e
         <INFO number="78030">
           <RESULT><![CDATA[
 SNMP service detected on port 161/udp.
-SNMP engine ID: 80:00:00:09:03:00:1a:2b:3c:4d:5e
+SNMP engine ID: 80000009030019ab3c4d5e
 sysDescr: Cisco IOS Software, C3750E Software (C3750E-UNIVERSALK9-M), Version 15.2(4)E10
 sysName: switch01.example.com
           ]]></RESULT>

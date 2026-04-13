@@ -13,7 +13,7 @@
       <port protocol="tcp" portid="22">
         <state state="open" reason="syn-ack" reason_ttl="63"/>
         <service name="ssh" product="OpenSSH" version="8.9p1 Ubuntu-3ubuntu0.6" ostype="Linux" method="probed" conf="10"/>
-        <script id="ssh-hostkey" output="&#xa;  256 ab:cd:ef:01:23:45:67:89:ab:cd:ef:01:23:45:67:89 (ED25519)&#xa;  3072 zy:xw:vu:ts:rq:po:nm:lk:ji:hg:fe:dc:ba:98:76:54 (RSA)">
+        <script id="ssh-hostkey" output="&#xa;  256 ab:cd:ef:01:23:45:67:89:ab:cd:ef:01:23:45:67:89 (ED25519)&#xa;  3072 de:ad:be:ef:ca:fe:ba:be:01:23:45:67:89:ab:cd:ef (RSA)">
           <table key="key">
             <elem key="type">ssh-ed25519</elem>
             <elem key="bits">256</elem>
@@ -22,7 +22,7 @@
           <table key="key">
             <elem key="type">ssh-rsa</elem>
             <elem key="bits">3072</elem>
-            <elem key="fingerprint">zyxwvutsrqponmlkjihgfedcba987654</elem>
+            <elem key="fingerprint">deadbeefcafebabe0123456789abcdef</elem>
           </table>
         </script>
       </port>
@@ -153,11 +153,11 @@
       <port protocol="tcp" portid="22">
         <state state="open" reason="syn-ack" reason_ttl="254"/>
         <service name="ssh" product="Cisco SSH" version="1.25" ostype="Cisco IOS" method="probed" conf="10"/>
-        <script id="ssh-hostkey" output="&#xa;  2048 mn:op:qr:st:uv:wx:yz:01:23:45:67:89:ab:cd:ef:01 (RSA)">
+        <script id="ssh-hostkey" output="&#xa;  2048 fa:ce:b0:0c:de:ad:01:23:45:67:89:ab:cd:ef:00:11 (RSA)">
           <table key="key">
             <elem key="type">ssh-rsa</elem>
             <elem key="bits">2048</elem>
-            <elem key="fingerprint">mnopqrstuvwxyz0123456789abcdef01</elem>
+            <elem key="fingerprint">faceb00cdead0123456789abcdef0011</elem>
           </table>
         </script>
       </port>

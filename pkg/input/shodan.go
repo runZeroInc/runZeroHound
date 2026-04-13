@@ -157,12 +157,10 @@ func ParseShodan(path string) (*ParseResult, error) {
 		productLower := strings.ToLower(rec.Product)
 		if strings.Contains(dataLower, "ssh") ||
 			strings.Contains(productLower, "ssh") {
-			if m := reSSHFP.FindStringSubmatch(rec.Data); len(m) >= 3 {
-				fp := normalizeFingerprint(m[2])
-				if fp != "" {
-					ph.UniqueKeys["ssh_hostkey_fp"] = fp
-					ph.Attributes["ssh_hostkey_fp"] = fp
-				}
+			fp := extractSSHFP(rec.Data)
+			if fp != "" {
+				ph.UniqueKeys["ssh_hostkey_fp"] = fp
+				ph.Attributes["ssh_hostkey_fp"] = fp
 			}
 		}
 	}
