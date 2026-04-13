@@ -105,7 +105,7 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 				svcProps["version"] = svc.Version
 			}
 			for k, v := range svc.Attributes {
-				svcProps["attr_"+k] = v
+				svcProps[strings.ToLower("attr_"+k)] = v
 			}
 			svcNode := &bloodhound.Node{
 				ID:         svcID,
@@ -263,7 +263,7 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 				saProps["vlan"] = sa.VLAN
 			}
 			for k, v := range sa.Attributes {
-				saProps["attr_"+k] = v
+				saProps[strings.ToLower("attr_"+k)] = v
 			}
 			saNode := &bloodhound.Node{
 				ID:         saID,

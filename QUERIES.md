@@ -3,12 +3,13 @@
 A curated collection of Cypher queries for exploring runZeroHound graphs in BloodHound CE.
 See the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cypher-search) for language details.
 
-> **BloodHound CE compatibility note:** The Cypher-to-SQL transpiler does not support
-> `ORDER BY` on aliases computed by aggregation in `RETURN`, nor property expressions
-> or function calls (e.g. `a.hw`, `labels(n)`) in `WITH` clauses. Queries that group by
-> a property value therefore omit `ORDER BY` — sort by the count column in the UI.
-> Queries that group by a **node variable** in `WITH` (e.g. `WITH ca, count(a) AS cnt`)
-> are unaffected and do support `ORDER BY`.
+> **BloodHound CE compatibility note:** The Cypher-to-SQL transpiler cannot use
+> property expressions or function calls (e.g. `a.hw`, `labels(n)`) as GROUP BY keys.
+> This means `RETURN a.os, count(a)` and `WITH a.os AS os, count(a) AS total` both
+> fail with *"binary expression not supported in with statement"*. Queries that need
+> to group by a property value therefore use `RETURN DISTINCT` without counts — sort
+> and tally in the UI. Queries that group by a **node variable** in `WITH` (e.g.
+> `WITH ca, count(a) AS cnt`) are unaffected and do support aggregation and `ORDER BY`.
 
 ---
 
@@ -116,7 +117,7 @@ Queries to verify your import and understand the shape of your data.
 
 ```cypher
 MATCH (n)
-RETURN labels(n) AS kind, count(n) AS total
+RETURN DISTINCT labels(n) AS kind
 ```
 
 ### Count all edge types
@@ -124,7 +125,7 @@ RETURN labels(n) AS kind, count(n) AS total
 
 ```cypher
 MATCH ()-[r]->()
-RETURN type(r) AS edge_type, count(r) AS total
+RETURN DISTINCT type(r) AS edge_type
 ```
 
 ### Verify the internet node exists
@@ -160,7 +161,7 @@ LIMIT 50
 ```cypher
 MATCH (a:RZAsset)
 WHERE a.category IS NOT NULL
-RETURN a.category AS category, count(a) AS total
+RETURN DISTINCT a.category AS category
 ```
 
 #### Assets by operating system
@@ -169,7 +170,7 @@ RETURN a.category AS category, count(a) AS total
 ```cypher
 MATCH (a:RZAsset)
 WHERE a.os IS NOT NULL
-RETURN a.os AS os, count(a) AS total
+RETURN DISTINCT a.os AS os
 LIMIT 20
 ```
 
@@ -179,7 +180,7 @@ LIMIT 20
 ```cypher
 MATCH (a:RZAsset)
 WHERE a.hw IS NOT NULL
-RETURN a.hw AS hw, count(a) AS total
+RETURN DISTINCT a.hw AS hw
 LIMIT 20
 ```
 
@@ -191,7 +192,7 @@ LIMIT 20
 ```cypher
 MATCH (svc:RZService)
 WHERE svc.port IS NOT NULL
-RETURN svc.port + '/' + svc.transport AS port, count(svc) AS total
+RETURN DISTINCT svc.port + '/' + svc.transport AS port
 LIMIT 20
 ```
 
@@ -345,7 +346,7 @@ LIMIT 20
 
 ```cypher
 MATCH (eid:RZSNMPEngineID)
-RETURN eid.vendor AS vendor, count(eid) AS total
+RETURN DISTINCT eid.vendor AS vendor
 ```
 
 ### OT / Building Automation
@@ -385,7 +386,7 @@ ORDER BY gw.protocol, gw.ip
 
 ```cypher
 MATCH (dev:RZBACnetDevice)
-RETURN dev.vendor_name AS vendor_name, dev.vendor_id AS vendor_id, count(dev) AS total
+RETURN DISTINCT dev.vendor_name AS vendor_name, dev.vendor_id AS vendor_id
 ```
 
 #### BACnet devices with location metadata
@@ -783,9 +784,8 @@ LIMIT 30
 ```cypher
 MATCH (a:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert)
 OPTIONAL MATCH (a)-[:RZSignedByCA]->(ca:RZTLSCAChain)
-RETURN cert.self_signed IS NOT NULL AS is_self_signed,
-       ca IS NOT NULL AS has_ca,
-       count(DISTINCT a) AS asset_count
+RETURN a.displayname, cert.cn, cert.self_signed, ca.issuer
+LIMIT 50
 ```
 
 ### Traceroute: core routers handling the most diverse subnets
@@ -815,7 +815,7 @@ LIMIT 20
 
 ```cypher
 MATCH (sn:RZSerialNumber)<-[:RZHasSerialNumber]-(a:RZAsset)
-RETURN sn.source AS source, count(DISTINCT sn) AS serial_count, count(DISTINCT a) AS asset_count
+RETURN DISTINCT sn.source AS source
 ```
 
 ---

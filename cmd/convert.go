@@ -480,7 +480,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 			if strings.HasPrefix(k, "_") {
 				continue
 			}
-			attrKey := "runzero." + k
+			attrKey := strings.ToLower("runzero." + k)
 			if k == "vlan" {
 				attrKey = k
 			}
@@ -495,7 +495,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 		for attrType, attrSet := range asset.ForeignAttributes {
 			for _, attrVals := range attrSet {
 				for k, tsv := range attrVals {
-					attrKey := strings.ReplaceAll(attrType, "@", "") + "." + k
+					attrKey := strings.ToLower(strings.ReplaceAll(attrType, "@", "") + "." + k)
 					for _, v := range strings.Split(tsv, "\t") {
 						if _, ok := assetAttr[attrKey]; !ok {
 							assetAttr[attrKey] = make(map[string]struct{})
@@ -558,7 +558,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 					continue
 				}
 				for _, v := range strings.Split(sv, "\t") {
-					attrKey := "attr_" + k
+					attrKey := strings.ToLower("attr_" + k)
 					if _, ok := svcAttr[attrKey]; !ok {
 						svcAttr[attrKey] = make(map[string]struct{})
 					}
