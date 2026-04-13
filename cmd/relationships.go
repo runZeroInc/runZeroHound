@@ -56,6 +56,7 @@ func extractAllRelationships(refs []assetNodeRef) ([]*bloodhound.Node, []*bloodh
 	extractSSHKeyEntities(rc, refs)
 	extractTLSCertEntities(rc, refs)
 	extractSNMPEngineEntities(rc, refs)
+	extractSMBGUIDEntities(rc, refs)
 	extractIPMIEntities(rc, refs)
 	extractTracerouteEntities(rc, refs)
 	extractMACEntities(rc, refs)
@@ -315,6 +316,56 @@ func extractSNMPEngineEntities(rc *relationshipContext, refs []assetNodeRef) {
 	}
 	if cnt > 0 {
 		rlog("info", "created %d SNMP v3 engine ID nodes", cnt)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// SMB GUID entities
+// ---------------------------------------------------------------------------
+
+func extractSMBGUIDEntities(rc *relationshipContext, refs []assetNodeRef) {
+	cnt := 0
+	for _, ref := range refs {
+		for sk, svc := range ref.asset.Services {
+			guid := firstTabVal(svc["smb.guid"])
+			if guid == "" {
+				continue
+			}
+			svcNodeID := fmt.Sprintf("rz-service-%s-%s", ref.asset.ID.String(), sk)
+			guidNodeID := "rz-smbguid-" + sanitizeID(guid)
+			if !rc.created[guidNodeID] {
+				cnt++
+				props := map[string]any{
+					"displayname": "SMB:" + guid,
+					"guid":        guid,
+				}
+				if nativeLM := firstTabVal(svc["smb.nativeLM"]); nativeLM != "" {
+					props["native_lm"] = nativeLM
+				}
+				if nativeOS := firstTabVal(svc["smb.nativeOS"]); nativeOS != "" {
+					props["native_os"] = nativeOS
+				}
+				if dialect := firstTabVal(svc["smb.dialect"]); dialect != "" {
+					props["dialect"] = dialect
+				}
+				if signing := firstTabVal(svc["smb.signing"]); signing != "" {
+					props["signing"] = signing
+				}
+				if domain := firstTabVal(svc["smb.netbiosDomain"]); domain != "" {
+					props["netbios_domain"] = domain
+				}
+				rc.addNode(&bloodhound.Node{
+					ID:         guidNodeID,
+					Kinds:      []string{"RZSMBGUID"},
+					Properties: props,
+				})
+			}
+			rc.addEdge(ref.nodeID, "RZHasSMBGUID", guidNodeID)
+			rc.addEdge(guidNodeID, "RZHasSMBService", svcNodeID)
+		}
+	}
+	if cnt > 0 {
+		rlog("info", "created %d SMB GUID nodes", cnt)
 	}
 }
 
