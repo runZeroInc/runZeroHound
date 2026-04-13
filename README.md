@@ -88,7 +88,7 @@ API interaction and we plan to add a helper tool to support this in the future.
 - **RZAsset** - Connected devices with IPs, open ports, and system info
     - Connected to services via RZHasService and RZRunsOnAsset edges
     - Connected to subnets via RZInsideOfSubnet and RZSubnetContains edges
-- **RZNmapHost / RZNessusHost / RZOpenVASHost / RZQualysHost / RZMasscanHost / RZShodanHost / RZNetBoxDevice / RZSNMPHost / RZNextnetHost** - Source-specific host nodes from non-runZero parsers
+- **RZNmapHost / RZNessusHost / RZOpenVASHost / RZQualysHost / RZMasscanHost / RZShodanHost / RZNetBoxDevice / RZSNMPHost** - Source-specific host nodes from non-runZero parsers
 - **RZService** - Identified services on assets
     - Connected to assets via RZHasService and RZRunsOnAsset edges
 - **RZSubnet** - Network subnets with CIDR notation and host counts
@@ -232,7 +232,6 @@ runZeroHound can ingest data from any of the following sources:
 | **Shodan** | JSONL | `ip_str` in JSON | IPs, hostnames, OS, services, TLS certs, SSH keys, vulnerabilities |
 | **NetBox** | JSON API export | `count`+`results` JSON | IPs, hostnames, device types, roles, platforms, sites, racks |
 | **snmpwalk** | Text output | OID = TYPE: VALUE pattern | IPs, MACs, hostnames, OS (sysDescr), SNMP engine IDs, ARP cache, MAC table |
-| **nextnet** | .nxt JSONL | `.nxt` extension | IPs, NetBIOS names, MACs, secondary addresses, SNMP engine IDs |
 
 ### Ideal Nmap Command
 
@@ -245,16 +244,6 @@ sudo nmap -sS -sU -sV -O --traceroute \
   --script ssh-hostkey,ssl-cert,smb2-security-mode,snmp-info,nbstat \
   -p T:22,80,443,445,3389,8080,8443,U:161,137 \
   -oX scan.xml 192.168.1.0/24
-```
-
-### nextnet Scanner
-
-runZeroHound includes a built-in network scanner (`nextnet`) that probes for:
-- **NetBIOS** (UDP 137): Discovers hostnames, domains, MAC addresses, and multi-homed interface addresses
-- **SNMP** (UDP 161): Discovers sysDescr, sysName, SNMP engine IDs, interface addresses, ARP cache, and MAC tables
-
-```bash
-go run main.go nextnet 192.168.1.0/24 10.0.0.0/8
 ```
 
 ### Cross-Source Correlation

@@ -45,13 +45,9 @@ Supported input types (auto-detected):
   runzero   runZero asset export (.json.gz or .jsonl)
   nmap      Nmap XML output (-oX)
   snmpwalk  net-snmp snmpwalk text output
-  nextnet   nextnet scanner output (.nxt)
   nessus    Nessus vulnerability scanner report (.nessus)
   openvas   OpenVAS/GVM XML report
   netbox    NetBox DCIM/IPAM JSON API export
-  qualys    Qualys VM scan XML report
-  masscan   Masscan XML (-oX) or JSON (-oJ) output
-  shodan    Shodan JSONL export
   qualys    Qualys VM scan XML report
   masscan   Masscan XML (-oX) or JSON (-oJ) output
   shodan    Shodan JSONL export
@@ -140,14 +136,6 @@ func generateOpenGraph(inputFiles []string, outputFD *os.File) error {
 			result, err := input.ParseSNMPWalk(path)
 			if err != nil {
 				return fmt.Errorf("parse snmpwalk %s: %w", path, err)
-			}
-			nodes, edges := input.BuildOpenGraph(result.Hosts)
-			mergeResult(nodes, edges)
-
-		case input.FileTypeNextnet:
-			result, err := input.ParseNextnet(path)
-			if err != nil {
-				return fmt.Errorf("parse nextnet %s: %w", path, err)
 			}
 			nodes, edges := input.BuildOpenGraph(result.Hosts)
 			mergeResult(nodes, edges)

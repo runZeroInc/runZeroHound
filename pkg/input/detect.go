@@ -18,7 +18,6 @@ const (
 	FileTypeRunZeroJSONL          // plain runZero JSONL export
 	FileTypeNmapXML               // Nmap XML output (-oX)
 	FileTypeSNMPWalk              // net-snmp snmpwalk text output
-	FileTypeNextnet               // nextnet .nxt JSONL output
 	FileTypeNessus                // Nessus .nessus XML report
 	FileTypeOpenVAS               // OpenVAS/GVM XML report
 	FileTypeNetBox                // NetBox JSON API export
@@ -38,8 +37,6 @@ func (ft FileType) String() string {
 		return "nmap-xml"
 	case FileTypeSNMPWalk:
 		return "snmpwalk"
-	case FileTypeNextnet:
-		return "nextnet"
 	case FileTypeNessus:
 		return "nessus"
 	case FileTypeOpenVAS:
@@ -59,22 +56,16 @@ func (ft FileType) String() string {
 
 // DetectFileType inspects the path (and its contents) to determine the format.
 // Detection order:
-//  1. .nxt extension → nextnet
-//  2. .nessus extension → Nessus
-//  3. gzip magic bytes → runZero gzip-compressed JSONL
-//  4. XML header dispatch: nmaprun → Nmap, NessusClientData → Nessus, OpenVAS report → OpenVAS
-//  5. JSON with count+results → NetBox
-//  6. snmpwalk OID pattern → snmpwalk
-//  7. fallback → runZero JSONL
+//  1. .nessus extension → Nessus
+//  2. gzip magic bytes → runZero gzip-compressed JSONL
+//  3. XML header dispatch: nmaprun → Nmap, NessusClientData → Nessus, OpenVAS report → OpenVAS
+//  4. JSON with count+results → NetBox
+//  5. snmpwalk OID pattern → snmpwalk
+//  6. fallback → runZero JSONL
 func DetectFileType(path string) (FileType, error) {
 	lower := strings.ToLower(path)
 
-	// 1. Extension-based detection for nextnet
-	if strings.HasSuffix(lower, ".nxt") {
-		return FileTypeNextnet, nil
-	}
-
-	// 2. Extension-based detection for Nessus
+	// 1. Extension-based detection for Nessus
 	if strings.HasSuffix(lower, ".nessus") {
 		return FileTypeNessus, nil
 	}
@@ -92,12 +83,12 @@ func DetectFileType(path string) (FileType, error) {
 	}
 	header = header[:n]
 
-	// 3. gzip magic bytes → runZero gzip JSONL
+	// 2. gzip magic bytes → runZero gzip JSONL
 	if len(header) >= 2 && header[0] == 0x1f && header[1] == 0x8b {
 		return FileTypeRunZeroGZIP, nil
 	}
 
-	// 4. XML dispatch
+	// 3. XML dispatch
 	trimmed := bytes.TrimSpace(header)
 	if bytes.HasPrefix(trimmed, []byte("<?xml")) || bytes.HasPrefix(trimmed, []byte("<")) {
 		switch {
@@ -120,27 +111,27 @@ func DetectFileType(path string) (FileType, error) {
 		}
 	}
 
-	// 4b. Shodan JSONL detection: first line is a JSON object with "ip_str" key
+	// 3b. Shodan JSONL detection: first line is a JSON object with "ip_str" key
 	if looksLikeShodan(header) {
 		return FileTypeShodan, nil
 	}
 
-	// 4c. Masscan JSON detection: array of objects with "ip" and "ports" keys
+	// 3c. Masscan JSON detection: array of objects with "ip" and "ports" keys
 	if looksLikeMasscanJSON(header) {
 		return FileTypeMasscan, nil
 	}
 
-	// 5. JSON with NetBox shape: {"count": N, "results": [...]}
+	// 4. JSON with NetBox shape: {"count": N, "results": [...]}
 	if looksLikeNetBox(header) {
 		return FileTypeNetBox, nil
 	}
 
-	// 6. snmpwalk OID pattern
+	// 5. snmpwalk OID pattern
 	if looksLikeSNMPWalk(header) {
 		return FileTypeSNMPWalk, nil
 	}
 
-	// 7. Fallback to runZero JSONL
+	// 6. Fallback to runZero JSONL
 	return FileTypeRunZeroJSONL, nil
 }
 

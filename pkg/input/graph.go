@@ -335,8 +335,6 @@ func sourceKind(ft FileType) string {
 		return "RZNmapHost"
 	case FileTypeSNMPWalk:
 		return "RZSNMPHost"
-	case FileTypeNextnet:
-		return "RZNextnetHost"
 	case FileTypeNessus:
 		return "RZNessusHost"
 	case FileTypeOpenVAS:

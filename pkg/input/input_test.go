@@ -26,11 +26,6 @@ func TestDetectFileType(t *testing.T) {
 		want     input.FileType
 	}{
 		{
-			filename: "scan.nxt",
-			content:  `{"host":"1.2.3.4","probe":"netbios"}`,
-			want:     input.FileTypeNextnet,
-		},
-		{
 			filename: "scan.xml",
 			content:  `<?xml version="1.0"?><nmaprun></nmaprun>`,
 			want:     input.FileTypeNmapXML,
@@ -150,49 +145,11 @@ IP-MIB::ipAdEntAddr.10.0.0.5 = IpAddress: 10.0.0.5
 	}
 }
 
-// TestParseNextnet validates nextnet .nxt JSONL parsing.
-func TestParseNextnet(t *testing.T) {
-	content := `{"host":"192.168.1.1","port":"137","proto":"udp","probe":"netbios","name":"ROUTER","nets":["192.168.1.1","10.10.10.1"],"info":{"hwaddr":"aa:bb:cc:dd:ee:01","domain":"LAB"}}
-{"host":"192.168.1.2","port":"137","proto":"udp","probe":"netbios","name":"PC","nets":["192.168.1.2"],"info":{"ssh_hostkey_fp":"aa:bb:cc:dd:ee:ff","smb_guid":"12345678-ABCD-EF01-2345-6789ABCDEF01"}}
-`
-
-	path := filepath.Join(t.TempDir(), "scan.nxt")
-	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
-		t.Fatal(err)
-	}
-
-	result, err := input.ParseNextnet(path)
-	if err != nil {
-		t.Fatalf("ParseNextnet: %v", err)
-	}
-	if len(result.Hosts) != 2 {
-		t.Fatalf("got %d hosts, want 2", len(result.Hosts))
-	}
-
-	// First host: multi-homed (nets contains secondary address)
-	h0 := result.Hosts[0]
-	if h0.Addresses[0] != "192.168.1.1" {
-		t.Errorf("h0 address: %v", h0.Addresses)
-	}
-	if len(h0.Addresses) < 2 || h0.Addresses[1] != "10.10.10.1" {
-		t.Errorf("h0 secondary address missing: %v", h0.Addresses)
-	}
-
-	// Second host: has fingerprints
-	h1 := result.Hosts[1]
-	if _, ok := h1.UniqueKeys["ssh_hostkey_fp"]; !ok {
-		t.Error("expected ssh_hostkey_fp unique key")
-	}
-	if _, ok := h1.UniqueKeys["smb_guid"]; !ok {
-		t.Error("expected smb_guid unique key")
-	}
-}
-
 // TestBuildOpenGraph validates that BuildOpenGraph produces nodes and edges.
 func TestBuildOpenGraph(t *testing.T) {
 	hosts := []*input.ParsedHost{
 		{
-			Source:    input.FileTypeNextnet,
+			Source:    input.FileTypeNmapXML,
 			Addresses: []string{"192.168.1.1"},
 			Names:     []string{"ROUTER"},
 			UniqueKeys: map[string]string{
