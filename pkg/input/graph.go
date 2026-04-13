@@ -48,8 +48,8 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 		}
 
 		props := map[string]any{
-			"displayname": label,
-			"source":      ph.Source.String(),
+			"displayname":  label,
+			"source":       ph.Source.String(),
 			"ip_addresses": ph.Addresses,
 		}
 		if len(ph.Sources) > 0 {
@@ -310,7 +310,7 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 		ID:    "rz-network-public",
 		Kinds: []string{"RZNetwork"},
 		Properties: map[string]any{
-			"displayname":     "Global Internet",
+			"displayname":     "Public Internet",
 			"network_address": "0.0.0.0",
 		},
 	})
