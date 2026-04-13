@@ -1,104 +1,111 @@
 # runZeroHound Cypher Query Reference
 
-This document provides example Cypher queries for exploring the graph data
-produced by `runZeroHound convert`. The queries are written for BloodHound CE
-(Neo4j-backed) and use the node kinds and edge types emitted by the converter.
-
-## Node Kinds
-
-| Kind | Description |
-|------|-------------|
-| `RZAsset` | A runZero-discovered network asset |
-| `RZService` | A network service running on an asset |
-| `RZNetwork` | An IP subnet (aggregated to /24 IPv4, /56 IPv6) |
-| `RZDomain` | A DNS domain |
-| `RZVLAN` | A VLAN ID |
-| `RZGateway` | A BACnet / CIP / Modbus / KNXnet gateway controller |
-| `RZSSHKey` | An SSH host key fingerprint |
-| `RZTLSCert` | A TLS certificate (identified by SHA-1 fingerprint) |
-| `RZSNMPEngineID` | An SNMPv3 Engine ID |
-| `RZIPMICredential` | An IPMI service credential/configuration |
-| `RZRouter` | A layer-3 router hop from traceroute |
-| `RZMACAddress` | A MAC address with vendor metadata |
-| `RZMACVendor` | A MAC OUI vendor (e.g. "Cisco Systems") |
-| `RZSwitch` | A layer-2 switch (from SNMP switch data) |
-| `RZSwitchPort` | A physical switch port |
-| `RZSubAsset` | A sub-asset discovered via SNMP ARP/MAC tables |
-| `RZFavicon` | A web favicon fingerprint (MD5 + MurmurHash3) |
-| `RZIKEIdentity` | An IKE/IPsec VPN identity fingerprint |
-| `RZKNXnetDevice` | A KNXnet/IP building automation device (by serial) |
-| `RZBACnetDevice` | A BACnet building automation device (by instance ID) |
-| `RZNTPReference` | An NTP reference clock / upstream time source |
-| `RZDNSIdentity` | A DNS server identity (CHAOS TXT id.server) |
-| `RZDNSVersion` | A DNS software version (CHAOS TXT version.bind) |
-| `RZSNMPDeviceType` | An SNMP device type (sysObjectID grouping) |
-| `RZTLSCAChain` | A TLS signing CA (by CA certificate SHA-1) |
-| `RZSerialNumber` | A device serial number (cross-protocol) |
-| `RZNTLMDomain` | An NTLM SSP domain identity (dnsDomain) |
-| `RZNTLMComputer` | An NTLM SSP computer identity (dnsComputer) |
-
-## Edge Kinds
-
-| Edge | Direction | Description |
-|------|-----------|-------------|
-| `RZHasService` | Asset → Service | Asset exposes this service |
-| `RZRunsOnAsset` | Service → Asset | Service runs on this asset |
-| `RZInsideOfSubnet` | Asset → Network | Asset belongs to this subnet |
-| `RZSubnetContains` | Network → Asset | Subnet contains this asset |
-| `RZPartOfDomain` | Asset → Domain | Asset is part of this domain |
-| `RZDomainContains` | Domain → Asset | Domain contains this asset |
-| `RZPartOfVLAN` | Asset → VLAN | Asset belongs to this VLAN |
-| `RZVLANContains` | VLAN → Asset | VLAN contains this asset |
-| `RZHasGateway` | Asset → Gateway | Device is behind this gateway |
-| `RZHasGatewayAssets` | Gateway → Asset | Gateway controls this device |
-| `RZHasSSHKey` | Asset → SSHKey | Asset presents this SSH key |
-| `RZHasSSHService` | SSHKey → Service | SSH key is served by this service |
-| `RZHasTLSCert` | Asset → TLSCert | Asset presents this TLS certificate |
-| `RZHasTLSService` | TLSCert → Service | TLS cert is served by this service |
-| `RZHasSNMPEngineID` | Asset → SNMPEngineID | Asset has this SNMP engine |
-| `RZHasSNMPService` | SNMPEngineID → Service | Engine belongs to this service |
-| `RZHasIPMICredential` | Asset → IPMICredential | Asset has IPMI with these settings |
-| `RZHasIPMIService` | IPMICredential → Service | IPMI credential is on this service |
-| `RZHasRouter` | Asset ↔ Router | Asset has this traceroute hop (bidirectional) |
-| `RZHasMAC` | Asset → MACAddress | Asset has this MAC address |
-| `RZHasMACHost` | MACAddress → Asset | MAC address belongs to this asset |
-| `RZHasMACVendor` | MACAddress → MACVendor | MAC is registered to this vendor |
-| `RZHasSwitch` | Asset → Switch | Asset is connected to this switch |
-| `RZHasSwitchAssets` | Switch → Asset | Switch has this asset connected |
-| `RZHasSwitchPort` | Switch → SwitchPort | Switch has this port |
-| `RZConnectedToPort` | Asset → SwitchPort | Asset is physically connected to port |
-| `RZHasFavicon` | Asset → Favicon | Asset serves this favicon |
-| `RZFaviconUsedBy` | Favicon → Service | Favicon is served by this service |
-| `RZHasIKEIdentity` | Asset → IKEIdentity | Asset has this IKE/VPN fingerprint |
-| `RZIKEIdentityUsedBy` | IKEIdentity → Service | IKE identity belongs to this service |
-| `RZHasKNXnetDevice` | Asset → KNXnetDevice | Asset exposes this KNXnet device |
-| `RZKNXnetDeviceOnAsset` | KNXnetDevice → Service | KNXnet device is on this service |
-| `RZHasBACnetDevice` | Asset → BACnetDevice | Asset exposes this BACnet device |
-| `RZBACnetDeviceOnAsset` | BACnetDevice → Service | BACnet device is on this service |
-| `RZHasNTPReference` | Asset → NTPReference | Asset syncs to this NTP reference |
-| `RZNTPReferenceUsedBy` | NTPReference → Service | NTP reference is used by this service |
-| `RZHasDNSIdentity` | Asset → DNSIdentity | Asset has this DNS server identity |
-| `RZDNSIdentityUsedBy` | DNSIdentity → Service | DNS identity belongs to this service |
-| `RZHasDNSVersion` | Asset → DNSVersion | Asset runs this DNS software version |
-| `RZDNSVersionUsedBy` | DNSVersion → Service | DNS version is on this service |
-| `RZHasSNMPDeviceType` | Asset → SNMPDeviceType | Asset is this SNMP device type |
-| `RZSNMPDeviceTypeUsedBy` | SNMPDeviceType → Service | SNMP device type belongs to service |
-| `RZSignedByCA` | Asset → TLSCAChain | Asset's TLS cert is signed by this CA |
-| `RZCASignedCert` | TLSCAChain → Service | CA signed this service's certificate |
-| `RZHasSerialNumber` | Asset → SerialNumber | Asset has this serial number |
-| `RZSerialNumberUsedBy` | SerialNumber → Asset | Serial number belongs to this asset |
-| `RZHasNTLMDomain` | Asset → NTLMDomain | Asset advertises this NTLM domain |
-| `RZNTLMDomainUsedBy` | NTLMDomain → Service | NTLM domain is on this service |
-| `RZHasNTLMComputer` | Asset → NTLMComputer | Asset has this NTLM computer identity |
-| `RZNTLMComputerUsedBy` | NTLMComputer → Service | NTLM computer is on this service |
-| `RZNTLMPartOfDomain` | NTLMComputer → NTLMDomain | Computer belongs to this NTLM domain |
-| `RZNTLMDomainContains` | NTLMDomain → NTLMComputer | Domain contains this computer |
+A curated collection of Cypher queries for exploring runZeroHound graphs in BloodHound CE.
+See the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cypher-search) for language details.
 
 ---
 
-## Basic Exploration
+## Table of Contents
+
+- [Schema Reference](#schema-reference)
+  - [Node Kinds](#node-kinds)
+  - [Edge Kinds](#edge-kinds)
+- [1 — Getting Started](#1--getting-started)
+- [2 — Simple Queries](#2--simple-queries)
+  - [Asset Inventory](#asset-inventory)
+  - [Services & Ports](#services--ports)
+  - [Network Topology](#network-topology)
+- [3 — Intermediate Queries](#3--intermediate-queries)
+  - [Cryptographic Identity](#cryptographic-identity)
+  - [OT / Building Automation](#ot--building-automation)
+  - [Infrastructure Fingerprinting](#infrastructure-fingerprinting)
+  - [Windows / Active Directory](#windows--active-directory)
+- [4 — Advanced Queries](#4--advanced-queries)
+  - [Cross-Source Correlation](#cross-source-correlation)
+  - [Exposure & Risk](#exposure--risk)
+  - [Dependency Mapping](#dependency-mapping)
+- [5 — Expert Queries](#5--expert-queries)
+- [6 — Quirky & Surprising](#6--quirky--surprising)
+
+---
+
+## Schema Reference
+
+### Node Kinds
+
+| Kind | Description |
+|------|-------------|
+| `RZAsset` | A network asset (runZero-discovered) |
+| `RZService` | A network service running on an asset |
+| `RZNetwork` | An IP subnet (/24 IPv4, /56 IPv6) |
+| `RZDomain` | A DNS / AD domain |
+| `RZVLAN` | A VLAN ID |
+| `RZGateway` | A BACnet / CIP / Modbus / KNXnet gateway |
+| `RZSSHKey` | An SSH host key fingerprint |
+| `RZTLSCert` | A TLS certificate (SHA-1) |
+| `RZTLSCAChain` | A TLS signing CA (CA cert SHA-1) |
+| `RZSNMPEngineID` | An SNMPv3 Engine ID |
+| `RZSNMPDeviceType` | An SNMP device type (sysObjectID) |
+| `RZSMBGUID` | An SMB machine GUID |
+| `RZIPMICredential` | An IPMI credential/configuration |
+| `RZRouter` | A layer-3 traceroute hop |
+| `RZMACAddress` | A MAC address with vendor metadata |
+| `RZMACVendor` | A MAC OUI vendor |
+| `RZSwitch` | A layer-2 switch |
+| `RZSwitchPort` | A physical switch port |
+| `RZSubAsset` | A sub-asset (ARP cache, MAC table entry) |
+| `RZFavicon` | A web favicon fingerprint (MD5 + mmh3) |
+| `RZIKEIdentity` | An IKE/IPsec VPN fingerprint |
+| `RZKNXnetDevice` | A KNXnet/IP building automation device |
+| `RZBACnetDevice` | A BACnet building automation device |
+| `RZNTPReference` | An NTP upstream reference clock |
+| `RZDNSIdentity` | A DNS server identity (CHAOS TXT) |
+| `RZDNSVersion` | A DNS software version (version.bind) |
+| `RZSerialNumber` | A device serial number (cross-protocol) |
+| `RZNTLMDomain` | An NTLM SSP domain |
+| `RZNTLMComputer` | An NTLM SSP computer identity |
+
+### Edge Kinds
+
+| Edge | Direction | Description |
+|------|-----------|-------------|
+| `RZHasService` / `RZRunsOnAsset` | Asset ↔ Service | Service relationship |
+| `RZInsideOfSubnet` / `RZSubnetContains` | Asset ↔ Network | Subnet membership |
+| `RZPartOfDomain` / `RZDomainContains` | Asset ↔ Domain | Domain membership |
+| `RZPartOfVLAN` / `RZVLANContains` | Asset ↔ VLAN | VLAN membership |
+| `RZHasGateway` / `RZHasGatewayAssets` | Asset ↔ Gateway | OT gateway relationship |
+| `RZHasSSHKey` / `RZHasSSHService` | Asset → SSHKey → Service | SSH key chain |
+| `RZHasTLSCert` / `RZHasTLSService` | Asset → TLSCert → Service | TLS cert chain |
+| `RZSignedByCA` / `RZCASignedCert` | Asset → TLSCAChain → Service | CA signing chain |
+| `RZHasSNMPEngineID` / `RZHasSNMPService` | Asset → SNMPEngineID → Service | SNMP engine chain |
+| `RZHasSNMPDeviceType` / `RZSNMPDeviceTypeUsedBy` | Asset ↔ SNMPDeviceType | Device type grouping |
+| `RZHasSMBGUID` / `RZHasSMBService` | Asset → SMBGUID → Service | SMB identity chain |
+| `RZHasIPMICredential` / `RZHasIPMIService` | Asset → IPMICredential → Service | IPMI chain |
+| `RZHasRouter` | Asset ↔ Router (bidirectional) | Traceroute hops |
+| `RZHasMAC` / `RZHasMACHost` | Asset ↔ MACAddress | MAC ownership |
+| `RZHasMACVendor` | MACAddress → MACVendor | Vendor lookup |
+| `RZHasSwitch` / `RZHasSwitchAssets` | Asset ↔ Switch | Switch connection |
+| `RZHasSwitchPort` / `RZConnectedToPort` | Switch/Asset → SwitchPort | Port mapping |
+| `RZHasFavicon` / `RZFaviconUsedBy` | Asset → Favicon → Service | Favicon fingerprint |
+| `RZHasIKEIdentity` / `RZIKEIdentityUsedBy` | Asset → IKEIdentity → Service | VPN identity |
+| `RZHasKNXnetDevice` / `RZKNXnetDeviceOnAsset` | Asset → KNXnetDevice → Service | KNXnet device |
+| `RZHasBACnetDevice` / `RZBACnetDeviceOnAsset` | Asset → BACnetDevice → Service | BACnet device |
+| `RZHasNTPReference` / `RZNTPReferenceUsedBy` | Asset → NTPReference → Service | NTP sync |
+| `RZHasDNSIdentity` / `RZDNSIdentityUsedBy` | Asset → DNSIdentity → Service | DNS identity |
+| `RZHasDNSVersion` / `RZDNSVersionUsedBy` | Asset → DNSVersion → Service | DNS version |
+| `RZHasSerialNumber` / `RZSerialNumberUsedBy` | Asset ↔ SerialNumber | Serial number |
+| `RZHasNTLMDomain` / `RZNTLMDomainUsedBy` | Asset → NTLMDomain → Service | NTLM domain |
+| `RZHasNTLMComputer` / `RZNTLMComputerUsedBy` | Asset → NTLMComputer → Service | NTLM computer |
+| `RZNTLMPartOfDomain` / `RZNTLMDomainContains` | NTLMComputer ↔ NTLMDomain | Domain membership |
+
+---
+
+## 1 — Getting Started
+
+Queries to verify your import and understand the shape of your data.
 
 ### Count all node types
+`tags: inventory, basics`
 
 ```cypher
 MATCH (n)
@@ -107,6 +114,7 @@ ORDER BY total DESC
 ```
 
 ### Count all edge types
+`tags: inventory, basics`
 
 ```cypher
 MATCH ()-[r]->()
@@ -114,7 +122,25 @@ RETURN type(r) AS edge_type, count(r) AS total
 ORDER BY total DESC
 ```
 
-### List all assets
+### Verify the internet node exists
+`tags: basics, topology`
+
+```cypher
+MATCH (n:RZNetwork)
+WHERE n.network_address = '0.0.0.0'
+RETURN n.displayname
+```
+
+---
+
+## 2 — Simple Queries
+
+Everyday queries for browsing assets, services, and network structure.
+
+### Asset Inventory
+
+#### List all assets sorted by risk
+`tags: inventory, exposure`
 
 ```cypher
 MATCH (a:RZAsset)
@@ -123,83 +149,134 @@ ORDER BY a.risk_rank DESC
 LIMIT 50
 ```
 
----
-
-## Gateway Queries (BACnet, CIP, Modbus, KNXnet)
-
-### Find all gateways and the number of devices behind them
+#### Assets by device category (IT, OT, IoT)
+`tags: inventory, classification`
 
 ```cypher
-MATCH (gw:RZGateway)<-[:RZHasGateway]-(device:RZAsset)
-RETURN gw.displayname AS gateway, gw.protocol, gw.ip, count(device) AS device_count
-ORDER BY device_count DESC
+MATCH (a:RZAsset)
+WHERE a.category IS NOT NULL
+RETURN a.category, count(a) AS total
+ORDER BY total DESC
+```
+
+#### Assets by operating system
+`tags: inventory, classification`
+
+```cypher
+MATCH (a:RZAsset)
+WHERE a.os IS NOT NULL
+RETURN a.os, count(a) AS total
+ORDER BY total DESC
 LIMIT 20
 ```
 
-### Find all devices behind a specific BACnet gateway
+#### Assets by hardware vendor
+`tags: inventory, classification`
 
 ```cypher
-MATCH (gw:RZGateway {protocol: "bacnet"})-[:RZHasGatewayAssets]->(device:RZAsset)
-WHERE gw.ip = "68.162.161.186"
-RETURN device.displayname, device.ip_addresses, device.os, device.hw
+MATCH (a:RZAsset)
+WHERE a.hw IS NOT NULL
+RETURN a.hw, count(a) AS total
+ORDER BY total DESC
+LIMIT 20
 ```
 
-### Find gateways with the most devices (potential high-value targets)
+### Services & Ports
+
+#### Top services across all assets
+`tags: inventory, services`
 
 ```cypher
-MATCH (gw:RZGateway)-[:RZHasGatewayAssets]->(device:RZAsset)
-WITH gw, count(device) AS cnt
-WHERE cnt > 10
-RETURN gw.displayname, gw.protocol, gw.ip, cnt
-ORDER BY cnt DESC
+MATCH (svc:RZService)
+WHERE svc.port IS NOT NULL
+RETURN svc.port + '/' + svc.transport AS port, count(svc) AS total
+ORDER BY total DESC
+LIMIT 20
 ```
 
-### Find CIP/Modbus industrial controllers
+#### Find all assets with a specific open port
+`tags: inventory, services`
 
 ```cypher
-MATCH (gw:RZGateway)-[:RZHasGatewayAssets]->(device:RZAsset)
-WHERE gw.protocol IN ["cip", "modbus"]
-RETURN gw.protocol, gw.ip, device.displayname, device.type, device.hw
-ORDER BY gw.protocol, gw.ip
+MATCH (a:RZAsset)-[:RZHasService]->(svc:RZService)
+WHERE svc.port = '445' AND svc.transport = 'tcp'
+RETURN a.displayname, a.ip_addresses, a.os
+LIMIT 50
+```
+
+### Network Topology
+
+#### List subnets by host count
+`tags: topology, inventory`
+
+```cypher
+MATCH (net:RZNetwork)
+WHERE net.host_count > 0
+RETURN net.displayname, net.host_count, net.version
+ORDER BY net.host_count DESC
+LIMIT 20
+```
+
+#### List all domains
+`tags: topology, inventory`
+
+```cypher
+MATCH (d:RZDomain)
+RETURN d.displayname, d.host_count
+ORDER BY d.host_count DESC
+```
+
+#### Group assets by MAC vendor
+`tags: inventory, classification`
+
+```cypher
+MATCH (a:RZAsset)-[:RZHasMAC]->(mac:RZMACAddress)-[:RZHasMACVendor]->(v:RZMACVendor)
+RETURN v.vendor, v.country, count(DISTINCT a) AS asset_count
+ORDER BY asset_count DESC
+LIMIT 20
+```
+
+#### Find assets with virtual machine MACs
+`tags: inventory, classification`
+
+```cypher
+MATCH (a:RZAsset)-[:RZHasMAC]->(mac:RZMACAddress)
+WHERE mac.virtual_platform IS NOT NULL
+RETURN a.displayname, mac.mac_address, mac.virtual_platform
 ```
 
 ---
 
-## SSH Host Key Queries
+## 3 — Intermediate Queries
 
-### Find assets sharing the same SSH host key (key reuse)
+Dig deeper into identity, fingerprinting, and protocol-specific relationships.
+
+### Cryptographic Identity
+
+#### SSH key reuse — assets sharing the same host key
+`tags: exposure, identity, correlation`
 
 ```cypher
 MATCH (a1:RZAsset)-[:RZHasSSHKey]->(key:RZSSHKey)<-[:RZHasSSHKey]-(a2:RZAsset)
 WHERE id(a1) < id(a2)
-RETURN key.fingerprint, a1.displayname AS host1, a2.displayname AS host2
+RETURN key.fingerprint, key.key_type, a1.displayname AS host1, a2.displayname AS host2
 LIMIT 20
 ```
 
-### List all SSH keys with multiple hosts (shared keys)
+#### Shared SSH keys ranked by reuse count
+`tags: exposure, identity`
 
 ```cypher
 MATCH (key:RZSSHKey)<-[:RZHasSSHKey]-(a:RZAsset)
-WITH key, collect(a.displayname) AS hosts, count(a) AS host_count
-WHERE host_count > 1
-RETURN key.fingerprint, key.key_type, hosts, host_count
-ORDER BY host_count DESC
+WITH key, collect(a.displayname) AS hosts, count(a) AS cnt
+WHERE cnt > 1
+RETURN key.fingerprint, key.key_type, hosts, cnt
+ORDER BY cnt DESC
 LIMIT 20
 ```
 
-### Find the SSH service behind a specific key
-
-```cypher
-MATCH (key:RZSSHKey)-[:RZHasSSHService]->(svc:RZService)
-WHERE key.fingerprint STARTS WITH "EAUadxjr"
-RETURN key.fingerprint, svc.displayname, svc.address, svc.port
-```
-
----
-
-## TLS Certificate Queries
-
-### Find assets sharing the same TLS certificate
+#### TLS certificate reuse across assets
+`tags: exposure, identity, correlation`
 
 ```cypher
 MATCH (a1:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert)<-[:RZHasTLSCert]-(a2:RZAsset)
@@ -208,7 +285,8 @@ RETURN cert.cn, cert.sha1, a1.displayname, a2.displayname
 LIMIT 20
 ```
 
-### Find self-signed TLS certificates
+#### Self-signed TLS certificates
+`tags: exposure, identity`
 
 ```cypher
 MATCH (cert:RZTLSCert)
@@ -218,7 +296,8 @@ ORDER BY cert.not_after
 LIMIT 20
 ```
 
-### Find expired TLS certificates
+#### Expired TLS certificates
+`tags: exposure, compliance`
 
 ```cypher
 MATCH (a:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert)
@@ -227,7 +306,257 @@ RETURN a.displayname, cert.cn, cert.sha1, cert.not_after
 LIMIT 20
 ```
 
-### TLS certificate reuse across subnets
+#### TLS certificates by signing CA
+`tags: dependency, identity`
+
+```cypher
+MATCH (ca:RZTLSCAChain)<-[:RZSignedByCA]-(a:RZAsset)
+RETURN ca.issuer, ca.ca_sha1, count(a) AS signed_count
+ORDER BY signed_count DESC
+LIMIT 20
+```
+
+#### Internal CAs (signing 10+ assets)
+`tags: dependency, identity, infrastructure`
+
+```cypher
+MATCH (ca:RZTLSCAChain)<-[:RZSignedByCA]-(a:RZAsset)
+WITH ca, count(a) AS cnt
+WHERE cnt > 10
+RETURN ca.issuer, ca.ca_sha1, cnt
+ORDER BY cnt DESC
+```
+
+#### SMB GUID sharing across assets
+`tags: identity, correlation`
+
+```cypher
+MATCH (a1:RZAsset)-[:RZHasSMBGUID]->(guid:RZSMBGUID)<-[:RZHasSMBGUID]-(a2:RZAsset)
+WHERE id(a1) < id(a2)
+RETURN guid.guid, a1.displayname, a2.displayname
+LIMIT 20
+```
+
+#### SNMPv3 engine IDs by vendor
+`tags: inventory, identity`
+
+```cypher
+MATCH (eid:RZSNMPEngineID)
+RETURN eid.vendor, count(eid) AS count
+ORDER BY count DESC
+```
+
+### OT / Building Automation
+
+#### Gateways ranked by device count
+`tags: inventory, ot, dependency`
+
+```cypher
+MATCH (gw:RZGateway)<-[:RZHasGateway]-(device:RZAsset)
+RETURN gw.displayname, gw.protocol, gw.ip, count(device) AS device_count
+ORDER BY device_count DESC
+LIMIT 20
+```
+
+#### Devices behind a specific BACnet gateway
+`tags: inventory, ot`
+
+```cypher
+MATCH (gw:RZGateway {protocol: "bacnet"})-[:RZHasGatewayAssets]->(device:RZAsset)
+WHERE gw.ip = "68.162.161.186"
+RETURN device.displayname, device.ip_addresses, device.os, device.hw
+```
+
+#### CIP / Modbus industrial controllers
+`tags: inventory, ot, exposure`
+
+```cypher
+MATCH (gw:RZGateway)-[:RZHasGatewayAssets]->(device:RZAsset)
+WHERE gw.protocol IN ["cip", "modbus"]
+RETURN gw.protocol, gw.ip, device.displayname, device.type, device.hw
+ORDER BY gw.protocol, gw.ip
+```
+
+#### BACnet devices by vendor
+`tags: inventory, ot`
+
+```cypher
+MATCH (dev:RZBACnetDevice)
+RETURN dev.vendor_name, dev.vendor_id, count(dev) AS count
+ORDER BY count DESC
+```
+
+#### BACnet devices with location metadata
+`tags: inventory, ot`
+
+```cypher
+MATCH (a:RZAsset)-[:RZHasBACnetDevice]->(dev:RZBACnetDevice)
+WHERE dev.location IS NOT NULL
+RETURN dev.instance_id, dev.object_name, dev.location, dev.description, a.displayname
+ORDER BY dev.location
+LIMIT 30
+```
+
+#### KNXnet devices with their properties
+`tags: inventory, ot`
+
+```cypher
+MATCH (a:RZAsset)-[:RZHasKNXnetDevice]->(dev:RZKNXnetDevice)
+RETURN dev.serial, dev.name, dev.mac, dev.device_type, a.displayname
+ORDER BY dev.name
+LIMIT 50
+```
+
+#### SNMP device types ranked
+`tags: inventory, classification`
+
+```cypher
+MATCH (oid:RZSNMPDeviceType)<-[:RZHasSNMPDeviceType]-(a:RZAsset)
+RETURN oid.sys_object_id, oid.sys_descr, count(a) AS device_count
+ORDER BY device_count DESC
+LIMIT 20
+```
+
+### Infrastructure Fingerprinting
+
+#### Favicons shared by the most assets (same web app)
+`tags: inventory, fingerprinting, correlation`
+
+```cypher
+MATCH (fav:RZFavicon)<-[:RZHasFavicon]-(a:RZAsset)
+WITH fav, collect(a.displayname) AS hosts, count(a) AS cnt
+WHERE cnt > 1
+RETURN fav.md5, fav.mmh3, fav.url, hosts, cnt
+ORDER BY cnt DESC
+LIMIT 20
+```
+
+#### IKE/VPN endpoints grouped by identity
+`tags: inventory, identity, infrastructure`
+
+```cypher
+MATCH (ike:RZIKEIdentity)<-[:RZHasIKEIdentity]-(a:RZAsset)
+WITH ike, collect(a.displayname) AS hosts, count(a) AS cnt
+RETURN ike.sha1, ike.version, ike.exchange_type, hosts, cnt
+ORDER BY cnt DESC
+LIMIT 20
+```
+
+#### NTP reference clocks by client count
+`tags: dependency, infrastructure`
+
+```cypher
+MATCH (ntp:RZNTPReference)<-[:RZHasNTPReference]-(a:RZAsset)
+RETURN ntp.reference_id, ntp.stratum, ntp.version, count(a) AS client_count
+ORDER BY client_count DESC
+LIMIT 20
+```
+
+#### DNS servers grouped by software version
+`tags: inventory, infrastructure, exposure`
+
+```cypher
+MATCH (ver:RZDNSVersion)<-[:RZHasDNSVersion]-(a:RZAsset)
+RETURN ver.version_bind, count(a) AS host_count
+ORDER BY host_count DESC
+LIMIT 20
+```
+
+#### DNS servers running outdated BIND
+`tags: exposure, infrastructure`
+
+```cypher
+MATCH (a:RZAsset)-[:RZHasDNSVersion]->(ver:RZDNSVersion)
+WHERE ver.version_bind CONTAINS "9.11" OR ver.version_bind CONTAINS "9.9"
+RETURN a.displayname, ver.version_bind
+ORDER BY ver.version_bind
+LIMIT 20
+```
+
+#### Routers ranked by traceroute appearances (core infrastructure)
+`tags: topology, dependency, infrastructure`
+
+```cypher
+MATCH (router:RZRouter)<-[:RZHasRouter]-(a:RZAsset)
+WITH router, count(DISTINCT a) AS assets_routed
+WHERE assets_routed > 100
+RETURN router.displayname, router.ip_addresses, assets_routed
+ORDER BY assets_routed DESC
+```
+
+#### Switches and their connected asset counts
+`tags: topology, inventory`
+
+```cypher
+MATCH (sw:RZSwitch)-[:RZHasSwitchAssets]->(a:RZAsset)
+RETURN sw.displayname, sw.ip, count(a) AS connected_assets
+ORDER BY connected_assets DESC
+```
+
+### Windows / Active Directory
+
+#### NTLM domains and their computers
+`tags: inventory, identity, windows`
+
+```cypher
+MATCH (dom:RZNTLMDomain)<-[:RZNTLMPartOfDomain]-(comp:RZNTLMComputer)
+RETURN dom.dns_domain, dom.netbios_domain,
+       collect(comp.dns_computer) AS computers, count(comp) AS count
+ORDER BY count DESC
+```
+
+#### NTLM computers with domain and Windows version
+`tags: inventory, identity, windows`
+
+```cypher
+MATCH (a:RZAsset)-[:RZHasNTLMComputer]->(comp:RZNTLMComputer)
+OPTIONAL MATCH (comp)-[:RZNTLMPartOfDomain]->(dom:RZNTLMDomain)
+RETURN comp.dns_computer, comp.version, comp.target_name,
+       dom.dns_domain, a.displayname
+ORDER BY dom.dns_domain, comp.dns_computer
+```
+
+#### Assets sharing the same NTLM domain (domain peers)
+`tags: identity, correlation, windows`
+
+```cypher
+MATCH (a1:RZAsset)-[:RZHasNTLMDomain]->(dom:RZNTLMDomain)<-[:RZHasNTLMDomain]-(a2:RZAsset)
+WHERE id(a1) < id(a2)
+RETURN dom.dns_domain, a1.displayname AS host1, a2.displayname AS host2
+LIMIT 20
+```
+
+#### IPMI services with cipher zero enabled
+`tags: exposure, identity`
+
+```cypher
+MATCH (a:RZAsset)-[:RZHasIPMICredential]->(ipmi:RZIPMICredential)
+WHERE ipmi.cipher_zero = "enabled"
+RETURN a.displayname, a.ip_addresses, ipmi.conn_versions, ipmi.user_auth
+```
+
+---
+
+## 4 — Advanced Queries
+
+Cross-protocol correlation, multi-hop traversals, and risk analysis.
+
+### Cross-Source Correlation
+
+#### SSH key reuse across different subnets
+`tags: correlation, exposure, topology`
+
+```cypher
+MATCH (a1:RZAsset)-[:RZHasSSHKey]->(key:RZSSHKey)<-[:RZHasSSHKey]-(a2:RZAsset),
+      (a1)-[:RZInsideOfSubnet]->(n1:RZNetwork),
+      (a2)-[:RZInsideOfSubnet]->(n2:RZNetwork)
+WHERE n1 <> n2 AND id(a1) < id(a2)
+RETURN key.fingerprint, a1.displayname, n1.displayname, a2.displayname, n2.displayname
+LIMIT 10
+```
+
+#### TLS cert reuse across subnets
+`tags: correlation, identity, topology`
 
 ```cypher
 MATCH (a:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert),
@@ -239,502 +568,8 @@ ORDER BY hosts DESC
 LIMIT 10
 ```
 
----
-
-## SNMP v3 Engine ID Queries
-
-### Find all SNMPv3 engine IDs and their hosts
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasSNMPEngineID]->(eid:RZSNMPEngineID)
-RETURN eid.engine_id, eid.vendor, a.displayname, a.ip_addresses
-ORDER BY eid.vendor
-```
-
-### Find assets sharing the same SNMP engine ID
-
-```cypher
-MATCH (a1:RZAsset)-[:RZHasSNMPEngineID]->(eid:RZSNMPEngineID)<-[:RZHasSNMPEngineID]-(a2:RZAsset)
-WHERE id(a1) < id(a2)
-RETURN eid.engine_id, eid.vendor, a1.displayname, a2.displayname
-```
-
-### Group SNMP engines by vendor
-
-```cypher
-MATCH (eid:RZSNMPEngineID)
-RETURN eid.vendor, count(eid) AS count
-ORDER BY count DESC
-```
-
----
-
-## IPMI Queries
-
-### Find all IPMI services with cipher zero enabled (critical risk)
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasIPMICredential]->(ipmi:RZIPMICredential)
-WHERE ipmi.cipher_zero = "enabled"
-RETURN a.displayname, a.ip_addresses, ipmi.conn_versions, ipmi.user_auth
-ORDER BY a.displayname
-```
-
-### Find all IPMI services
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasIPMICredential]->(ipmi:RZIPMICredential)-[:RZHasIPMIService]->(svc:RZService)
-RETURN a.displayname, svc.address, svc.port, ipmi.cipher_zero, ipmi.user_auth
-```
-
----
-
-## Traceroute / Router Queries
-
-### Find all routers and the assets they route to
-
-```cypher
-MATCH (router:RZRouter)<-[:RZHasRouter]-(a:RZAsset)
-RETURN router.displayname, router.ttl, count(a) AS asset_count
-ORDER BY asset_count DESC
-LIMIT 20
-```
-
-### Trace the path from an asset to the internet
-
-```cypher
-MATCH path = (a:RZAsset)-[:RZHasRouter*1..10]->(router:RZRouter)
-WHERE a.displayname CONTAINS "10.0.0"
-RETURN [n IN nodes(path) | n.displayname] AS hop_path
-LIMIT 5
-```
-
-### Find routers that appear in many traceroutes (core infrastructure)
-
-```cypher
-MATCH (router:RZRouter)<-[:RZHasRouter]-(a:RZAsset)
-WITH router, count(DISTINCT a) AS assets_routed
-WHERE assets_routed > 100
-RETURN router.displayname, router.ip_addresses, assets_routed
-ORDER BY assets_routed DESC
-```
-
-### Find router chains (hop-to-hop topology)
-
-```cypher
-MATCH (r1:RZRouter)-[:RZHasRouter]->(r2:RZRouter)
-WHERE r1.ttl < r2.ttl
-RETURN r1.displayname AS hop1, r1.ttl AS ttl1, r2.displayname AS hop2, r2.ttl AS ttl2
-LIMIT 20
-```
-
----
-
-## MAC Address & Vendor Queries
-
-### Find all MAC addresses and their vendors
-
-```cypher
-MATCH (mac:RZMACAddress)-[:RZHasMACVendor]->(vendor:RZMACVendor)
-RETURN mac.mac_address, vendor.vendor, vendor.country
-ORDER BY vendor.vendor
-LIMIT 50
-```
-
-### Group assets by MAC vendor
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasMAC]->(mac:RZMACAddress)-[:RZHasMACVendor]->(v:RZMACVendor)
-RETURN v.vendor, v.country, count(DISTINCT a) AS asset_count
-ORDER BY asset_count DESC
-LIMIT 20
-```
-
-### Find assets with virtual machine MAC addresses
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasMAC]->(mac:RZMACAddress)
-WHERE mac.virtual_platform IS NOT NULL
-RETURN a.displayname, mac.mac_address, mac.virtual_platform
-```
-
-### Find all MAC vendors and when they were registered
-
-```cypher
-MATCH (v:RZMACVendor)
-RETURN v.vendor, v.country, v.added
-ORDER BY v.added DESC
-LIMIT 20
-```
-
----
-
-## Switch / Layer-2 Queries
-
-### Find all switches and their connected assets
-
-```cypher
-MATCH (sw:RZSwitch)-[:RZHasSwitchAssets]->(a:RZAsset)
-RETURN sw.displayname, sw.ip, count(a) AS connected_assets
-ORDER BY connected_assets DESC
-```
-
-### Find assets connected to a specific switch
-
-```cypher
-MATCH (sw:RZSwitch)-[:RZHasSwitchAssets]->(a:RZAsset)
-WHERE sw.name = "M4300-OFFICE"
-RETURN a.displayname, a.ip_addresses, a.mac_addresses
-```
-
-### Find switch ports and what's connected
-
-```cypher
-MATCH (sw:RZSwitch)-[:RZHasSwitchPort]->(port:RZSwitchPort)<-[:RZConnectedToPort]-(a:RZAsset)
-RETURN sw.displayname, port.port, a.displayname, a.ip_addresses
-ORDER BY sw.displayname, port.port
-```
-
----
-
-## Cross-Source Correlation
-
-### Find assets linked by shared SSH key across different subnets
-
-```cypher
-MATCH (a1:RZAsset)-[:RZHasSSHKey]->(key:RZSSHKey)<-[:RZHasSSHKey]-(a2:RZAsset),
-      (a1)-[:RZInsideOfSubnet]->(n1:RZNetwork),
-      (a2)-[:RZInsideOfSubnet]->(n2:RZNetwork)
-WHERE n1 <> n2 AND id(a1) < id(a2)
-RETURN key.fingerprint, a1.displayname, n1.displayname, a2.displayname, n2.displayname
-LIMIT 10
-```
-
-### Find assets linked by shared TLS cert AND same subnet
-
-```cypher
-MATCH (a1:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert)<-[:RZHasTLSCert]-(a2:RZAsset),
-      (a1)-[:RZInsideOfSubnet]->(net:RZNetwork)<-[:RZInsideOfSubnet]-(a2)
-WHERE id(a1) < id(a2)
-RETURN cert.cn, net.displayname, a1.displayname, a2.displayname
-LIMIT 10
-```
-
-### Find gateway controllers that also have SSH/TLS services
-
-```cypher
-MATCH (gw:RZGateway)<-[:RZHasGateway]-(a:RZAsset)
-WHERE (a)-[:RZHasSSHKey]->() OR (a)-[:RZHasTLSCert]->()
-WITH DISTINCT a, gw
-OPTIONAL MATCH (a)-[:RZHasSSHKey]->(key:RZSSHKey)
-OPTIONAL MATCH (a)-[:RZHasTLSCert]->(cert:RZTLSCert)
-RETURN a.displayname, gw.protocol, key.fingerprint, cert.cn
-LIMIT 20
-```
-
----
-
-## Risk & Security Queries
-
-### High-risk assets with exposed IPMI (cipher zero)
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasIPMICredential]->(ipmi:RZIPMICredential)
-WHERE ipmi.cipher_zero = "enabled"
-RETURN a.displayname, a.ip_addresses, a.risk, a.os
-```
-
-### Assets behind industrial gateways that are internet-exposed
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasGateway]->(gw:RZGateway),
-      (a)-[:RZInsideOfSubnet]->(net:RZNetwork)-[:RZInsideOfSubnet]->(pub:RZNetwork {displayname: "Global Internet"})
-RETURN gw.protocol, gw.ip, a.displayname, net.displayname
-ORDER BY gw.protocol
-```
-
----
-
-## Favicon Queries (Web App Fingerprinting)
-
-### Find assets sharing the same favicon (same web application)
-
-```cypher
-MATCH (a1:RZAsset)-[:RZHasFavicon]->(fav:RZFavicon)<-[:RZHasFavicon]-(a2:RZAsset)
-WHERE id(a1) < id(a2)
-RETURN fav.md5, fav.mmh3, a1.displayname AS host1, a2.displayname AS host2
-LIMIT 20
-```
-
-### List favicons shared by the most assets (common web apps/appliances)
-
-```cypher
-MATCH (fav:RZFavicon)<-[:RZHasFavicon]-(a:RZAsset)
-WITH fav, collect(a.displayname) AS hosts, count(a) AS host_count
-WHERE host_count > 1
-RETURN fav.md5, fav.mmh3, fav.url, hosts, host_count
-ORDER BY host_count DESC
-LIMIT 20
-```
-
-### Find assets with Shodan-searchable favicon hashes
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasFavicon]->(fav:RZFavicon)
-WHERE fav.mmh3 IS NOT NULL
-RETURN fav.mmh3, fav.md5, collect(DISTINCT a.displayname) AS hosts, count(a) AS count
-ORDER BY count DESC
-LIMIT 20
-```
-
----
-
-## IKE / VPN Identity Queries
-
-### Find assets sharing the same IKE/VPN fingerprint (VPN clusters)
-
-```cypher
-MATCH (a1:RZAsset)-[:RZHasIKEIdentity]->(ike:RZIKEIdentity)<-[:RZHasIKEIdentity]-(a2:RZAsset)
-WHERE id(a1) < id(a2)
-RETURN ike.sha1, ike.version, a1.displayname AS host1, a2.displayname AS host2
-LIMIT 20
-```
-
-### List all IKE/VPN endpoints grouped by identity
-
-```cypher
-MATCH (ike:RZIKEIdentity)<-[:RZHasIKEIdentity]-(a:RZAsset)
-WITH ike, collect(a.displayname) AS hosts, count(a) AS host_count
-RETURN ike.sha1, ike.version, ike.exchange_type, hosts, host_count
-ORDER BY host_count DESC
-LIMIT 20
-```
-
-### Find VPN concentrators (IKE identities shared by many assets)
-
-```cypher
-MATCH (ike:RZIKEIdentity)<-[:RZHasIKEIdentity]-(a:RZAsset)
-WITH ike, count(a) AS cnt
-WHERE cnt > 5
-RETURN ike.sha1, ike.version, cnt
-ORDER BY cnt DESC
-```
-
----
-
-## KNXnet Device Queries (Building Automation)
-
-### Find KNXnet devices shared across multiple gateways
-
-```cypher
-MATCH (a1:RZAsset)-[:RZHasKNXnetDevice]->(dev:RZKNXnetDevice)<-[:RZHasKNXnetDevice]-(a2:RZAsset)
-WHERE id(a1) < id(a2)
-RETURN dev.serial, dev.name, dev.mac, a1.displayname AS host1, a2.displayname AS host2
-LIMIT 20
-```
-
-### List all KNXnet devices with their properties
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasKNXnetDevice]->(dev:RZKNXnetDevice)
-RETURN dev.serial, dev.name, dev.mac, dev.device_type, a.displayname
-ORDER BY dev.name
-LIMIT 50
-```
-
-### Find KNXnet devices also behind a gateway (enriched view)
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasKNXnetDevice]->(dev:RZKNXnetDevice),
-      (a)-[:RZHasGateway]->(gw:RZGateway)
-WHERE gw.protocol = "knxnet"
-RETURN gw.displayname AS gateway, dev.serial, dev.name, dev.mac, a.displayname
-ORDER BY gw.displayname
-LIMIT 30
-```
-
----
-
-## BACnet Device Queries (Building Automation)
-
-### Find BACnet devices shared across multiple gateways
-
-```cypher
-MATCH (a1:RZAsset)-[:RZHasBACnetDevice]->(dev:RZBACnetDevice)<-[:RZHasBACnetDevice]-(a2:RZAsset)
-WHERE id(a1) < id(a2)
-RETURN dev.instance_id, dev.object_name, dev.vendor_name,
-       a1.displayname AS host1, a2.displayname AS host2
-LIMIT 20
-```
-
-### List all BACnet devices by vendor
-
-```cypher
-MATCH (dev:RZBACnetDevice)
-RETURN dev.vendor_name, dev.vendor_id, count(dev) AS count
-ORDER BY count DESC
-```
-
-### Find BACnet devices with firmware/model info
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasBACnetDevice]->(dev:RZBACnetDevice)
-RETURN dev.instance_id, dev.object_name, dev.model_name,
-       dev.firmware_revision, dev.vendor_name, a.displayname
-ORDER BY dev.vendor_name, dev.model_name
-LIMIT 50
-```
-
-### Find BACnet devices with location metadata
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasBACnetDevice]->(dev:RZBACnetDevice)
-WHERE dev.location IS NOT NULL
-RETURN dev.instance_id, dev.object_name, dev.location, dev.description, a.displayname
-ORDER BY dev.location
-LIMIT 30
-```
-
----
-
-## NTP Reference Clock Queries
-
-### Find assets syncing to the same NTP reference clock
-
-```cypher
-MATCH (a1:RZAsset)-[:RZHasNTPReference]->(ntp:RZNTPReference)<-[:RZHasNTPReference]-(a2:RZAsset)
-WHERE id(a1) < id(a2)
-RETURN ntp.reference_id, ntp.stratum, a1.displayname AS host1, a2.displayname AS host2
-LIMIT 20
-```
-
-### List NTP reference clocks by number of clients
-
-```cypher
-MATCH (ntp:RZNTPReference)<-[:RZHasNTPReference]-(a:RZAsset)
-RETURN ntp.reference_id, ntp.stratum, ntp.version, count(a) AS client_count
-ORDER BY client_count DESC
-LIMIT 20
-```
-
-### Find assets using the same time infrastructure (NTP + subnet)
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasNTPReference]->(ntp:RZNTPReference),
-      (a)-[:RZInsideOfSubnet]->(net:RZNetwork)
-WITH ntp, collect(DISTINCT net.displayname) AS subnets, count(DISTINCT a) AS hosts
-WHERE hosts > 5
-RETURN ntp.reference_id, ntp.stratum, subnets, hosts
-ORDER BY hosts DESC
-LIMIT 10
-```
-
----
-
-## DNS Server Identity Queries
-
-### Find DNS servers sharing the same identity (clustered DNS)
-
-```cypher
-MATCH (a1:RZAsset)-[:RZHasDNSIdentity]->(dns:RZDNSIdentity)<-[:RZHasDNSIdentity]-(a2:RZAsset)
-WHERE id(a1) < id(a2)
-RETURN dns.server_id, a1.displayname AS host1, a2.displayname AS host2
-LIMIT 20
-```
-
-### List all DNS server identities and their host count
-
-```cypher
-MATCH (dns:RZDNSIdentity)<-[:RZHasDNSIdentity]-(a:RZAsset)
-RETURN dns.server_id, count(a) AS host_count
-ORDER BY host_count DESC
-LIMIT 20
-```
-
-### Find DNS servers grouped by software version
-
-```cypher
-MATCH (ver:RZDNSVersion)<-[:RZHasDNSVersion]-(a:RZAsset)
-RETURN ver.version_bind, count(a) AS host_count
-ORDER BY host_count DESC
-LIMIT 20
-```
-
-### Find DNS servers running outdated BIND versions
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasDNSVersion]->(ver:RZDNSVersion)
-WHERE ver.version_bind CONTAINS "9.11" OR ver.version_bind CONTAINS "9.9"
-RETURN a.displayname, ver.version_bind
-ORDER BY ver.version_bind
-LIMIT 20
-```
-
----
-
-## SNMP Device Type Queries
-
-### Find all device types by sysObjectID
-
-```cypher
-MATCH (oid:RZSNMPDeviceType)<-[:RZHasSNMPDeviceType]-(a:RZAsset)
-RETURN oid.sys_object_id, oid.sys_descr, count(a) AS device_count
-ORDER BY device_count DESC
-LIMIT 20
-```
-
-### Find assets of the same SNMP device type
-
-```cypher
-MATCH (a1:RZAsset)-[:RZHasSNMPDeviceType]->(oid:RZSNMPDeviceType)<-[:RZHasSNMPDeviceType]-(a2:RZAsset)
-WHERE id(a1) < id(a2)
-RETURN oid.sys_object_id, oid.sys_name, a1.displayname AS host1, a2.displayname AS host2
-LIMIT 20
-```
-
-### Find MikroTik devices (common OID prefix)
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasSNMPDeviceType]->(oid:RZSNMPDeviceType)
-WHERE oid.sys_object_id STARTS WITH ".1.3.6.1.4.1.14988"
-RETURN a.displayname, oid.sys_object_id, oid.sys_name
-ORDER BY a.displayname
-```
-
-### Find SNMP device types that also have engine IDs (enriched view)
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasSNMPDeviceType]->(oid:RZSNMPDeviceType),
-      (a)-[:RZHasSNMPEngineID]->(eid:RZSNMPEngineID)
-RETURN a.displayname, oid.sys_object_id, oid.sys_name, eid.engine_id, eid.vendor
-ORDER BY oid.sys_object_id
-LIMIT 20
-```
-
----
-
-## TLS CA Chain Queries
-
-### Find all assets whose certificates are signed by a specific CA
-
-```cypher
-MATCH (ca:RZTLSCAChain)<-[:RZSignedByCA]-(a:RZAsset)
-RETURN ca.issuer, ca.ca_sha1, count(a) AS signed_count
-ORDER BY signed_count DESC
-LIMIT 20
-```
-
-### Find internal CAs (CAs that signed certificates for many assets)
-
-```cypher
-MATCH (ca:RZTLSCAChain)<-[:RZSignedByCA]-(a:RZAsset)
-WITH ca, count(a) AS cnt
-WHERE cnt > 10
-RETURN ca.issuer, ca.ca_sha1, cnt
-ORDER BY cnt DESC
-```
-
-### Find CA chains spanning multiple subnets
+#### CA chains spanning multiple subnets
+`tags: dependency, identity, topology`
 
 ```cypher
 MATCH (a:RZAsset)-[:RZSignedByCA]->(ca:RZTLSCAChain),
@@ -746,38 +581,8 @@ ORDER BY hosts DESC
 LIMIT 10
 ```
 
-### Find self-signed cert assets vs. CA-signed assets
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert)
-OPTIONAL MATCH (a)-[:RZSignedByCA]->(ca:RZTLSCAChain)
-RETURN cert.self_signed IS NOT NULL AS is_self_signed,
-       ca IS NOT NULL AS has_ca,
-       count(DISTINCT a) AS asset_count
-```
-
----
-
-## Serial Number Queries
-
-### Find assets sharing the same serial number (same physical device)
-
-```cypher
-MATCH (a1:RZAsset)-[:RZHasSerialNumber]->(sn:RZSerialNumber)<-[:RZHasSerialNumber]-(a2:RZAsset)
-WHERE id(a1) < id(a2)
-RETURN sn.serial_number, sn.source, a1.displayname AS host1, a2.displayname AS host2
-LIMIT 20
-```
-
-### List serial numbers by source protocol
-
-```cypher
-MATCH (sn:RZSerialNumber)<-[:RZHasSerialNumber]-(a:RZAsset)
-RETURN sn.source, count(DISTINCT sn) AS serial_count, count(DISTINCT a) AS asset_count
-ORDER BY serial_count DESC
-```
-
-### Find serial numbers shared by assets in different subnets
+#### Serial numbers shared across subnets (same device, multiple paths)
+`tags: correlation, identity, topology`
 
 ```cypher
 MATCH (a:RZAsset)-[:RZHasSerialNumber]->(sn:RZSerialNumber),
@@ -789,57 +594,31 @@ ORDER BY size(subnets) DESC
 LIMIT 10
 ```
 
-### Find BACnet/CIP devices by serial number
+#### KNXnet devices visible through multiple gateways
+`tags: correlation, ot`
 
 ```cypher
-MATCH (a:RZAsset)-[:RZHasSerialNumber]->(sn:RZSerialNumber)
-WHERE sn.source IN ["bacnet", "cip"]
-RETURN sn.serial_number, sn.source, a.displayname, a.hw
-ORDER BY sn.source, sn.serial_number
-LIMIT 30
-```
-
----
-
-## NTLM SSP Queries (Windows Domain/Computer Identity)
-
-### Find all NTLM domains and their member computers
-
-```cypher
-MATCH (dom:RZNTLMDomain)<-[:RZNTLMPartOfDomain]-(comp:RZNTLMComputer)
-RETURN dom.dns_domain, dom.netbios_domain, collect(comp.dns_computer) AS computers, count(comp) AS count
-ORDER BY count DESC
-```
-
-### Find assets sharing the same NTLM domain
-
-```cypher
-MATCH (a1:RZAsset)-[:RZHasNTLMDomain]->(dom:RZNTLMDomain)<-[:RZHasNTLMDomain]-(a2:RZAsset)
+MATCH (a1:RZAsset)-[:RZHasKNXnetDevice]->(dev:RZKNXnetDevice)<-[:RZHasKNXnetDevice]-(a2:RZAsset)
 WHERE id(a1) < id(a2)
-RETURN dom.dns_domain, a1.displayname AS host1, a2.displayname AS host2
+RETURN dev.serial, dev.name, dev.mac, a1.displayname AS host1, a2.displayname AS host2
 LIMIT 20
 ```
 
-### Find assets sharing the same NTLM computer name (identity reuse)
+#### BACnet devices visible through multiple gateways
+`tags: correlation, ot`
 
 ```cypher
-MATCH (a1:RZAsset)-[:RZHasNTLMComputer]->(comp:RZNTLMComputer)<-[:RZHasNTLMComputer]-(a2:RZAsset)
+MATCH (a1:RZAsset)-[:RZHasBACnetDevice]->(dev:RZBACnetDevice)<-[:RZHasBACnetDevice]-(a2:RZAsset)
 WHERE id(a1) < id(a2)
-RETURN comp.dns_computer, comp.version, a1.displayname AS host1, a2.displayname AS host2
+RETURN dev.instance_id, dev.object_name, dev.vendor_name,
+       a1.displayname AS host1, a2.displayname AS host2
 LIMIT 20
 ```
 
-### List all NTLM computers with their domain and Windows version
+### Exposure & Risk
 
-```cypher
-MATCH (a:RZAsset)-[:RZHasNTLMComputer]->(comp:RZNTLMComputer)
-OPTIONAL MATCH (comp)-[:RZNTLMPartOfDomain]->(dom:RZNTLMDomain)
-RETURN comp.dns_computer, comp.version, comp.target_name,
-       dom.dns_domain, a.displayname
-ORDER BY dom.dns_domain, comp.dns_computer
-```
-
-### Find NTLM-enabled services across subnets (lateral movement paths)
+#### NTLM-enabled services spanning multiple subnets (lateral movement)
+`tags: exposure, identity, topology, windows`
 
 ```cypher
 MATCH (a:RZAsset)-[:RZHasNTLMDomain]->(dom:RZNTLMDomain),
@@ -850,54 +629,93 @@ RETURN dom.dns_domain, subnets, hosts
 ORDER BY hosts DESC
 ```
 
----
-
-## Cross-Protocol Correlation Queries
-
-### Find assets linked by multiple relationship types
+#### VPN concentrators (IKE identities shared by many assets)
+`tags: exposure, infrastructure, dependency`
 
 ```cypher
-MATCH (a:RZAsset)
-OPTIONAL MATCH (a)-[:RZHasFavicon]->(fav:RZFavicon)
-OPTIONAL MATCH (a)-[:RZHasIKEIdentity]->(ike:RZIKEIdentity)
-OPTIONAL MATCH (a)-[:RZHasKNXnetDevice]->(knx:RZKNXnetDevice)
-OPTIONAL MATCH (a)-[:RZHasBACnetDevice]->(bac:RZBACnetDevice)
-OPTIONAL MATCH (a)-[:RZHasSerialNumber]->(sn:RZSerialNumber)
-WITH a,
-     count(DISTINCT fav) AS favicons,
-     count(DISTINCT ike) AS ike_ids,
-     count(DISTINCT knx) AS knx_devs,
-     count(DISTINCT bac) AS bac_devs,
-     count(DISTINCT sn)  AS serials
-WHERE favicons + ike_ids + knx_devs + bac_devs + serials > 1
-RETURN a.displayname, favicons, ike_ids, knx_devs, bac_devs, serials
-ORDER BY favicons + ike_ids + knx_devs + bac_devs + serials DESC
+MATCH (ike:RZIKEIdentity)<-[:RZHasIKEIdentity]-(a:RZAsset)
+WITH ike, count(a) AS cnt
+WHERE cnt > 5
+RETURN ike.sha1, ike.version, cnt
+ORDER BY cnt DESC
+```
+
+#### Gateway controllers with SSH or TLS services (management interfaces)
+`tags: exposure, ot, identity`
+
+```cypher
+MATCH (gw:RZGateway)<-[:RZHasGateway]-(a:RZAsset)
+WHERE (a)-[:RZHasSSHKey]->() OR (a)-[:RZHasTLSCert]->()
+WITH DISTINCT a, gw
+OPTIONAL MATCH (a)-[:RZHasSSHKey]->(key:RZSSHKey)
+OPTIONAL MATCH (a)-[:RZHasTLSCert]->(cert:RZTLSCert)
+RETURN a.displayname, gw.protocol, key.fingerprint, cert.cn
 LIMIT 20
 ```
 
-### Find OT devices with both BACnet identity and gateway relationship
+#### MikroTik devices (by SNMP OID)
+`tags: inventory, exposure, infrastructure`
 
 ```cypher
-MATCH (a:RZAsset)-[:RZHasBACnetDevice]->(dev:RZBACnetDevice),
-      (a)-[:RZHasGateway]->(gw:RZGateway)
-RETURN gw.displayname AS gateway, dev.instance_id, dev.object_name,
-       dev.vendor_name, a.displayname
-ORDER BY gw.displayname
-LIMIT 30
+MATCH (a:RZAsset)-[:RZHasSNMPDeviceType]->(oid:RZSNMPDeviceType)
+WHERE oid.sys_object_id STARTS WITH ".1.3.6.1.4.1.14988"
+RETURN a.displayname, oid.sys_object_id, oid.sys_name
+ORDER BY a.displayname
 ```
 
-### Find assets with both IKE VPN and TLS certificates
+### Dependency Mapping
+
+#### Assets using the same NTP infrastructure by subnet
+`tags: dependency, infrastructure, topology`
 
 ```cypher
-MATCH (a:RZAsset)-[:RZHasIKEIdentity]->(ike:RZIKEIdentity),
-      (a)-[:RZHasTLSCert]->(cert:RZTLSCert)
-RETURN a.displayname, ike.sha1, cert.cn, cert.issuer
+MATCH (a:RZAsset)-[:RZHasNTPReference]->(ntp:RZNTPReference),
+      (a)-[:RZInsideOfSubnet]->(net:RZNetwork)
+WITH ntp, collect(DISTINCT net.displayname) AS subnets, count(DISTINCT a) AS hosts
+WHERE hosts > 5
+RETURN ntp.reference_id, ntp.stratum, subnets, hosts
+ORDER BY hosts DESC
+LIMIT 10
+```
+
+#### DNS server clustering (shared CHAOS identity)
+`tags: dependency, infrastructure, correlation`
+
+```cypher
+MATCH (a1:RZAsset)-[:RZHasDNSIdentity]->(dns:RZDNSIdentity)<-[:RZHasDNSIdentity]-(a2:RZAsset)
+WHERE id(a1) < id(a2)
+RETURN dns.server_id, a1.displayname AS host1, a2.displayname AS host2
 LIMIT 20
+```
+
+#### SNMP devices with both engine ID and device type (enriched view)
+`tags: inventory, identity, infrastructure`
+
+```cypher
+MATCH (a:RZAsset)-[:RZHasSNMPDeviceType]->(oid:RZSNMPDeviceType),
+      (a)-[:RZHasSNMPEngineID]->(eid:RZSNMPEngineID)
+RETURN a.displayname, oid.sys_object_id, oid.sys_name, eid.engine_id, eid.vendor
+ORDER BY oid.sys_object_id
+LIMIT 20
+```
+
+#### Switch port → asset → service mapping
+`tags: topology, dependency`
+
+```cypher
+MATCH (sw:RZSwitch)-[:RZHasSwitchPort]->(port:RZSwitchPort)<-[:RZConnectedToPort]-(a:RZAsset)
+RETURN sw.displayname, port.port, a.displayname, a.ip_addresses
+ORDER BY sw.displayname, port.port
 ```
 
 ---
 
-### Summary: count of each relationship type per asset
+## 5 — Expert Queries
+
+Multi-pattern joins, aggregations, and full graph traversals for deep analysis.
+
+### Relationship richness per asset
+`tags: inventory, correlation`
 
 ```cypher
 MATCH (a:RZAsset)
@@ -921,7 +739,181 @@ WITH a,
      count(DISTINCT knx)  AS knxnet_devs,
      count(DISTINCT sn)   AS serials
 WHERE ssh_keys + tls_certs + gateways + macs + favicons + ike_ids + bacnet_devs + knxnet_devs + serials > 0
-RETURN a.displayname, ssh_keys, tls_certs, gateways, macs, favicons, ike_ids, bacnet_devs, knxnet_devs, serials
-ORDER BY ssh_keys + tls_certs + gateways + macs + favicons + ike_ids + bacnet_devs + knxnet_devs + serials DESC
+RETURN a.displayname, ssh_keys, tls_certs, gateways, macs, favicons,
+       ike_ids, bacnet_devs, knxnet_devs, serials
+ORDER BY ssh_keys + tls_certs + gateways + macs + favicons + ike_ids
+         + bacnet_devs + knxnet_devs + serials DESC
 LIMIT 20
+```
+
+### OT devices with both BACnet identity and gateway — full enrichment
+`tags: ot, dependency, identity`
+
+```cypher
+MATCH (a:RZAsset)-[:RZHasBACnetDevice]->(dev:RZBACnetDevice),
+      (a)-[:RZHasGateway]->(gw:RZGateway)
+OPTIONAL MATCH (a)-[:RZHasSerialNumber]->(sn:RZSerialNumber)
+RETURN gw.displayname AS gateway, dev.instance_id, dev.object_name,
+       dev.vendor_name, dev.firmware_revision, sn.serial_number, a.displayname
+ORDER BY gw.displayname
+LIMIT 30
+```
+
+### Find the full path: CA → cert → asset → subnet → internet
+`tags: dependency, topology, identity`
+
+```cypher
+MATCH (ca:RZTLSCAChain)<-[:RZSignedByCA]-(a:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert),
+      (a)-[:RZInsideOfSubnet]->(net:RZNetwork)
+WITH ca.issuer AS ca_issuer, cert.cn AS cert_cn,
+     a.displayname AS asset, net.displayname AS subnet,
+     count(*) AS cnt
+RETURN ca_issuer, cert_cn, asset, subnet
+ORDER BY ca_issuer, subnet
+LIMIT 30
+```
+
+### Self-signed vs CA-signed breakdown
+`tags: exposure, identity, compliance`
+
+```cypher
+MATCH (a:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert)
+OPTIONAL MATCH (a)-[:RZSignedByCA]->(ca:RZTLSCAChain)
+RETURN cert.self_signed IS NOT NULL AS is_self_signed,
+       ca IS NOT NULL AS has_ca,
+       count(DISTINCT a) AS asset_count
+```
+
+### Traceroute: core routers handling the most diverse subnets
+`tags: topology, dependency, infrastructure`
+
+```cypher
+MATCH (router:RZRouter)<-[:RZHasRouter]-(a:RZAsset)-[:RZInsideOfSubnet]->(net:RZNetwork)
+WITH router, count(DISTINCT a) AS assets, count(DISTINCT net) AS subnets
+WHERE subnets > 3
+RETURN router.displayname, router.ip_addresses, assets, subnets
+ORDER BY subnets DESC
+LIMIT 15
+```
+
+### Combined VPN + TLS identity overlap
+`tags: exposure, identity, correlation`
+
+```cypher
+MATCH (a:RZAsset)-[:RZHasIKEIdentity]->(ike:RZIKEIdentity),
+      (a)-[:RZHasTLSCert]->(cert:RZTLSCert)
+RETURN a.displayname, ike.sha1, cert.cn, cert.issuer
+LIMIT 20
+```
+
+### Serial numbers by source protocol — inventory health
+`tags: inventory, identity`
+
+```cypher
+MATCH (sn:RZSerialNumber)<-[:RZHasSerialNumber]-(a:RZAsset)
+RETURN sn.source, count(DISTINCT sn) AS serial_count, count(DISTINCT a) AS asset_count
+ORDER BY serial_count DESC
+```
+
+---
+
+## 6 — Quirky & Surprising
+
+Unexpected patterns, edge cases, and fun things to look for in your data.
+
+### Gateways with 50+ devices — "entire buildings on one IP"
+`tags: ot, exposure, fun`
+
+```cypher
+MATCH (gw:RZGateway)-[:RZHasGatewayAssets]->(device:RZAsset)
+WITH gw, count(device) AS cnt
+WHERE cnt > 50
+RETURN gw.displayname, gw.protocol, gw.ip, cnt
+ORDER BY cnt DESC
+```
+
+### Favicon collisions — different IPs serving the same web UI
+`tags: fingerprinting, correlation, fun`
+
+```cypher
+MATCH (fav:RZFavicon)<-[:RZHasFavicon]-(a:RZAsset)
+WITH fav, count(a) AS cnt, collect(a.displayname)[..5] AS samples
+WHERE cnt > 10
+RETURN fav.mmh3, fav.md5, cnt, samples
+ORDER BY cnt DESC
+LIMIT 10
+```
+
+### The loneliest subnets — networks with exactly one host
+`tags: topology, fun`
+
+```cypher
+MATCH (net:RZNetwork)
+WHERE net.host_count = 1
+RETURN net.displayname, net.version
+ORDER BY net.displayname
+LIMIT 20
+```
+
+### BACnet device names that reveal physical locations
+`tags: ot, fun`
+
+```cypher
+MATCH (dev:RZBACnetDevice)
+WHERE dev.object_name IS NOT NULL
+RETURN dev.object_name, dev.location, dev.vendor_name
+ORDER BY dev.object_name
+LIMIT 30
+```
+
+### KNXnet devices all using the default serial "010203040506"
+`tags: ot, exposure, fun`
+
+```cypher
+MATCH (dev:RZKNXnetDevice)<-[:RZHasKNXnetDevice]-(a:RZAsset)
+WHERE dev.serial = "010203040506"
+RETURN a.displayname, dev.name, dev.mac
+LIMIT 20
+```
+
+### NTLM computer name reuse (same name, different assets)
+`tags: identity, exposure, fun`
+
+```cypher
+MATCH (a1:RZAsset)-[:RZHasNTLMComputer]->(comp:RZNTLMComputer)<-[:RZHasNTLMComputer]-(a2:RZAsset)
+WHERE id(a1) < id(a2)
+RETURN comp.dns_computer, comp.version, a1.displayname, a2.displayname
+LIMIT 20
+```
+
+### Router hop chains — visualise path topology
+`tags: topology, fun`
+
+```cypher
+MATCH (r1:RZRouter)-[:RZHasRouter]->(r2:RZRouter)
+WHERE r1.ttl < r2.ttl
+RETURN r1.displayname AS hop1, r1.ttl AS ttl1, r2.displayname AS hop2, r2.ttl AS ttl2
+LIMIT 20
+```
+
+### The "most connected" asset — highest total relationship count
+`tags: inventory, fun`
+
+```cypher
+MATCH (a:RZAsset)-[r]-()
+WITH a, count(r) AS rels
+RETURN a.displayname, a.ip_addresses, rels
+ORDER BY rels DESC
+LIMIT 10
+```
+
+### NTP stratum-1 sources — who's syncing to GPS/atomic clocks?
+`tags: infrastructure, dependency, fun`
+
+```cypher
+MATCH (ntp:RZNTPReference)<-[:RZHasNTPReference]-(a:RZAsset)
+WHERE ntp.stratum = "1"
+RETURN ntp.reference_id, count(a) AS clients
+ORDER BY clients DESC
+LIMIT 10
 ```

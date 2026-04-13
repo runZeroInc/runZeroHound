@@ -111,138 +111,118 @@ Use `--insecure` to skip TLS verification for self-signed certificates.
 BloodHound OpenGraph supports custom icons for specific node types. Setting this up requires a bit of
 API interaction and we plan to add a helper tool to support this in the future.
 
-## Nodes
+## What It Extracts
 
-- **RZAsset** - Connected devices with IPs, open ports, system info, device type, category, and functions
-    - Connected to services via `RZHasService` and `RZRunsOnAsset` edges
-    - Connected to subnets via `RZInsideOfSubnet` and `RZSubnetContains` edges
-    - Connected to domains via `RZPartOfDomain` and `RZDomainContains` edges
-    - Connected to VLANs via `RZPartOfVLAN` and `RZVLANContains` edges
-- **RZNmapHost / RZNessusHost / RZOpenVASHost / RZQualysHost / RZMasscanHost / RZShodanHost / RZNetBoxDevice / RZSNMPHost** - Source-specific host nodes from non-runZero parsers
-- **RZService** - Identified services on assets
-    - Connected to assets via `RZHasService` and `RZRunsOnAsset` edges
-- **RZNetwork** - Network subnets with CIDR notation and host counts
-    - Connected to assets via `RZInsideOfSubnet` and `RZSubnetContains` edges
-    - Subnets assume /24 and /56 masks for IPv4 and IPv6 respectively
-    - External subnets are connected to an "Internet" node
-- **RZRouter** - Intermediate router hops from traceroute data
-    - Connected to assets via RZTracerouteHop and RZRoutesTo edges
-    - Connected to their subnet via RZInsideOfSubnet
-- **RZSubAsset** - Indirectly-discovered network entities (ARP cache, MAC table, CDP/LLDP neighbours)
-    - Connected to parent host via RZHasSubAsset and RZSubAssetOf edges
-- **RZDomain** - Active Directory domain name if available
-- **RZDomain** - Active Directory domain name if available
-    - Connected to assets via `RZPartOfDomain` and `RZDomainContains` edges
-- **RZVLAN** - VLAN IDs if available from asset attributes
-    - Connected to assets via `RZPartOfVLAN` and `RZVLANContains` edges
-- **RZSSHHostKey / RZTLSCert / RZSMBGUID / RZSNMPv3EngineID** - Fingerprint correlation nodes
-    - Multiple assets sharing the same fingerprint link to the same node, enabling cross-source correlation
-- **RZGateway** - BACnet / CIP / Modbus / KNXnet gateway controllers
-    - Connected to child devices via `RZHasGateway` and `RZHasGatewayAssets` edges
-- **RZSSHKey** - SSH host key fingerprint entities (SHA-256)
-    - Connected to assets via `RZHasSSHKey`, linked to services via `RZHasSSHService`
-- **RZTLSCert** (from runZero data) - TLS certificate entities (SHA-1 fingerprint)
-    - Connected to assets via `RZHasTLSCert`, linked to services via `RZHasTLSService`
-- **RZSNMPEngineID** (from runZero data) - SNMPv3 Engine ID entities
-    - Connected to assets via `RZHasSNMPEngineID`, linked to services via `RZHasSNMPService`
-- **RZIPMICredential** - IPMI service credential/configuration entities
-    - Connected to assets via `RZHasIPMICredential`, linked to services via `RZHasIPMIService`
-- **RZMACAddress** - MAC address entities with vendor lookup
-    - Connected to assets via `RZHasMAC` and `RZHasMACHost`, linked to vendor via `RZHasMACVendor`
-- **RZMACVendor** - MAC OUI vendor entities (name, country, registration date)
-- **RZSwitch** - Layer-2 switches discovered via SNMP/switch attributes
-    - Connected to assets via `RZHasSwitch` and `RZHasSwitchAssets`
+runZeroHound converts flat asset data into a richly connected graph with **30 node types** and **50+ edge types** spanning IT, OT, and IoT environments.
 
-### Node Properties
+| Category | Node Types |
+|----------|------------|
+| **Core** | `RZAsset`, `RZService`, `RZNetwork`, `RZDomain`, `RZVLAN` |
+| **Cryptographic Identity** | `RZSSHKey`, `RZTLSCert`, `RZTLSCAChain`, `RZSMBGUID`, `RZSerialNumber` |
+| **Network Infrastructure** | `RZRouter`, `RZMACAddress`, `RZMACVendor`, `RZSwitch`, `RZSwitchPort`, `RZSubAsset` |
+| **Protocol Fingerprints** | `RZSNMPEngineID`, `RZSNMPDeviceType`, `RZIPMICredential`, `RZFavicon`, `RZIKEIdentity` |
+| **OT / Building Automation** | `RZGateway`, `RZKNXnetDevice`, `RZBACnetDevice` |
+| **Time & DNS** | `RZNTPReference`, `RZDNSIdentity`, `RZDNSVersion` |
+| **Windows / AD** | `RZNTLMDomain`, `RZNTLMComputer` |
 
-**Asset Nodes:**
-- `ip_addresses[]`: All resolved IP addresses
-- `ip_addresses_extra[]`: Additional resolved IP addresses
-- `ip_address_count`: Number of primary IP addresses
-- `ip_address_extra_count`: Number of additional IP addresses
-- `hostname`: Primary hostname
-- `name`: BloodHound-style hostname (derived from NTLM responses when available)
-- `names[]`: All resolved hostnames
-- `domains[]`: All resolved Active Directory domains
-- `type`: Device type (e.g., Server, Desktop, Mobile, Printer, Router, OT Device, etc.)
-- `category`: Device category (e.g., IT, OT, IoT, Mobile)
-- `functions[]`: Device functions (e.g., Router, Firewall, Switch, Controller, Historian)
-- `os`: Operating system string
-- `hw`: Hardware description string
-- `mac_addresses[]`: All resolved MAC addresses
-- `newest_mac`: Most recently observed MAC address
-- `newest_mac_vendor`: Vendor of the newest MAC address
-- `newest_mac_age`: Age of the newest MAC address (epoch seconds)
-- `lowest_ttl`: Lowest observed IP TTL value
-- `lowest_rtt`: Lowest observed round-trip time (microseconds)
-- `alive`: Boolean indicating the device responded to probes
-- `scanned`: Boolean indicating the device was actively scanned
-- `comments`: Free-text asset comments
-- `service_count`: Total number of discovered services
-- `services_tcp_count`: Number of discovered TCP services
-- `services_udp_count`: Number of discovered UDP services
-- `services_icmp_count`: Number of discovered ICMP services
-- `services_arp_count`: Number of discovered ARP services
-- `service_protocols[]`: List of identified service protocols
-- `service_products[]`: List of identified service products
-- `service_ports_tcp[]`: Discovered open TCP ports
-- `service_ports_udp[]`: Discovered open UDP ports
-- `software_count`: Number of identified software items
-- `vulnerability_count`: Number of identified vulnerabilities
-- `risk`: Risk level as a string (none, info, low, medium, high, critical)
-- `risk_rank`: Numerical risk rank (-1=none, 0=info, 1=low, 2=medium, 3=high, 4=critical)
-- `outlier_score`: Outlier score (higher = more unusual)
-- `outlier_raw`: Raw outlier value
-- `first_seen`: Unix timestamp of first observation
-- `last_seen`: Unix timestamp of last observation
-- `created_at`: Unix timestamp when the asset record was created
-- `updated_at`: Unix timestamp when the asset record was last updated
-- `sources[]`: List of data source names that contributed to this asset
-- `tags[]`: All unique tags (bare tags and key=value pairs)
-- `organization_name`: runZero organization name
-- `site_name`: runZero site name
-- `agent_name`: Name of the runZero agent that scanned this asset
-- `agent_external_ip`: External IP of the agent that scanned this asset
-- `hosted_zone_name`: Hosted zone name (cloud environments)
-- `last_agent_id`: UUID of the most recent scanning agent
-- `last_task_id`: UUID of the most recent scan task
-- `first_task_id`: UUID of the first scan task
-- `subnets[]`: runZero site-level subnet assignments
+18 relationship extractors automatically create edges between nodes wherever assets share a cryptographic key, serial number, CA chain, NTP source, NTLM domain, favicon hash, or any other correlatable identity.
 
-Asset nodes also include flattened attributes prefixed by the source type (e.g., `runzero.*`, `crowdstrike.*`, `azure.*`).
-
-**Service Nodes:**
-- `address`: IP address (v4 or v6)
-- `port`: Port number if relevant (as a string)
-- `transport`: Underlying transport protocol (tcp, udp, icmp, arp)
-
-Service nodes also include flattened service attributes prefixed by `attr_`.
-
-**Subnet Nodes:**
-- `displayname`: CIDR notation
-- `network_address`: Base network address
-- `host_count`: Number of observed hosts in this subnet
-- `version`: IP version (`4` or `6`)
-
-**Domain Nodes:**
-- `displayname`: Domain name
-- `host_count`: Number of hosts in this domain
-
-**VLAN Nodes:**
-- `displayname`: VLAN ID
-- `host_count`: Number of hosts in this VLAN
+For the complete schema (every node kind, edge, and property), see [QUERIES.md](QUERIES.md#schema-reference).
 
 ## Example Cypher Queries
 
-For a comprehensive list of Cypher queries covering all node and edge types, see [QUERIES.md](QUERIES.md).
+All queries run in the BloodHound CE **Explore → Cypher** tab. For 70+ queries organized by difficulty and category, see [QUERIES.md](QUERIES.md).
 
-Please see the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cypher-search) for more details on Cypher syntax.
+### Simple — What do I have?
 
+Count every node type in the graph:
 
-## Contact
+```cypher
+MATCH (n)
+RETURN labels(n) AS kind, count(n) AS total
+ORDER BY total DESC
+```
 
-runZeroHound is not an officially supported runZero product, but we still want to hear your feedback and bug reports.
-Please open an issue in this repository or email support[at]runZero.com.
+Top open ports across all assets:
+
+```cypher
+MATCH (svc:RZService)
+WHERE svc.port IS NOT NULL
+RETURN svc.port + '/' + svc.transport AS port, count(svc) AS total
+ORDER BY total DESC
+LIMIT 20
+```
+
+### Moderate — Identity & Correlation
+
+SSH key reuse — find assets sharing the same host key:
+
+```cypher
+MATCH (a1:RZAsset)-[:RZHasSSHKey]->(key:RZSSHKey)<-[:RZHasSSHKey]-(a2:RZAsset)
+WHERE id(a1) < id(a2)
+RETURN key.fingerprint, key.key_type, a1.displayname AS host1, a2.displayname AS host2
+LIMIT 20
+```
+
+BACnet devices by vendor:
+
+```cypher
+MATCH (dev:RZBACnetDevice)
+RETURN dev.vendor_name, dev.vendor_id, count(dev) AS count
+ORDER BY count DESC
+```
+
+### Advanced — Cross-Network Analysis
+
+Certificates reused across different subnets:
+
+```cypher
+MATCH (a:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert),
+      (a)-[:RZInsideOfSubnet]->(net:RZNetwork)
+WITH cert, collect(DISTINCT net.displayname) AS subnets, count(DISTINCT a) AS hosts
+WHERE size(subnets) > 1
+RETURN cert.cn, cert.sha1, subnets, hosts
+ORDER BY hosts DESC
+LIMIT 10
+```
+
+NTLM domains spanning multiple subnets (lateral movement surface):
+
+```cypher
+MATCH (a:RZAsset)-[:RZHasNTLMDomain]->(dom:RZNTLMDomain),
+      (a)-[:RZInsideOfSubnet]->(net:RZNetwork)
+WITH dom, collect(DISTINCT net.displayname) AS subnets, count(DISTINCT a) AS hosts
+WHERE size(subnets) > 1
+RETURN dom.dns_domain, subnets, hosts
+ORDER BY hosts DESC
+```
+
+### Expert — Full Graph Traversal
+
+Relationship richness per asset (how many different identity types link to each host):
+
+```cypher
+MATCH (a:RZAsset)
+OPTIONAL MATCH (a)-[:RZHasSSHKey]->(ssh:RZSSHKey)
+OPTIONAL MATCH (a)-[:RZHasTLSCert]->(tls:RZTLSCert)
+OPTIONAL MATCH (a)-[:RZHasGateway]->(gw:RZGateway)
+OPTIONAL MATCH (a)-[:RZHasFavicon]->(fav:RZFavicon)
+OPTIONAL MATCH (a)-[:RZHasBACnetDevice]->(bac:RZBACnetDevice)
+OPTIONAL MATCH (a)-[:RZHasSerialNumber]->(sn:RZSerialNumber)
+WITH a,
+     count(DISTINCT ssh) AS ssh_keys,
+     count(DISTINCT tls) AS tls_certs,
+     count(DISTINCT gw)  AS gateways,
+     count(DISTINCT fav)  AS favicons,
+     count(DISTINCT bac)  AS bacnet_devs,
+     count(DISTINCT sn)   AS serials
+WHERE ssh_keys + tls_certs + gateways + favicons + bacnet_devs + serials > 0
+RETURN a.displayname, ssh_keys, tls_certs, gateways, favicons, bacnet_devs, serials
+ORDER BY ssh_keys + tls_certs + gateways + favicons + bacnet_devs + serials DESC
+LIMIT 20
+```
+
+See [QUERIES.md](QUERIES.md) for the full collection including quirky/surprising results.
 
 ## Supported Data Sources
 
@@ -282,3 +262,8 @@ When loading data from multiple sources, runZeroHound automatically correlates a
 - **SNMPv3 Engine IDs** — Unique SNMP engine identifiers correlate managed network devices
 
 These fingerprints are normalised to a consistent lowercase colon-hex format across all parsers.
+
+## Contact
+
+runZeroHound is not an officially supported runZero product, but we still want to hear your feedback and bug reports.
+Please open an issue in this repository or email support[at]runZero.com.

@@ -383,6 +383,13 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 			sourceNames[i] = sname
 		}
 
+		// Convert functions map to a sorted string array for OpenGraph schema compliance
+		funcList := make([]string, 0, len(asset.Functions))
+		for k := range asset.Functions {
+			funcList = append(funcList, k)
+		}
+		sort.Strings(funcList)
+
 		assetNode := &bloodhound.Node{
 			ID:    nodeID,
 			Kinds: []string{"RZAsset"},
@@ -394,7 +401,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 				"domains":                asset.Domains,
 				"type":                   deviceType,
 				"category":               asset.Category,
-				"functions":              asset.Functions,
+				"RZFunctions":            funcList,
 				"os":                     asset.OS,
 				"hw":                     asset.HW,
 				"ip_addresses":           asset.Addresses,
