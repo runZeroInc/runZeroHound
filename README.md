@@ -85,124 +85,107 @@ API interaction and we plan to add a helper tool to support this in the future.
 
 ## Nodes
 
-- **RZAsset** - Connected devices with IPs, open ports, and system info
-    - Connected to services via RZHasService and RZRunsOnAsset edges
-    - Connected to subnets via RZInsideOfSubnet and RZSubnetContains edges
+- **RZAsset** - Connected devices with IPs, open ports, system info, device type, category, and functions
+    - Connected to services via `RZHasService` and `RZRunsOnAsset` edges
+    - Connected to subnets via `RZInsideOfSubnet` and `RZSubnetContains` edges
+    - Connected to domains via `RZPartOfDomain` and `RZDomainContains` edges
+    - Connected to VLANs via `RZPartOfVLAN` and `RZVLANContains` edges
 - **RZService** - Identified services on assets
-    - Connected to assets via RZHasService and RZRunsOnAsset edges
-- **RZSubnet** - Network subnets with CIDR notation and host counts
-    - Connected to assets via RZInsideOfSubnet and RZSubnetContains edges
+    - Connected to assets via `RZHasService` and `RZRunsOnAsset` edges
+- **RZNetwork** - Network subnets with CIDR notation and host counts
+    - Connected to assets via `RZInsideOfSubnet` and `RZSubnetContains` edges
     - Subnets assume /24 and /56 masks for IPv4 and IPv6 respectively
     - External subnets are connected to an "Internet" node
 - **RZDomain** - Active Directory domain name if available
-    - Connected to assets via RZPartOfDomain and RZDomainContains edges
-- **RZVLAN**   - VLAN IDs if available from asset attributes
-    - Connected to assets via RZPartOfVLAN and RZVLANContains edges
+    - Connected to assets via `RZPartOfDomain` and `RZDomainContains` edges
+- **RZVLAN** - VLAN IDs if available from asset attributes
+    - Connected to assets via `RZPartOfVLAN` and `RZVLANContains` edges
 
 ### Node Properties
 
 **Asset Nodes:**
 - `ip_addresses[]`: All resolved IP addresses
-- `ip_addresses_extra[]`: All resolved IP addresses
+- `ip_addresses_extra[]`: Additional resolved IP addresses
+- `ip_address_count`: Number of primary IP addresses
+- `ip_address_extra_count`: Number of additional IP addresses
 - `hostname`: Primary hostname
-- `names[]`: All resolved names
-- `domains[]`: All resolved domains
-- `service_ports_tcp[]`: Discovered TCP open ports
-- `service_ports_udp[]`: Discovered UDP services
-- `os`: Operating system information
-- `hw`: Hardware information
+- `name`: BloodHound-style hostname (derived from NTLM responses when available)
+- `names[]`: All resolved hostnames
+- `domains[]`: All resolved Active Directory domains
+- `type`: Device type (e.g., Server, Desktop, Mobile, Printer, Router, OT Device, etc.)
+- `category`: Device category (e.g., IT, OT, IoT, Mobile)
+- `functions[]`: Device functions (e.g., Router, Firewall, Switch, Controller, Historian)
+- `os`: Operating system string
+- `hw`: Hardware description string
 - `mac_addresses[]`: All resolved MAC addresses
-- `newest_mac`: Newest MAC address
-- `newest_mac_vendor`: Vendor of newest MAC address
-- `newest_mac_age`: Age of newest MAC address
-- `lowest_ttl`: Lowest observed TTL value
-- `lowest_rtt`: Lowest observed RTT value
-- `alive`: Boolean indicating if the device is alive
-- `services{}`: List of discovered services
-- `credentials[]`: List of discovered credentials
-- `tags[]`: Asset tags
-- `scanned`: Last scanned timestamp
-- `comments`: Asset comments
-- `service_protocols[]`: List of service protocols
-- `service_products[]`: List of service products
-- `software_count`: Number of installed software items
+- `newest_mac`: Most recently observed MAC address
+- `newest_mac_vendor`: Vendor of the newest MAC address
+- `newest_mac_age`: Age of the newest MAC address (epoch seconds)
+- `lowest_ttl`: Lowest observed IP TTL value
+- `lowest_rtt`: Lowest observed round-trip time (microseconds)
+- `alive`: Boolean indicating the device responded to probes
+- `scanned`: Boolean indicating the device was actively scanned
+- `comments`: Free-text asset comments
+- `service_count`: Total number of discovered services
+- `services_tcp_count`: Number of discovered TCP services
+- `services_udp_count`: Number of discovered UDP services
+- `services_icmp_count`: Number of discovered ICMP services
+- `services_arp_count`: Number of discovered ARP services
+- `service_protocols[]`: List of identified service protocols
+- `service_products[]`: List of identified service products
+- `service_ports_tcp[]`: Discovered open TCP ports
+- `service_ports_udp[]`: Discovered open UDP ports
+- `software_count`: Number of identified software items
 - `vulnerability_count`: Number of identified vulnerabilities
-- `risk`: Risk level as a string
-- `risk_rank`: Numerical risk rank
-- `first_seen`: Timestamp of first sighting
-- `last_seen`: Timestamp of last sighting
-- `created_at`: Asset creation timestamp
-- `updated_at`: Asset last updated timestamp
-- `sources[]`: List of data sources
-- `tags[]`: All unique tags (bare and key-values)
+- `risk`: Risk level as a string (none, info, low, medium, high, critical)
+- `risk_rank`: Numerical risk rank (-1=none, 0=info, 1=low, 2=medium, 3=high, 4=critical)
+- `outlier_score`: Outlier score (higher = more unusual)
+- `outlier_raw`: Raw outlier value
+- `first_seen`: Unix timestamp of first observation
+- `last_seen`: Unix timestamp of last observation
+- `created_at`: Unix timestamp when the asset record was created
+- `updated_at`: Unix timestamp when the asset record was last updated
+- `sources[]`: List of data source names that contributed to this asset
+- `tags[]`: All unique tags (bare tags and key=value pairs)
+- `organization_name`: runZero organization name
+- `site_name`: runZero site name
+- `agent_name`: Name of the runZero agent that scanned this asset
+- `agent_external_ip`: External IP of the agent that scanned this asset
+- `hosted_zone_name`: Hosted zone name (cloud environments)
+- `last_agent_id`: UUID of the most recent scanning agent
+- `last_task_id`: UUID of the most recent scan task
+- `first_task_id`: UUID of the first scan task
+- `subnets[]`: runZero site-level subnet assignments
 
-Asset nodes also include flattened attributes, prefixed by the source type (runzero, crowdstrike.dev, etc)
+Asset nodes also include flattened attributes prefixed by the source type (e.g., `runzero.*`, `crowdstrike.*`, `azure.*`).
 
 **Service Nodes:**
 - `address`: IP address (v4 or v6)
 - `port`: Port number if relevant (as a string)
-- `transport`: Underlying transport (tcp, udp, icmp, arp)
+- `transport`: Underlying transport protocol (tcp, udp, icmp, arp)
 
-Service nodes also include flattened attributes, prefixed by "attr_"
+Service nodes also include flattened service attributes prefixed by `attr_`.
 
 **Subnet Nodes:**
-- `subnet`: CIDR notation
-- `network_address`: Network address
-- `host_count`: Number of hosts in subnet
+- `displayname`: CIDR notation
+- `network_address`: Base network address
+- `host_count`: Number of observed hosts in this subnet
+- `version`: IP version (`4` or `6`)
 
 **Domain Nodes:**
-- `domain`: Domain name
-- `host_count`: Number of hosts in domain
+- `displayname`: Domain name
+- `host_count`: Number of hosts in this domain
 
 **VLAN Nodes:**
-- `vlan`: VLAN ID
-- `host_count`: Number of hosts in VLAN
+- `displayname`: VLAN ID
+- `host_count`: Number of hosts in this VLAN
 
 ## Example Cypher Queries
 
-Please see the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cypher-search) for more details.
+Please see [QUERIES.md](QUERIES.md) for a full collection of queries, including novel risk-identification patterns.
 
-### Windows Machines With External IPs
+Please see the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cypher-search) for more details on Cypher syntax.
 
-```
-match p=(t1:RZAsset)-[:RZInsideOfSubnet]->(a:RZNetwork)-[:RZInsideOfSubnet]->(b:RZNetwork)
-where b.network_address = '0.0.0.0'
-and a.version = '4'
-and t1.os contains 'Windows'
-return
-```
-
-![Screenshot of BloodHound CE showing Windows machines with external IPs](/docs/bhce_windows_internet.png)
-
-
-
-### Paths From the Internet To The Internal 10.0.0.0/8
-
-```
-match p=(public:RZNetwork)-[:RZSubnetContains]->(hop1:RZNetwork)-[:RZSubnetContains]->(a1:RZAsset)
-where 
-public.network_address = '0.0.0.0'
-and hop1.version = '4'
-and a1.ip_addresses contains '10.'
-return p
-```
-
-![Screenshot of BloodHound CE showing paths from the internet to the 10.0.0.0/8 subnet](/docs/bhce_external_internal_10.png)
-
-
-
-### Find BYOD iPhones On The Same Subnet As Cisco Devices with Default SNMP
-
-```
-match p=(byod:RZAsset)-[:RZInsideOfSubnet]->(net1:RZNetwork)-[:RZSubnetContains]->(mgmt:RZAsset)
-where 
-byod.os contains 'Apple iOS'
-AND mgmt.os contains ‘Cisco’
-AND mgmt.service_protocols contains 'snmp2'
-return p
-```
-
-![Screenshot of BloodHound CE showing subnets with both iPhones and Cisco devices with default SNMP v2](/docs/bhce_iphone_cisco.png)
 
 ## Contact
 
