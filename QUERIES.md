@@ -3,6 +3,13 @@
 A curated collection of Cypher queries for exploring runZeroHound graphs in BloodHound CE.
 See the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cypher-search) for language details.
 
+> **BloodHound CE compatibility note:** The Cypher-to-SQL transpiler does not support
+> `ORDER BY` on aliases computed by aggregation in `RETURN`, nor property expressions
+> or function calls (e.g. `a.hw`, `labels(n)`) in `WITH` clauses. Queries that group by
+> a property value therefore omit `ORDER BY` — sort by the count column in the UI.
+> Queries that group by a **node variable** in `WITH` (e.g. `WITH ca, count(a) AS cnt`)
+> are unaffected and do support `ORDER BY`.
+
 ---
 
 ## Table of Contents
@@ -109,9 +116,7 @@ Queries to verify your import and understand the shape of your data.
 
 ```cypher
 MATCH (n)
-WITH labels(n) AS kind, count(n) AS total
-RETURN kind, total
-ORDER BY total DESC
+RETURN labels(n) AS kind, count(n) AS total
 ```
 
 ### Count all edge types
@@ -119,9 +124,7 @@ ORDER BY total DESC
 
 ```cypher
 MATCH ()-[r]->()
-WITH type(r) AS edge_type, count(r) AS total
-RETURN edge_type, total
-ORDER BY total DESC
+RETURN type(r) AS edge_type, count(r) AS total
 ```
 
 ### Verify the internet node exists
@@ -157,9 +160,7 @@ LIMIT 50
 ```cypher
 MATCH (a:RZAsset)
 WHERE a.category IS NOT NULL
-WITH a.category AS category, count(a) AS total
-RETURN category, total
-ORDER BY total DESC
+RETURN a.category AS category, count(a) AS total
 ```
 
 #### Assets by operating system
@@ -168,9 +169,7 @@ ORDER BY total DESC
 ```cypher
 MATCH (a:RZAsset)
 WHERE a.os IS NOT NULL
-WITH a.os AS os, count(a) AS total
-RETURN os, total
-ORDER BY total DESC
+RETURN a.os AS os, count(a) AS total
 LIMIT 20
 ```
 
@@ -180,9 +179,7 @@ LIMIT 20
 ```cypher
 MATCH (a:RZAsset)
 WHERE a.hw IS NOT NULL
-WITH a.hw AS hw, count(a) AS total
-RETURN hw, total
-ORDER BY total DESC
+RETURN a.hw AS hw, count(a) AS total
 LIMIT 20
 ```
 
@@ -194,9 +191,7 @@ LIMIT 20
 ```cypher
 MATCH (svc:RZService)
 WHERE svc.port IS NOT NULL
-WITH svc.port + '/' + svc.transport AS port, count(svc) AS total
-RETURN port, total
-ORDER BY total DESC
+RETURN svc.port + '/' + svc.transport AS port, count(svc) AS total
 LIMIT 20
 ```
 
@@ -350,9 +345,7 @@ LIMIT 20
 
 ```cypher
 MATCH (eid:RZSNMPEngineID)
-WITH eid.vendor AS vendor, count(eid) AS total
-RETURN vendor, total
-ORDER BY total DESC
+RETURN eid.vendor AS vendor, count(eid) AS total
 ```
 
 ### OT / Building Automation
@@ -392,9 +385,7 @@ ORDER BY gw.protocol, gw.ip
 
 ```cypher
 MATCH (dev:RZBACnetDevice)
-WITH dev.vendor_name AS vendor_name, dev.vendor_id AS vendor_id, count(dev) AS total
-RETURN vendor_name, vendor_id, total
-ORDER BY total DESC
+RETURN dev.vendor_name AS vendor_name, dev.vendor_id AS vendor_id, count(dev) AS total
 ```
 
 #### BACnet devices with location metadata
@@ -780,11 +771,9 @@ LIMIT 30
 ```cypher
 MATCH (ca:RZTLSCAChain)<-[:RZSignedByCA]-(a:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert),
       (a)-[:RZInsideOfSubnet]->(net:RZNetwork)
-WITH ca.issuer AS ca_issuer, cert.cn AS cert_cn,
-     a.displayname AS asset, net.displayname AS subnet,
-     count(*) AS cnt
-RETURN ca_issuer, cert_cn, asset, subnet
-ORDER BY ca_issuer, subnet
+RETURN ca.issuer AS ca_issuer, cert.cn AS cert_cn,
+       a.displayname AS asset, net.displayname AS subnet
+ORDER BY ca.issuer, net.displayname
 LIMIT 30
 ```
 
@@ -826,9 +815,7 @@ LIMIT 20
 
 ```cypher
 MATCH (sn:RZSerialNumber)<-[:RZHasSerialNumber]-(a:RZAsset)
-WITH sn.source AS source, count(DISTINCT sn) AS serial_count, count(DISTINCT a) AS asset_count
-RETURN source, serial_count, asset_count
-ORDER BY serial_count DESC
+RETURN sn.source AS source, count(DISTINCT sn) AS serial_count, count(DISTINCT a) AS asset_count
 ```
 
 ---
