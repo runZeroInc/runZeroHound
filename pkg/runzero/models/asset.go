@@ -29,7 +29,7 @@ type Asset struct {
 	DetectedBy           string                       `json:"detected_by,omitempty"`
 	Type                 string                       `json:"type,omitempty"`
 	Category             string                       `json:"category,omitempty"`
-	Functions            []string                     `json:"functions,omitempty"`
+	Functions            map[string]string            `json:"functions,omitempty"`
 	OSVendor             string                       `json:"os_vendor,omitempty"`
 	OSProduct            string                       `json:"os_product,omitempty"`
 	OS                   string                       `json:"os,omitempty"`
