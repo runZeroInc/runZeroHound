@@ -55,12 +55,22 @@ func extractAllRelationships(refs []assetNodeRef) ([]*bloodhound.Node, []*bloodh
 	extractGatewayRelationships(rc, refs)
 	extractSSHKeyEntities(rc, refs)
 	extractTLSCertEntities(rc, refs)
+	extractTLSCAChainEntities(rc, refs)
 	extractSNMPEngineEntities(rc, refs)
+	extractSNMPDeviceTypeEntities(rc, refs)
 	extractSMBGUIDEntities(rc, refs)
 	extractIPMIEntities(rc, refs)
 	extractTracerouteEntities(rc, refs)
 	extractMACEntities(rc, refs)
 	extractSwitchRelationships(rc, refs)
+	extractFaviconEntities(rc, refs)
+	extractIKEIdentityEntities(rc, refs)
+	extractKNXnetDeviceEntities(rc, refs)
+	extractBACnetDeviceEntities(rc, refs)
+	extractNTPReferenceEntities(rc, refs)
+	extractDNSIdentityEntities(rc, refs)
+	extractSerialNumberEntities(rc, refs)
+	extractNTLMSSPEntities(rc, refs)
 	return rc.nodes, rc.edges
 }
 
@@ -648,6 +658,525 @@ func extractSwitchRelationships(rc *relationshipContext, refs []assetNodeRef) {
 
 	if cnt > 0 {
 		rlog("info", "created %d switch nodes, %d switch sub-assets", cnt, subAssetCnt)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Favicon entities (web app fingerprinting)
+// ---------------------------------------------------------------------------
+
+func extractFaviconEntities(rc *relationshipContext, refs []assetNodeRef) {
+	cnt := 0
+	for _, ref := range refs {
+		for sk, svc := range ref.asset.Services {
+			md5 := firstTabVal(svc["favicon.ico.image.md5"])
+			if md5 == "" {
+				continue
+			}
+			svcNodeID := fmt.Sprintf("rz-service-%s-%s", ref.asset.ID.String(), sk)
+			faviconNodeID := "rz-favicon-" + sanitizeID(md5)
+			if !rc.created[faviconNodeID] {
+				cnt++
+				props := map[string]any{
+					"displayname": "Favicon:" + md5[:min(16, len(md5))],
+					"md5":         md5,
+				}
+				if mmh3 := firstTabVal(svc["favicon.ico.image.mmh3"]); mmh3 != "" {
+					props["mmh3"] = mmh3
+				}
+				if size := firstTabVal(svc["favicon.ico.image.size"]); size != "" {
+					props["size"] = size
+				}
+				if url := firstTabVal(svc["favicon.ico.image.url"]); url != "" {
+					props["url"] = url
+				}
+				rc.addNode(&bloodhound.Node{
+					ID:         faviconNodeID,
+					Kinds:      []string{"RZFavicon"},
+					Properties: props,
+				})
+			}
+			rc.addEdge(ref.nodeID, "RZHasFavicon", faviconNodeID)
+			rc.addEdge(faviconNodeID, "RZFaviconUsedBy", svcNodeID)
+		}
+	}
+	if cnt > 0 {
+		rlog("info", "created %d favicon nodes", cnt)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// IKE (IPsec VPN) identity entities
+// ---------------------------------------------------------------------------
+
+func extractIKEIdentityEntities(rc *relationshipContext, refs []assetNodeRef) {
+	cnt := 0
+	for _, ref := range refs {
+		for sk, svc := range ref.asset.Services {
+			ikeSHA1 := firstTabVal(svc["ike.sha1"])
+			if ikeSHA1 == "" {
+				continue
+			}
+			svcNodeID := fmt.Sprintf("rz-service-%s-%s", ref.asset.ID.String(), sk)
+			ikeNodeID := "rz-ike-" + sanitizeID(ikeSHA1)
+			if !rc.created[ikeNodeID] {
+				cnt++
+				props := map[string]any{
+					"displayname": "IKE:" + ikeSHA1[:min(16, len(ikeSHA1))],
+					"sha1":        ikeSHA1,
+				}
+				if ver := firstTabVal(svc["ike.version"]); ver != "" {
+					props["version"] = ver
+				}
+				if exchType := firstTabVal(svc["ike.exchangeType"]); exchType != "" {
+					props["exchange_type"] = exchType
+				}
+				if payload := firstTabVal(svc["ike.payload"]); payload != "" {
+					props["payload"] = payload
+				}
+				if respSPI := firstTabVal(svc["ike.responderSPI"]); respSPI != "" {
+					props["responder_spi"] = respSPI
+				}
+				rc.addNode(&bloodhound.Node{
+					ID:         ikeNodeID,
+					Kinds:      []string{"RZIKEIdentity"},
+					Properties: props,
+				})
+			}
+			rc.addEdge(ref.nodeID, "RZHasIKEIdentity", ikeNodeID)
+			rc.addEdge(ikeNodeID, "RZIKEIdentityUsedBy", svcNodeID)
+		}
+	}
+	if cnt > 0 {
+		rlog("info", "created %d IKE identity nodes", cnt)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// KNXnet device identity entities (building automation)
+// ---------------------------------------------------------------------------
+
+func extractKNXnetDeviceEntities(rc *relationshipContext, refs []assetNodeRef) {
+	cnt := 0
+	for _, ref := range refs {
+		for sk, svc := range ref.asset.Services {
+			serial := firstTabVal(svc["knxnet.serial"])
+			if serial == "" {
+				continue
+			}
+			svcNodeID := fmt.Sprintf("rz-service-%s-%s", ref.asset.ID.String(), sk)
+			knxNodeID := "rz-knxdev-" + sanitizeID(serial)
+			if !rc.created[knxNodeID] {
+				cnt++
+				props := map[string]any{
+					"displayname": "KNX:" + serial[:min(16, len(serial))],
+					"serial":      serial,
+				}
+				if mac := firstTabVal(svc["knxnet.mac"]); mac != "" {
+					props["mac"] = mac
+					props["displayname"] = fmt.Sprintf("KNX:%s (%s)", serial[:min(12, len(serial))], mac)
+				}
+				if name := firstTabVal(svc["knxnet.name"]); name != "" {
+					props["name"] = name
+				}
+				if addr := firstTabVal(svc["knxnet.address"]); addr != "" {
+					props["address"] = addr
+				}
+				if mcast := firstTabVal(svc["knxnet.multicastAddress"]); mcast != "" {
+					props["multicast_address"] = mcast
+				}
+				if ktype := firstTabVal(svc["knxnet.type"]); ktype != "" {
+					props["device_type"] = ktype
+				}
+				if status := firstTabVal(svc["knxnet.status"]); status != "" {
+					props["status"] = status
+				}
+				rc.addNode(&bloodhound.Node{
+					ID:         knxNodeID,
+					Kinds:      []string{"RZKNXnetDevice"},
+					Properties: props,
+				})
+			}
+			rc.addEdge(ref.nodeID, "RZHasKNXnetDevice", knxNodeID)
+			rc.addEdge(knxNodeID, "RZKNXnetDeviceOnAsset", svcNodeID)
+		}
+	}
+	if cnt > 0 {
+		rlog("info", "created %d KNXnet device nodes", cnt)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// BACnet device identity entities (building automation)
+// ---------------------------------------------------------------------------
+
+func extractBACnetDeviceEntities(rc *relationshipContext, refs []assetNodeRef) {
+	cnt := 0
+	for _, ref := range refs {
+		for sk, svc := range ref.asset.Services {
+			instanceID := firstTabVal(svc["bacnet.instanceID"])
+			if instanceID == "" {
+				continue
+			}
+			svcNodeID := fmt.Sprintf("rz-service-%s-%s", ref.asset.ID.String(), sk)
+			bacnetNodeID := "rz-bacnetdev-" + sanitizeID(instanceID)
+			if !rc.created[bacnetNodeID] {
+				cnt++
+				displayName := "BACnet:" + instanceID
+				props := map[string]any{
+					"displayname": displayName,
+					"instance_id": instanceID,
+				}
+				if objName := firstTabVal(svc["bacnet.objectName"]); objName != "" {
+					props["object_name"] = objName
+					props["displayname"] = fmt.Sprintf("BACnet:%s (%s)", instanceID, objName)
+				}
+				if vendorID := firstTabVal(svc["bacnet.vendorID"]); vendorID != "" {
+					props["vendor_id"] = vendorID
+				}
+				if vendorName := firstTabVal(svc["bacnet.vendorName"]); vendorName != "" {
+					props["vendor_name"] = vendorName
+				}
+				if vendorLookup := firstTabVal(svc["bacnet.vendorIDLookup"]); vendorLookup != "" {
+					props["vendor_lookup"] = vendorLookup
+				}
+				if modelName := firstTabVal(svc["bacnet.modelName"]); modelName != "" {
+					props["model_name"] = modelName
+				}
+				if fwRev := firstTabVal(svc["bacnet.firmwareRevision"]); fwRev != "" {
+					props["firmware_revision"] = fwRev
+				}
+				if desc := firstTabVal(svc["bacnet.description"]); desc != "" {
+					props["description"] = desc
+				}
+				if loc := firstTabVal(svc["bacnet.location"]); loc != "" {
+					props["location"] = loc
+				}
+				if status := firstTabVal(svc["bacnet.systemStatus"]); status != "" {
+					props["system_status"] = status
+				}
+				rc.addNode(&bloodhound.Node{
+					ID:         bacnetNodeID,
+					Kinds:      []string{"RZBACnetDevice"},
+					Properties: props,
+				})
+			}
+			rc.addEdge(ref.nodeID, "RZHasBACnetDevice", bacnetNodeID)
+			rc.addEdge(bacnetNodeID, "RZBACnetDeviceOnAsset", svcNodeID)
+		}
+	}
+	if cnt > 0 {
+		rlog("info", "created %d BACnet device nodes", cnt)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// NTP reference clock entities
+// ---------------------------------------------------------------------------
+
+func extractNTPReferenceEntities(rc *relationshipContext, refs []assetNodeRef) {
+	cnt := 0
+	for _, ref := range refs {
+		for sk, svc := range ref.asset.Services {
+			refID := firstTabVal(svc["ntp.referenceID"])
+			if refID == "" {
+				continue
+			}
+			svcNodeID := fmt.Sprintf("rz-service-%s-%s", ref.asset.ID.String(), sk)
+			ntpNodeID := "rz-ntpref-" + sanitizeID(refID)
+			if !rc.created[ntpNodeID] {
+				cnt++
+				props := map[string]any{
+					"displayname":  "NTP:" + refID,
+					"reference_id": refID,
+				}
+				if stratum := firstTabVal(svc["ntp.stratum"]); stratum != "" {
+					props["stratum"] = stratum
+				}
+				if version := firstTabVal(svc["ntp.version"]); version != "" {
+					props["version"] = version
+				}
+				rc.addNode(&bloodhound.Node{
+					ID:         ntpNodeID,
+					Kinds:      []string{"RZNTPReference"},
+					Properties: props,
+				})
+			}
+			rc.addEdge(ref.nodeID, "RZHasNTPReference", ntpNodeID)
+			rc.addEdge(ntpNodeID, "RZNTPReferenceUsedBy", svcNodeID)
+		}
+	}
+	if cnt > 0 {
+		rlog("info", "created %d NTP reference nodes", cnt)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// DNS server identity entities
+// ---------------------------------------------------------------------------
+
+func extractDNSIdentityEntities(rc *relationshipContext, refs []assetNodeRef) {
+	cnt := 0
+	for _, ref := range refs {
+		for sk, svc := range ref.asset.Services {
+			serverID := firstTabVal(svc["dns.id.server"])
+			versionBind := firstTabVal(svc["dns.version.bind"])
+			if serverID == "" && versionBind == "" {
+				continue
+			}
+			svcNodeID := fmt.Sprintf("rz-service-%s-%s", ref.asset.ID.String(), sk)
+
+			// dns.id.server identity node (per-server hostname from CHAOS TXT)
+			if serverID != "" {
+				dnsNodeID := "rz-dnsid-" + sanitizeID(serverID)
+				if !rc.created[dnsNodeID] {
+					cnt++
+					rc.addNode(&bloodhound.Node{
+						ID:    dnsNodeID,
+						Kinds: []string{"RZDNSIdentity"},
+						Properties: map[string]any{
+							"displayname": "DNS:" + serverID,
+							"server_id":   serverID,
+						},
+					})
+				}
+				rc.addEdge(ref.nodeID, "RZHasDNSIdentity", dnsNodeID)
+				rc.addEdge(dnsNodeID, "RZDNSIdentityUsedBy", svcNodeID)
+			}
+
+			// dns.version.bind identity node (DNS software version)
+			if versionBind != "" {
+				vbNodeID := "rz-dnsver-" + sanitizeID(versionBind)
+				if !rc.created[vbNodeID] {
+					cnt++
+					rc.addNode(&bloodhound.Node{
+						ID:    vbNodeID,
+						Kinds: []string{"RZDNSVersion"},
+						Properties: map[string]any{
+							"displayname":  "DNSver:" + versionBind[:min(40, len(versionBind))],
+							"version_bind": versionBind,
+						},
+					})
+				}
+				rc.addEdge(ref.nodeID, "RZHasDNSVersion", vbNodeID)
+				rc.addEdge(vbNodeID, "RZDNSVersionUsedBy", svcNodeID)
+			}
+		}
+	}
+	if cnt > 0 {
+		rlog("info", "created %d DNS identity/version nodes", cnt)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// SNMP device type entities (sysObjectID grouping)
+// ---------------------------------------------------------------------------
+
+func extractSNMPDeviceTypeEntities(rc *relationshipContext, refs []assetNodeRef) {
+	cnt := 0
+	for _, ref := range refs {
+		for sk, svc := range ref.asset.Services {
+			sysOID := firstTabVal(svc["snmp.sysObjectID"])
+			if sysOID == "" {
+				continue
+			}
+			svcNodeID := fmt.Sprintf("rz-service-%s-%s", ref.asset.ID.String(), sk)
+			oidNodeID := "rz-snmpoid-" + sanitizeID(sysOID)
+			if !rc.created[oidNodeID] {
+				cnt++
+				props := map[string]any{
+					"displayname":   "SNMP-OID:" + sysOID,
+					"sys_object_id": sysOID,
+				}
+				if sysName := firstTabVal(svc["snmp.sysName"]); sysName != "" {
+					props["sys_name"] = sysName
+				}
+				if sysDescr := firstTabVal(svc["snmp.sysDescr"]); sysDescr != "" {
+					props["sys_descr"] = sysDescr
+					props["displayname"] = fmt.Sprintf("SNMP-OID:%s (%s)", sysOID, sysDescr[:min(30, len(sysDescr))])
+				}
+				rc.addNode(&bloodhound.Node{
+					ID:         oidNodeID,
+					Kinds:      []string{"RZSNMPDeviceType"},
+					Properties: props,
+				})
+			}
+			rc.addEdge(ref.nodeID, "RZHasSNMPDeviceType", oidNodeID)
+			rc.addEdge(oidNodeID, "RZSNMPDeviceTypeUsedBy", svcNodeID)
+		}
+	}
+	if cnt > 0 {
+		rlog("info", "created %d SNMP device type nodes", cnt)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// TLS CA chain entities (signing CA fingerprint)
+// ---------------------------------------------------------------------------
+
+func extractTLSCAChainEntities(rc *relationshipContext, refs []assetNodeRef) {
+	cnt := 0
+	for _, ref := range refs {
+		for sk, svc := range ref.asset.Services {
+			caSha1 := firstTabVal(svc["tls.fp.caSha1"])
+			if caSha1 == "" {
+				continue
+			}
+			svcNodeID := fmt.Sprintf("rz-service-%s-%s", ref.asset.ID.String(), sk)
+			caNodeID := "rz-tlsca-" + sanitizeID(caSha1)
+			if !rc.created[caNodeID] {
+				cnt++
+				props := map[string]any{
+					"displayname": "CA:" + caSha1[:min(16, len(caSha1))],
+					"ca_sha1":     caSha1,
+				}
+				if issuer := firstTabVal(svc["tls.issuer"]); issuer != "" {
+					props["issuer"] = issuer
+					props["displayname"] = fmt.Sprintf("CA:%s (%s)", caSha1[:min(12, len(caSha1))], issuer[:min(40, len(issuer))])
+				}
+				if akid := firstTabVal(svc["tls.authorityKeyID"]); akid != "" {
+					props["authority_key_id"] = akid
+				}
+				rc.addNode(&bloodhound.Node{
+					ID:         caNodeID,
+					Kinds:      []string{"RZTLSCAChain"},
+					Properties: props,
+				})
+			}
+			rc.addEdge(ref.nodeID, "RZSignedByCA", caNodeID)
+			rc.addEdge(caNodeID, "RZCASignedCert", svcNodeID)
+		}
+	}
+	if cnt > 0 {
+		rlog("info", "created %d TLS CA chain nodes", cnt)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Serial number entities (cross-protocol device identity)
+// ---------------------------------------------------------------------------
+
+func extractSerialNumberEntities(rc *relationshipContext, refs []assetNodeRef) {
+	cnt := 0
+	for _, ref := range refs {
+		raw := ref.asset.Attributes["serialNumbers"]
+		if raw == "" {
+			continue
+		}
+		for _, sn := range strings.Split(raw, "\t") {
+			sn = strings.TrimSpace(sn)
+			if sn == "" || len(sn) < 3 {
+				continue
+			}
+			snNodeID := "rz-serial-" + sanitizeID(sn)
+			if !rc.created[snNodeID] {
+				cnt++
+				// Parse optional source prefix (e.g. "cip:12345", "bacnet:ABC")
+				source := ""
+				value := sn
+				if idx := strings.Index(sn, ":"); idx > 0 && idx < len(sn)-1 {
+					source = sn[:idx]
+					value = sn[idx+1:]
+				}
+				props := map[string]any{
+					"displayname":   "SN:" + sn,
+					"serial_number": sn,
+					"value":         value,
+				}
+				if source != "" {
+					props["source"] = source
+				}
+				rc.addNode(&bloodhound.Node{
+					ID:         snNodeID,
+					Kinds:      []string{"RZSerialNumber"},
+					Properties: props,
+				})
+			}
+			rc.addEdge(ref.nodeID, "RZHasSerialNumber", snNodeID)
+			rc.addEdge(snNodeID, "RZSerialNumberUsedBy", ref.nodeID)
+		}
+	}
+	if cnt > 0 {
+		rlog("info", "created %d serial number nodes", cnt)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// NTLM SSP entities (Windows domain/computer identity)
+// ---------------------------------------------------------------------------
+
+func extractNTLMSSPEntities(rc *relationshipContext, refs []assetNodeRef) {
+	domainCnt := 0
+	computerCnt := 0
+	for _, ref := range refs {
+		for sk, svc := range ref.asset.Services {
+			dnsComputer := firstTabVal(svc["ntlmssp.dnsComputer"])
+			dnsDomain := firstTabVal(svc["ntlmssp.dnsDomain"])
+			if dnsComputer == "" && dnsDomain == "" {
+				continue
+			}
+			svcNodeID := fmt.Sprintf("rz-service-%s-%s", ref.asset.ID.String(), sk)
+
+			// NTLM domain node
+			if dnsDomain != "" {
+				domainNodeID := "rz-ntlmdomain-" + sanitizeID(strings.ToLower(dnsDomain))
+				if !rc.created[domainNodeID] {
+					domainCnt++
+					props := map[string]any{
+						"displayname": "NTLMDomain:" + dnsDomain,
+						"dns_domain":  dnsDomain,
+					}
+					if nb := firstTabVal(svc["ntlmssp.netbiosDomain"]); nb != "" {
+						props["netbios_domain"] = nb
+					}
+					rc.addNode(&bloodhound.Node{
+						ID:         domainNodeID,
+						Kinds:      []string{"RZNTLMDomain"},
+						Properties: props,
+					})
+				}
+				rc.addEdge(ref.nodeID, "RZHasNTLMDomain", domainNodeID)
+				rc.addEdge(domainNodeID, "RZNTLMDomainUsedBy", svcNodeID)
+			}
+
+			// NTLM computer identity node
+			if dnsComputer != "" {
+				computerNodeID := "rz-ntlmcomputer-" + sanitizeID(strings.ToLower(dnsComputer))
+				if !rc.created[computerNodeID] {
+					computerCnt++
+					props := map[string]any{
+						"displayname":  "NTLMHost:" + dnsComputer,
+						"dns_computer": dnsComputer,
+					}
+					if nb := firstTabVal(svc["ntlmssp.netbiosComputer"]); nb != "" {
+						props["netbios_computer"] = nb
+					}
+					if ver := firstTabVal(svc["ntlmssp.version"]); ver != "" {
+						props["version"] = ver
+					}
+					if tn := firstTabVal(svc["ntlmssp.targetName"]); tn != "" {
+						props["target_name"] = tn
+					}
+					rc.addNode(&bloodhound.Node{
+						ID:         computerNodeID,
+						Kinds:      []string{"RZNTLMComputer"},
+						Properties: props,
+					})
+				}
+				rc.addEdge(ref.nodeID, "RZHasNTLMComputer", computerNodeID)
+				rc.addEdge(computerNodeID, "RZNTLMComputerUsedBy", svcNodeID)
+
+				// Link computer to its domain
+				if dnsDomain != "" {
+					domainNodeID := "rz-ntlmdomain-" + sanitizeID(strings.ToLower(dnsDomain))
+					rc.addEdge(computerNodeID, "RZNTLMPartOfDomain", domainNodeID)
+					rc.addEdge(domainNodeID, "RZNTLMDomainContains", computerNodeID)
+				}
+			}
+		}
+	}
+	if domainCnt+computerCnt > 0 {
+		rlog("info", "created %d NTLM domain nodes, %d NTLM computer nodes", domainCnt, computerCnt)
 	}
 }
 
