@@ -401,7 +401,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 				"domains":                asset.Domains,
 				"type":                   deviceType,
 				"category":               asset.Category,
-				"RZFunctions":            funcList,
+				"rz_functions":           funcList,
 				"os":                     asset.OS,
 				"hw":                     asset.HW,
 				"ip_addresses":           asset.Addresses,
