@@ -325,6 +325,15 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 				if len(v.CVEs) > 0 {
 					vulnProps["cve"] = strings.Join(v.CVEs, ",")
 				}
+				if v.CVSSScore != "" {
+					vulnProps["cvss_score"] = v.CVSSScore
+				}
+				if v.RiskFactor != "" {
+					vulnProps["risk_factor"] = v.RiskFactor
+				}
+				if v.Description != "" {
+					vulnProps["description"] = v.Description
+				}
 				nodes = append(nodes, &bloodhound.Node{
 					ID:         vulnID,
 					Kinds:      []string{"RZVuln"},
@@ -488,14 +497,26 @@ func edgeBetween(from, kind, to string) *bloodhound.Edge {
 
 // vulnDisplayName builds a display name for a vulnerability.
 // If the vuln has CVEs, the first CVE is used as a prefix: "CVE-2022-3244: Title".
-// Otherwise, just the title is returned.
+// Duplicate CVE references in the title are stripped (bare or parenthesised).
 func vulnDisplayName(v ParsedVuln) string {
 	title := v.Title
 	if title == "" {
 		title = v.ID
 	}
 	if len(v.CVEs) > 0 {
-		return v.CVEs[0] + ": " + title
+		cve := v.CVEs[0]
+		// Remove the CVE from the title: both "(CVE-XXXX-YYYY)" and bare "CVE-XXXX-YYYY".
+		cleaned := strings.ReplaceAll(title, "("+cve+")", "")
+		cleaned = strings.ReplaceAll(cleaned, cve, "")
+		// Collapse multiple spaces and trim.
+		for strings.Contains(cleaned, "  ") {
+			cleaned = strings.ReplaceAll(cleaned, "  ", " ")
+		}
+		cleaned = strings.TrimSpace(cleaned)
+		if cleaned == "" {
+			cleaned = cve
+		}
+		return cve + ": " + cleaned
 	}
 	return title
 }

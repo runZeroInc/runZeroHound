@@ -11,7 +11,7 @@ import (
 // Reference: Qualys VM scan XML export format.
 
 type qualysScan struct {
-	XMLName xml.Name  `xml:"SCAN"`
+	XMLName xml.Name   `xml:"SCAN"`
 	IPs     []qualysIP `xml:"IP"`
 }
 
@@ -29,20 +29,20 @@ type qualysCatGroup struct {
 }
 
 type qualysCat struct {
-	Port     string          `xml:"port,attr"`
-	Protocol string          `xml:"protocol,attr"`
-	Value    string          `xml:"value,attr"`
-	Infos    []qualysEntry   `xml:"INFO"`
-	Services []qualysEntry   `xml:"SERVICE"`
-	Vulns    []qualysEntry   `xml:"VULN"`
+	Port     string        `xml:"port,attr"`
+	Protocol string        `xml:"protocol,attr"`
+	Value    string        `xml:"value,attr"`
+	Infos    []qualysEntry `xml:"INFO"`
+	Services []qualysEntry `xml:"SERVICE"`
+	Vulns    []qualysEntry `xml:"VULN"`
 }
 
 type qualysEntry struct {
-	Number   string         `xml:"number,attr"`
-	Severity string         `xml:"severity,attr"`
-	Result   string         `xml:"RESULT"`
-	Title    string         `xml:"TITLE"`
-	CVEIDs   []qualysCVEID  `xml:"CVE_ID_LIST>CVE_ID"`
+	Number   string        `xml:"number,attr"`
+	Severity string        `xml:"severity,attr"`
+	Result   string        `xml:"RESULT"`
+	Title    string        `xml:"TITLE"`
+	CVEIDs   []qualysCVEID `xml:"CVE_ID_LIST>CVE_ID"`
 }
 
 type qualysCVEID struct {

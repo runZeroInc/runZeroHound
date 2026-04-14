@@ -24,13 +24,13 @@ type openvasResults struct {
 }
 
 type openvasResult struct {
-	ID          string       `xml:"id,attr"`
-	Name        string       `xml:"name"`
-	Host        openvasHost  `xml:"host"`
-	Port        string       `xml:"port"`
-	NVT         openvasNVT   `xml:"nvt"`
-	Description string       `xml:"description"`
-	Severity    string       `xml:"severity"`
+	ID          string      `xml:"id,attr"`
+	Name        string      `xml:"name"`
+	Host        openvasHost `xml:"host"`
+	Port        string      `xml:"port"`
+	NVT         openvasNVT  `xml:"nvt"`
+	Description string      `xml:"description"`
+	Severity    string      `xml:"severity"`
 }
 
 type openvasHost struct {
@@ -39,11 +39,11 @@ type openvasHost struct {
 }
 
 type openvasNVT struct {
-	OID    string        `xml:"oid,attr"`
-	Name   string        `xml:"name"`
-	Family string        `xml:"family"`
-	Tags   string        `xml:"tags"`
-	Refs   []openvasRef  `xml:"refs>ref"`
+	OID    string       `xml:"oid,attr"`
+	Name   string       `xml:"name"`
+	Family string       `xml:"family"`
+	Tags   string       `xml:"tags"`
+	Refs   []openvasRef `xml:"refs>ref"`
 }
 
 type openvasRef struct {
@@ -53,15 +53,15 @@ type openvasRef struct {
 
 // openvasHostSum aggregates per-host detail entries from the <host> sections.
 type openvasHostSum struct {
-	IP      string             `xml:"ip"`
-	Start   string             `xml:"start"`
-	End     string             `xml:"end"`
+	IP      string              `xml:"ip"`
+	Start   string              `xml:"start"`
+	End     string              `xml:"end"`
 	Details []openvasHostDetail `xml:"detail"`
 }
 
 type openvasHostDetail struct {
-	Name   string `xml:"name"`
-	Value  string `xml:"value"`
+	Name   string              `xml:"name"`
+	Value  string              `xml:"value"`
 	Source openvasDetailSource `xml:"source"`
 }
 
@@ -74,11 +74,11 @@ type openvasDetailSource struct {
 // OID prefix: 1.3.6.1.4.1.25623.1.0.*
 const (
 	oidSSHDetection   = "1.3.6.1.4.1.25623.1.0.10267"  // SSH Server Detection
-	oidSSHHostKey     = "1.3.6.1.4.1.25623.1.0.103997"  // SSH Host Key Fingerprint
-	oidTLSCert        = "1.3.6.1.4.1.25623.1.0.103692"  // SSL/TLS Certificate
-	oidTLSCertDetails = "1.3.6.1.4.1.25623.1.0.108453"  // SSL/TLS Certificate Details
-	oidSMBDetection   = "1.3.6.1.4.1.25623.1.0.10394"   // SMB Detection
-	oidSNMPDetection  = "1.3.6.1.4.1.25623.1.0.10264"   // SNMP Detection
+	oidSSHHostKey     = "1.3.6.1.4.1.25623.1.0.103997" // SSH Host Key Fingerprint
+	oidTLSCert        = "1.3.6.1.4.1.25623.1.0.103692" // SSL/TLS Certificate
+	oidTLSCertDetails = "1.3.6.1.4.1.25623.1.0.108453" // SSL/TLS Certificate Details
+	oidSMBDetection   = "1.3.6.1.4.1.25623.1.0.10394"  // SMB Detection
+	oidSNMPDetection  = "1.3.6.1.4.1.25623.1.0.10264"  // SNMP Detection
 )
 
 // ParseOpenVAS parses an OpenVAS/GVM XML report file into ParsedHosts.
@@ -194,10 +194,12 @@ func buildOpenVASResult(report *openvasReport) *ParseResult {
 		// Extract vulnerabilities (severity > 0).
 		if sev, err := strconv.ParseFloat(strings.TrimSpace(res.Severity), 64); err == nil && sev > 0 {
 			pv := ParsedVuln{
-				ID:       res.NVT.OID,
-				Title:    res.NVT.Name,
-				Severity: res.Severity,
-				Source:   "openvas",
+				ID:          res.NVT.OID,
+				Title:       res.NVT.Name,
+				Severity:    res.Severity,
+				Source:      "openvas",
+				CVSSScore:   res.Severity, // OpenVAS severity IS the CVSS score.
+				Description: trimDesc(res.Description, 512),
 			}
 			for _, ref := range res.NVT.Refs {
 				if strings.EqualFold(ref.Type, "cve") && ref.ID != "" {

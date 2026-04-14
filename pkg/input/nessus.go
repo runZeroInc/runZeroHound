@@ -38,17 +38,20 @@ type nessusTag struct {
 }
 
 type nessusReportItem struct {
-	Port        string   `xml:"port,attr"`
-	SvcName     string   `xml:"svc_name,attr"`
-	Protocol    string   `xml:"protocol,attr"`
-	Severity    string   `xml:"severity,attr"`
-	PluginID    string   `xml:"pluginID,attr"`
-	PluginName  string   `xml:"pluginName,attr"`
-	Output      string   `xml:"plugin_output"`
-	Description string   `xml:"description"`
-	CVEs        []string `xml:"cve"`
-	RiskFactor  string   `xml:"risk_factor"`
-	Synopsis    string   `xml:"synopsis"`
+	Port           string   `xml:"port,attr"`
+	SvcName        string   `xml:"svc_name,attr"`
+	Protocol       string   `xml:"protocol,attr"`
+	Severity       string   `xml:"severity,attr"`
+	PluginID       string   `xml:"pluginID,attr"`
+	PluginName     string   `xml:"pluginName,attr"`
+	Output         string   `xml:"plugin_output"`
+	Description    string   `xml:"description"`
+	CVEs           []string `xml:"cve"`
+	RiskFactor     string   `xml:"risk_factor"`
+	Synopsis       string   `xml:"synopsis"`
+	CVSS3BaseScore string   `xml:"cvss3_base_score"`
+	CVSS3Vector    string   `xml:"cvss3_vector"`
+	CVSSBaseScore  string   `xml:"cvss_base_score"`
 }
 
 // Well-known Nessus plugin IDs that carry fingerprint/identity data.
@@ -218,13 +221,23 @@ func parseNessusHost(rh *nessusReportHost) *ParsedHost {
 
 		// Extract vulnerabilities (severity > 0).
 		if item.Severity != "" && item.Severity != "0" {
-			ph.Vulns = append(ph.Vulns, ParsedVuln{
-				ID:       item.PluginID,
-				Title:    item.PluginName,
-				Severity: item.Severity,
-				CVEs:     item.CVEs,
-				Source:   "nessus",
-			})
+			pv := ParsedVuln{
+				ID:          item.PluginID,
+				Title:       item.PluginName,
+				Severity:    item.Severity,
+				CVEs:        item.CVEs,
+				Source:      "nessus",
+				Description: strings.TrimSpace(item.Synopsis),
+				RiskFactor:  strings.TrimSpace(item.RiskFactor),
+			}
+			// Prefer CVSS v3 score; fall back to v2.
+			switch {
+			case item.CVSS3BaseScore != "":
+				pv.CVSSScore = item.CVSS3BaseScore
+			case item.CVSSBaseScore != "":
+				pv.CVSSScore = item.CVSSBaseScore
+			}
+			ph.Vulns = append(ph.Vulns, pv)
 		}
 	}
 

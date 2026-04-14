@@ -151,10 +151,12 @@ type nexposeTest struct {
 }
 
 type nexposeVuln struct {
-	ID       string             `xml:"id,attr"`
-	Title    string             `xml:"title,attr"`
-	Severity string             `xml:"severity,attr"`
-	Refs     []nexposeReference `xml:"references>reference"`
+	ID        string             `xml:"id,attr"`
+	Title     string             `xml:"title,attr"`
+	Severity  string             `xml:"severity,attr"`
+	CVSSScore string             `xml:"cvssScore,attr"`
+	RiskScore string             `xml:"riskScore,attr"`
+	Refs      []nexposeReference `xml:"references>reference"`
 }
 
 type nexposeReference struct {
@@ -294,9 +296,10 @@ func parseSimpleDevice(dev *nexposeSimpleDevice) *ParsedHost {
 
 // nexposeVulnInfo holds pre-parsed vulnerability definition data.
 type nexposeVulnInfo struct {
-	Title    string
-	Severity string
-	CVEs     []string
+	Title     string
+	Severity  string
+	CVEs      []string
+	CVSSScore string
 }
 
 func parseNexposeReport(data []byte) (*ParseResult, error) {
@@ -310,8 +313,9 @@ func parseNexposeReport(data []byte) (*ParseResult, error) {
 	for i := range doc.VulnDef {
 		vd := &doc.VulnDef[i]
 		info := &nexposeVulnInfo{
-			Title:    vd.Title,
-			Severity: vd.Severity,
+			Title:     vd.Title,
+			Severity:  vd.Severity,
+			CVSSScore: vd.CVSSScore,
 		}
 		for _, ref := range vd.Refs {
 			if ref.Source == "CVE" && ref.Value != "" {
@@ -514,6 +518,7 @@ func extractNexposeVulns(ph *ParsedHost, tests []nexposeTest, vulnDefs map[strin
 			pv.Title = info.Title
 			pv.Severity = info.Severity
 			pv.CVEs = info.CVEs
+			pv.CVSSScore = info.CVSSScore
 		} else {
 			// Try to extract CVE from the vuln ID itself.
 			pv.Title = t.ID

@@ -1,5 +1,7 @@
 package input
 
+import "strings"
+
 // ParsedHost is the common representation of a network host produced by any
 // input parser.  Parsers fill only the fields they have data for.
 type ParsedHost struct {
@@ -56,6 +58,12 @@ type ParsedVuln struct {
 	CVEs []string
 	// Source identifies the scanner that reported this vulnerability.
 	Source string
+	// Description is a short summary of the vulnerability (e.g. Nessus synopsis).
+	Description string
+	// CVSSScore is the CVSS base score as a string (e.g. "7.5"), if available.
+	CVSSScore string
+	// RiskFactor is the qualitative risk rating (e.g. "Critical", "High", "Medium", "Low").
+	RiskFactor string
 }
 
 // TracerouteHop represents a single router hop in a traceroute path.
@@ -90,11 +98,11 @@ type SubAsset struct {
 
 // ParsedService represents one observed network service.
 type ParsedService struct {
-	Address   string
-	Port      string
-	Protocol  string // "tcp" / "udp"
-	Product   string
-	Version   string
+	Address  string
+	Port     string
+	Protocol string // "tcp" / "udp"
+	Product  string
+	Version  string
 	// Extra key→value information about the service.
 	Attributes map[string]string
 }
@@ -102,4 +110,13 @@ type ParsedService struct {
 // ParseResult holds the output of a parser run.
 type ParseResult struct {
 	Hosts []*ParsedHost
+}
+
+// trimDesc truncates a description string to maxLen runes after trimming whitespace.
+func trimDesc(s string, maxLen int) string {
+	s = strings.TrimSpace(s)
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen]
 }
