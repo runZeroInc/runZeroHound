@@ -466,7 +466,7 @@ func extractTracerouteEntities(rc *relationshipContext, refs []assetNodeRef) {
 						Kinds: []string{"RZRouter"},
 						Properties: map[string]any{
 							"displayname":  ip,
-							"ip_addresses": []string{ip},
+							"ip_addresses": ip,
 							"ttl":          ttl + 1,
 						},
 					})

@@ -50,13 +50,13 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 		props := map[string]any{
 			"displayname":  label,
 			"source":       ph.Source.String(),
-			"ip_addresses": ph.Addresses,
+			"ip_addresses": strings.Join(ph.Addresses, ","),
 		}
 		if len(ph.Sources) > 0 {
-			props["sources"] = ph.Sources
+			props["sources"] = strings.Join(ph.Sources, ",")
 		}
 		if len(ph.Names) > 0 {
-			props["names"] = ph.Names
+			props["names"] = strings.Join(ph.Names, ",")
 			props["name"] = ph.Names[0]
 		}
 		if ph.OS != "" {
@@ -66,7 +66,7 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 			props["service_count"] = len(ph.Services)
 		}
 		if len(ph.MACs) > 0 {
-			props["mac_addresses"] = ph.MACs
+			props["mac_addresses"] = strings.Join(ph.MACs, ",")
 		}
 
 		// Flatten attributes (sorted for determinism)
@@ -192,7 +192,7 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 				routerNodes[routerID] = true
 				routerProps := map[string]any{
 					"displayname":  hop.Addresses[0],
-					"ip_addresses": hop.Addresses,
+					"ip_addresses": strings.Join(hop.Addresses, ","),
 					"ttl":          hop.TTL,
 				}
 				if hop.RTT > 0 {
@@ -251,10 +251,10 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 				"type":        sa.Type,
 			}
 			if len(sa.Addresses) > 0 {
-				saProps["ip_addresses"] = sa.Addresses
+				saProps["ip_addresses"] = strings.Join(sa.Addresses, ",")
 			}
 			if len(sa.MACs) > 0 {
-				saProps["mac_addresses"] = sa.MACs
+				saProps["mac_addresses"] = strings.Join(sa.MACs, ",")
 			}
 			if sa.Interface != "" {
 				saProps["interface"] = sa.Interface

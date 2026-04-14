@@ -383,7 +383,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 			sourceNames[i] = sname
 		}
 
-		// Convert functions map to a sorted string array for OpenGraph schema compliance
+		// Convert functions map to a sorted comma-joined string for OpenGraph schema compliance
 		funcList := make([]string, 0, len(asset.Functions))
 		for k := range asset.Functions {
 			funcList = append(funcList, k)
@@ -397,18 +397,18 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 				"displayname":            label,
 				"name":                   ntlmName,
 				"hostname":               hostName,
-				"names":                  asset.Names,
-				"domains":                asset.Domains,
+				"names":                  strings.Join(asset.Names, ","),
+				"domains":                strings.Join(asset.Domains, ","),
 				"type":                   deviceType,
 				"category":               asset.Category,
-				"rz_functions":           funcList,
+				"rz_functions":           strings.Join(funcList, ","),
 				"os":                     asset.OS,
 				"hw":                     asset.HW,
-				"ip_addresses":           asset.Addresses,
+				"ip_addresses":           strings.Join(asset.Addresses, ","),
 				"ip_address_count":       len(asset.Addresses),
-				"ip_addresses_extra":     asset.AddressesExtra,
+				"ip_addresses_extra":     strings.Join(asset.AddressesExtra, ","),
 				"ip_address_extra_count": len(asset.AddressesExtra),
-				"mac_addresses":          asset.MACs,
+				"mac_addresses":          strings.Join(asset.MACs, ","),
 				"newest_mac":             asset.NewestMAC,
 				"newest_mac_vendor":      asset.NewestMACVendor,
 				"newest_mac_age":         asset.NewestMACAge,
@@ -432,7 +432,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 				"last_seen":              asset.LastSeen,
 				"created_at":             asset.CreatedAt,
 				"updated_at":             asset.UpdatedAt,
-				"sources":                sourceNames,
+				"sources":                strings.Join(sourceNames, ","),
 				"organization_name":      asset.OrganizationName,
 				"site_name":              asset.SiteName,
 				"agent_name":             asset.AgentName,
@@ -445,19 +445,19 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 		}
 
 		if len(asset.ServiceProtocols) > 0 {
-			assetNode.Properties["service_protocols"] = asset.ServiceProtocols
+			assetNode.Properties["service_protocols"] = strings.Join(asset.ServiceProtocols, ",")
 		}
 
 		if len(asset.ServiceProducts) > 0 {
-			assetNode.Properties["service_products"] = asset.ServiceProducts
+			assetNode.Properties["service_products"] = strings.Join(asset.ServiceProducts, ",")
 		}
 
 		if len(asset.ServicePortsTCP) > 0 {
-			assetNode.Properties["service_ports_tcp"] = asset.ServicePortsTCP
+			assetNode.Properties["service_ports_tcp"] = strings.Join(asset.ServicePortsTCP, ",")
 		}
 
 		if len(asset.ServicePortsUDP) > 0 {
-			assetNode.Properties["service_ports_udp"] = asset.ServicePortsUDP
+			assetNode.Properties["service_ports_udp"] = strings.Join(asset.ServicePortsUDP, ",")
 		}
 
 		// Add Asset tags
@@ -471,7 +471,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 				}
 			}
 			sort.Strings(tags)
-			assetNode.Properties["tags"] = tags
+			assetNode.Properties["tags"] = strings.Join(tags, ",")
 		}
 
 		// Add Asset attributes (flattened, deduplicated, and sorted)
@@ -512,7 +512,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 				vals = append(vals, v)
 			}
 			sort.Strings(vals)
-			assetNode.Properties[ak] = vals
+			assetNode.Properties[ak] = strings.Join(vals, ",")
 		}
 
 		// Add runZero site subnet mappings
@@ -520,7 +520,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 		for k := range asset.Subnets {
 			rzSubnets = append(rzSubnets, k)
 		}
-		assetNode.Properties["subnets"] = rzSubnets
+		assetNode.Properties["subnets"] = strings.Join(rzSubnets, ",")
 
 		// TODO: Implement layer-2 switch links
 		/*
@@ -572,7 +572,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 					vals = append(vals, v)
 				}
 				sort.Strings(vals)
-				svcNode.Properties[ak] = vals
+				svcNode.Properties[ak] = strings.Join(vals, ",")
 			}
 
 			// Add the Service node

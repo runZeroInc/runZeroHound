@@ -2,110 +2,113 @@ package cmd
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 )
 
-type UploadSettings struct {
-	URL      string
-	TokenID  string
-	TokenKey string
-	Insecure bool
-	Timeout  int
-}
-
-var uploadSettings = UploadSettings{}
+var uploadBH = BHSettings{}
+var uploadWait bool
+var uploadWaitTimeout int
+var uploadWaitInterval int
 
 func init() {
-	uploadCmd.Flags().StringVarP(&uploadSettings.URL, "url", "u", "", "BloodHound CE API URL (e.g. https://bloodhound.example.com)")
-	uploadCmd.Flags().StringVar(&uploadSettings.TokenID, "token-id", "", "BloodHound CE API token ID (or set BLOODHOUND_TOKEN_ID)")
-	uploadCmd.Flags().StringVar(&uploadSettings.TokenKey, "token-key", "", "BloodHound CE API token key (or set BLOODHOUND_TOKEN_KEY)")
-	uploadCmd.Flags().BoolVar(&uploadSettings.Insecure, "insecure", false, "Skip TLS certificate verification")
-	uploadCmd.Flags().IntVar(&uploadSettings.Timeout, "timeout", 300, "HTTP request timeout in seconds")
+	addBHFlags(uploadCmd, &uploadBH)
+	uploadCmd.Flags().BoolVar(&uploadWait, "wait", false, "Wait for all ingest jobs to complete")
+	uploadCmd.Flags().IntVar(&uploadWaitTimeout, "wait-timeout", 300, "Maximum seconds to wait for ingest completion")
+	uploadCmd.Flags().IntVar(&uploadWaitInterval, "wait-interval", 5, "Seconds between status checks")
 	rootCmd.AddCommand(uploadCmd)
 }
 
 var uploadCmd = &cobra.Command{
-	Use:   "upload <graph.json>",
-	Short: "Upload an OpenGraph JSON file to BloodHound CE",
-	Long: `Upload a previously generated OpenGraph JSON file to a BloodHound CE instance.
+	Use:   "upload [graph.json]",
+	Short: "Upload an OpenGraph JSON file to BloodHound CE and/or wait for ingest",
+	Long: `Upload a previously generated OpenGraph JSON file to a BloodHound CE instance,
+and optionally wait for all ingest jobs to finish processing.
 
-The command reads the JSON file and sends it to the BloodHound CE ingest API
-using the file-upload endpoint.
+If a file argument is given, it is uploaded via the file-upload API.
+If --wait is specified, the command polls until all upload jobs reach a
+terminal state (complete, failed, canceled, timed-out) and the datapipe
+is idle. When both a file and --wait are given, the upload runs first,
+then the wait begins.
 
-Authentication requires an API token pair. Provide them via flags or
-environment variables:
+If no file argument is given, --wait is required and the command only
+waits for existing ingest jobs to finish.
 
   Flags:
-    --url           BloodHound CE base URL         (or BLOODHOUND_URL)
-    --token-id      API token ID                   (or BLOODHOUND_TOKEN_ID)
-    --token-key     API token key/secret           (or BLOODHOUND_TOKEN_KEY)
-
-  Environment variables take precedence when flags are not set.
+    --url             BloodHound CE base URL         (or BLOODHOUND_URL)
+    --token-id        API token ID                   (or BLOODHOUND_TOKEN_ID)
+    --token-key       API token key/secret           (or BLOODHOUND_TOKEN_KEY)
+    --username        BloodHound CE username         (or BLOODHOUND_USERNAME)
+    --password        BloodHound CE password         (or BLOODHOUND_PASSWORD)
+    --wait            Wait for all ingest jobs to complete
+    --wait-timeout    Maximum seconds to wait (default 300)
+    --wait-interval   Seconds between status checks (default 5)
 
 Examples:
-  # Using flags
-  runZeroHound upload --url https://bh.example.com \
-    --token-id abc123 --token-key secret456 graph.json
+  # Upload and wait for ingest
+  runZeroHound upload --wait graph.json
 
-  # Using environment variables
-  export BLOODHOUND_URL=https://bh.example.com
-  export BLOODHOUND_TOKEN_ID=abc123
-  export BLOODHOUND_TOKEN_KEY=secret456
+  # Just wait for pending jobs to finish
+  runZeroHound upload --wait
+
+  # Upload without waiting
   runZeroHound upload graph.json
 `,
-	Args: cobra.ExactArgs(1),
+	Args: cobra.MaximumNArgs(1),
 	Run:  runUpload,
 }
 
 func runUpload(_ *cobra.Command, args []string) {
-	inputPath := args[0]
-
-	// Resolve credentials: flags override env vars.
-	url := resolveStr(uploadSettings.URL, "BLOODHOUND_URL")
-	tokenID := resolveStr(uploadSettings.TokenID, "BLOODHOUND_TOKEN_ID")
-	tokenKey := resolveStr(uploadSettings.TokenKey, "BLOODHOUND_TOKEN_KEY")
-
-	if url == "" {
-		fmt.Fprintln(os.Stderr, "error: BloodHound CE URL is required (--url or BLOODHOUND_URL)")
-		os.Exit(1)
-	}
-	if tokenID == "" || tokenKey == "" {
-		fmt.Fprintln(os.Stderr, "error: API token ID and key are required (--token-id/--token-key or BLOODHOUND_TOKEN_ID/BLOODHOUND_TOKEN_KEY)")
+	if len(args) == 0 && !uploadWait {
+		fmt.Fprintf(os.Stderr, "error: provide a file to upload or use --wait to monitor ingest jobs\n")
 		os.Exit(1)
 	}
 
-	url = strings.TrimRight(url, "/")
-
-	rlog("info", "reading %s", inputPath)
-	data, err := os.ReadFile(inputPath) // #nosec G304
+	baseURL, authHeader, err := bhResolveAuth(&uploadBH)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: cannot read %s: %v\n", inputPath, err)
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Validate that the file is valid JSON.
-	if !json.Valid(data) {
-		fmt.Fprintf(os.Stderr, "error: %s is not valid JSON\n", inputPath)
-		os.Exit(1)
+	// Upload a file if one was provided.
+	if len(args) > 0 {
+		inputPath := args[0]
+
+		rlog("info", "reading %s", inputPath)
+		data, err := os.ReadFile(inputPath) // #nosec G304
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: cannot read %s: %v\n", inputPath, err)
+			os.Exit(1)
+		}
+
+		if !json.Valid(data) {
+			fmt.Fprintf(os.Stderr, "error: %s is not valid JSON\n", inputPath)
+			os.Exit(1)
+		}
+
+		rlog("info", "uploading %d bytes to %s", len(data), baseURL)
+
+		if err := uploadToBloodHound(baseURL, authHeader, data); err != nil {
+			fmt.Fprintf(os.Stderr, "error: upload failed: %v\n", err)
+			os.Exit(1)
+		}
+
+		rlog("info", "upload complete")
 	}
 
-	rlog("info", "uploading %d bytes to %s", len(data), url)
-
-	if err := uploadToBloodHound(url, tokenID, tokenKey, data); err != nil {
-		fmt.Fprintf(os.Stderr, "error: upload failed: %v\n", err)
-		os.Exit(1)
+	// Wait for ingest if requested.
+	if uploadWait {
+		if err := waitForIngest(baseURL, authHeader); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
 	}
-
-	rlog("info", "upload complete")
 }
 
 // uploadToBloodHound performs the graph upload to BloodHound CE.
@@ -114,11 +117,11 @@ func runUpload(_ *cobra.Command, args []string) {
 //  1. Create an upload job:   POST /api/v2/file-upload/start
 //  2. Send file data:         POST /api/v2/file-upload/{id}
 //  3. Mark job complete:      POST /api/v2/file-upload/{id}/end
-func uploadToBloodHound(baseURL, tokenID, tokenKey string, data []byte) error {
-	client := buildHTTPClient()
+func uploadToBloodHound(baseURL, authHeader string, data []byte) error {
+	client := bhBuildHTTPClient(&uploadBH)
 
 	// Step 1: Start the upload job.
-	startResp, err := bhRequest(client, "POST", baseURL+"/api/v2/file-upload/start", tokenID, tokenKey, nil)
+	startResp, err := bhAuthRequest(client, "POST", baseURL+"/api/v2/file-upload/start", authHeader, nil)
 	if err != nil {
 		return fmt.Errorf("start upload: %w", err)
 	}
@@ -146,7 +149,16 @@ func uploadToBloodHound(baseURL, tokenID, tokenKey string, data []byte) error {
 
 	// Step 2: Upload the file data.
 	uploadURL := fmt.Sprintf("%s/api/v2/file-upload/%d", baseURL, jobID)
-	uploadResp, err := bhRequest(client, "POST", uploadURL, tokenID, tokenKey, data)
+	uploadReq, err := http.NewRequest("POST", uploadURL, bytes.NewReader(data)) // #nosec G107
+	if err != nil {
+		return fmt.Errorf("upload data: %w", err)
+	}
+	uploadReq.Header.Set("Authorization", authHeader)
+	uploadReq.Header.Set("Content-Type", "application/json")
+	uploadReq.Header.Set("Content-Disposition", `attachment; filename="graph.json"`)
+	uploadReq.Header.Set("User-Agent", fmt.Sprintf("%s/%s", ToolName, Version))
+
+	uploadResp, err := client.Do(uploadReq)
 	if err != nil {
 		return fmt.Errorf("upload data: %w", err)
 	}
@@ -161,7 +173,7 @@ func uploadToBloodHound(baseURL, tokenID, tokenKey string, data []byte) error {
 
 	// Step 3: End the upload job.
 	endURL := fmt.Sprintf("%s/api/v2/file-upload/%d/end", baseURL, jobID)
-	endResp, err := bhRequest(client, "POST", endURL, tokenID, tokenKey, nil)
+	endResp, err := bhAuthRequest(client, "POST", endURL, authHeader, nil)
 	if err != nil {
 		return fmt.Errorf("end upload: %w", err)
 	}
@@ -176,35 +188,207 @@ func uploadToBloodHound(baseURL, tokenID, tokenKey string, data []byte) error {
 	return nil
 }
 
-// bhRequest performs an authenticated HTTP request to the BloodHound CE API.
-func bhRequest(client *http.Client, method, url, tokenID, tokenKey string, body []byte) (*http.Response, error) {
-	var bodyReader io.Reader
-	if body != nil {
-		bodyReader = bytes.NewReader(body)
+// Job status constants from the BloodHound CE API.
+const (
+	jobStatusInvalid           = -1
+	jobStatusReady             = 0
+	jobStatusRunning           = 1
+	jobStatusComplete          = 2
+	jobStatusCanceled          = 3
+	jobStatusTimedOut          = 4
+	jobStatusFailed            = 5
+	jobStatusIngesting         = 6
+	jobStatusAnalyzing         = 7
+	jobStatusPartiallyComplete = 8
+)
+
+func jobStatusName(s int) string {
+	switch s {
+	case jobStatusInvalid:
+		return "invalid"
+	case jobStatusReady:
+		return "ready"
+	case jobStatusRunning:
+		return "running"
+	case jobStatusComplete:
+		return "complete"
+	case jobStatusCanceled:
+		return "canceled"
+	case jobStatusTimedOut:
+		return "timed-out"
+	case jobStatusFailed:
+		return "failed"
+	case jobStatusIngesting:
+		return "ingesting"
+	case jobStatusAnalyzing:
+		return "analyzing"
+	case jobStatusPartiallyComplete:
+		return "partially-complete"
+	default:
+		return fmt.Sprintf("unknown(%d)", s)
 	}
-
-	req, err := http.NewRequest(method, url, bodyReader) // #nosec G107
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s %s", tokenID, tokenKey))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", fmt.Sprintf("%s/%s", ToolName, Version))
-
-	return client.Do(req)
 }
 
-// buildHTTPClient creates an HTTP client with optional TLS skip-verify.
-func buildHTTPClient() *http.Client {
-	transport := http.DefaultTransport.(*http.Transport).Clone()
-	if uploadSettings.Insecure {
-		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} // #nosec G402
+func isTerminalJobStatus(s int) bool {
+	switch s {
+	case jobStatusComplete, jobStatusCanceled, jobStatusTimedOut,
+		jobStatusFailed, jobStatusPartiallyComplete, jobStatusInvalid:
+		return true
 	}
-	return &http.Client{
-		Transport: transport,
-		Timeout:   time.Duration(uploadSettings.Timeout) * time.Second,
+	return false
+}
+
+type fileUploadJob struct {
+	ID            int64  `json:"id"`
+	Status        int    `json:"status"`
+	StatusMessage string `json:"status_message"`
+	TotalFiles    int    `json:"total_files"`
+	FailedFiles   int    `json:"failed_files"`
+}
+
+type datapipeStatus struct {
+	Data struct {
+		Status string `json:"status"`
+	} `json:"data"`
+}
+
+// waitForIngest polls BloodHound CE until all upload jobs reach a terminal
+// state and the datapipe is idle.
+func waitForIngest(baseURL, authHeader string) error {
+	client := bhBuildHTTPClient(&uploadBH)
+	timeout := time.Duration(uploadWaitTimeout) * time.Second
+	interval := time.Duration(uploadWaitInterval) * time.Second
+	deadline := time.Now().Add(timeout)
+
+	rlog("info", "waiting for ingest to complete (timeout %s, interval %s)", timeout, interval)
+
+	for {
+		// Check all upload jobs.
+		allDone, summary, err := checkUploadJobs(client, baseURL, authHeader)
+		if err != nil {
+			return fmt.Errorf("check upload jobs: %w", err)
+		}
+
+		// Check datapipe status.
+		dpStatus, err := checkDatapipe(client, baseURL, authHeader)
+		if err != nil {
+			return fmt.Errorf("check datapipe: %w", err)
+		}
+
+		rlog("info", "jobs: %s | datapipe: %s", summary, dpStatus)
+
+		if allDone && dpStatus == "idle" {
+			rlog("info", "all ingest jobs complete, datapipe idle")
+			// Print final status as JSON to stdout.
+			printIngestStatus(client, baseURL, authHeader)
+			return nil
+		}
+
+		if time.Now().After(deadline) {
+			return fmt.Errorf("timed out after %s waiting for ingest (jobs: %s, datapipe: %s)", timeout, summary, dpStatus)
+		}
+
+		time.Sleep(interval)
 	}
+}
+
+func checkUploadJobs(client *http.Client, baseURL, authHeader string) (allTerminal bool, summary string, err error) {
+	resp, err := bhAuthRequest(client, "GET", baseURL+"/api/v2/file-upload", authHeader, nil)
+	if err != nil {
+		return false, "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false, "", err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return false, "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Data []fileUploadJob `json:"data"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return false, "", fmt.Errorf("parse response: %w", err)
+	}
+
+	if len(result.Data) == 0 {
+		return true, "no jobs", nil
+	}
+
+	counts := make(map[string]int)
+	pending := 0
+	failed := 0
+	for _, j := range result.Data {
+		name := jobStatusName(j.Status)
+		counts[name]++
+		if !isTerminalJobStatus(j.Status) {
+			pending++
+		}
+		if j.Status == jobStatusFailed {
+			failed++
+		}
+	}
+
+	parts := fmt.Sprintf("%d total", len(result.Data))
+	if pending > 0 {
+		parts += fmt.Sprintf(", %d pending", pending)
+	}
+	if failed > 0 {
+		parts += fmt.Sprintf(", %d failed", failed)
+	}
+
+	return pending == 0, parts, nil
+}
+
+func checkDatapipe(client *http.Client, baseURL, authHeader string) (string, error) {
+	resp, err := bhAuthRequest(client, "GET", baseURL+"/api/v2/datapipe/status", authHeader, nil)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(body))
+	}
+
+	var dp datapipeStatus
+	if err := json.Unmarshal(body, &dp); err != nil {
+		return "", fmt.Errorf("parse datapipe: %w", err)
+	}
+
+	return dp.Data.Status, nil
+}
+
+func printIngestStatus(client *http.Client, baseURL, authHeader string) {
+	resp, err := bhAuthRequest(client, "GET", baseURL+"/api/v2/file-upload", authHeader, nil)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+
+	var result struct {
+		Data []fileUploadJob `json:"data"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return
+	}
+
+	out, _ := json.MarshalIndent(result, "", "  ")
+	fmt.Println(string(out))
 }
 
 // resolveStr returns the flag value if set, otherwise the environment variable.
