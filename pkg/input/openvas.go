@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -38,10 +39,16 @@ type openvasHost struct {
 }
 
 type openvasNVT struct {
-	OID    string `xml:"oid,attr"`
-	Name   string `xml:"name"`
-	Family string `xml:"family"`
-	Tags   string `xml:"tags"`
+	OID    string        `xml:"oid,attr"`
+	Name   string        `xml:"name"`
+	Family string        `xml:"family"`
+	Tags   string        `xml:"tags"`
+	Refs   []openvasRef  `xml:"refs>ref"`
+}
+
+type openvasRef struct {
+	Type string `xml:"type,attr"`
+	ID   string `xml:"id,attr"`
 }
 
 // openvasHostSum aggregates per-host detail entries from the <host> sections.
@@ -183,6 +190,22 @@ func buildOpenVASResult(report *openvasReport) *ParseResult {
 
 		// Extract fingerprints from NVT results
 		extractOpenVASFingerprints(ph, &res)
+
+		// Extract vulnerabilities (severity > 0).
+		if sev, err := strconv.ParseFloat(strings.TrimSpace(res.Severity), 64); err == nil && sev > 0 {
+			pv := ParsedVuln{
+				ID:       res.NVT.OID,
+				Title:    res.NVT.Name,
+				Severity: res.Severity,
+				Source:   "openvas",
+			}
+			for _, ref := range res.NVT.Refs {
+				if strings.EqualFold(ref.Type, "cve") && ref.ID != "" {
+					pv.CVEs = append(pv.CVEs, ref.ID)
+				}
+			}
+			ph.Vulns = append(ph.Vulns, pv)
+		}
 	}
 
 	for _, hd := range byIP {

@@ -182,6 +182,14 @@ func generateOpenGraph(inputFiles []string, outputFD *os.File) error {
 			nodes, edges := input.BuildOpenGraph(result.Hosts)
 			mergeResult(nodes, edges)
 
+		case input.FileTypeQualysCSV:
+			result, err := input.ParseQualysCSV(path)
+			if err != nil {
+				return fmt.Errorf("parse qualys csv %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
 		case input.FileTypeMasscan:
 			result, err := input.ParseMasscan(path)
 			if err != nil {

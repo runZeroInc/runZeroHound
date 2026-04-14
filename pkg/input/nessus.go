@@ -38,17 +38,17 @@ type nessusTag struct {
 }
 
 type nessusReportItem struct {
-	Port        string `xml:"port,attr"`
-	SvcName     string `xml:"svc_name,attr"`
-	Protocol    string `xml:"protocol,attr"`
-	Severity    string `xml:"severity,attr"`
-	PluginID    string `xml:"pluginID,attr"`
-	PluginName  string `xml:"pluginName,attr"`
-	Output      string `xml:"plugin_output"`
-	Description string `xml:"description"`
-	CVE         string `xml:"cve"`
-	RiskFactor  string `xml:"risk_factor"`
-	Synopsis    string `xml:"synopsis"`
+	Port        string   `xml:"port,attr"`
+	SvcName     string   `xml:"svc_name,attr"`
+	Protocol    string   `xml:"protocol,attr"`
+	Severity    string   `xml:"severity,attr"`
+	PluginID    string   `xml:"pluginID,attr"`
+	PluginName  string   `xml:"pluginName,attr"`
+	Output      string   `xml:"plugin_output"`
+	Description string   `xml:"description"`
+	CVEs        []string `xml:"cve"`
+	RiskFactor  string   `xml:"risk_factor"`
+	Synopsis    string   `xml:"synopsis"`
 }
 
 // Well-known Nessus plugin IDs that carry fingerprint/identity data.
@@ -215,6 +215,17 @@ func parseNessusHost(rh *nessusReportHost) *ParsedHost {
 		}
 
 		extractNessusFingerprints(ph, item)
+
+		// Extract vulnerabilities (severity > 0).
+		if item.Severity != "" && item.Severity != "0" {
+			ph.Vulns = append(ph.Vulns, ParsedVuln{
+				ID:       item.PluginID,
+				Title:    item.PluginName,
+				Severity: item.Severity,
+				CVEs:     item.CVEs,
+				Source:   "nessus",
+			})
+		}
 	}
 
 	return ph

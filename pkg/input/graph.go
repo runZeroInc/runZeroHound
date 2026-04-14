@@ -39,6 +39,9 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 	// communityNodes tracks already-created SNMP community string nodes.
 	communityNodes := make(map[string]bool)
 
+	// vulnNodes tracks already-created vulnerability nodes.
+	vulnNodes := make(map[string]bool)
+
 	for _, ph := range hosts {
 		if len(ph.Addresses) == 0 {
 			continue
@@ -305,6 +308,34 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 				)
 			}
 		}
+
+		// Vulnerability nodes
+		for _, v := range ph.Vulns {
+			vulnID := "rz-vuln-" + v.Source + "-" + sanitizeFP(v.ID)
+			if !vulnNodes[vulnID] {
+				vulnNodes[vulnID] = true
+				vulnProps := map[string]any{
+					"displayname": vulnDisplayName(v),
+					"vuln_id":     v.ID,
+					"source":      v.Source,
+				}
+				if v.Severity != "" {
+					vulnProps["severity"] = v.Severity
+				}
+				if len(v.CVEs) > 0 {
+					vulnProps["cve"] = strings.Join(v.CVEs, ",")
+				}
+				nodes = append(nodes, &bloodhound.Node{
+					ID:         vulnID,
+					Kinds:      []string{"RZVuln"},
+					Properties: vulnProps,
+				})
+			}
+			edges = append(edges,
+				edgeBetween(nodeID, "RZHasVuln", vulnID),
+				edgeBetween(vulnID, "RZVulnAsset", nodeID),
+			)
+		}
 	}
 
 	// Build subnet nodes
@@ -371,6 +402,8 @@ func sourceKind(ft FileType) string {
 	case FileTypeNetBox:
 		return "RZNetBoxDevice"
 	case FileTypeQualys:
+		return "RZQualysHost"
+	case FileTypeQualysCSV:
 		return "RZQualysHost"
 	case FileTypeMasscan:
 		return "RZMasscanHost"
@@ -451,4 +484,18 @@ func edgeBetween(from, kind, to string) *bloodhound.Edge {
 		Kind:  kind,
 		End:   bloodhound.EdgeDesc{Value: to, MatchBy: "id"},
 	}
+}
+
+// vulnDisplayName builds a display name for a vulnerability.
+// If the vuln has CVEs, the first CVE is used as a prefix: "CVE-2022-3244: Title".
+// Otherwise, just the title is returned.
+func vulnDisplayName(v ParsedVuln) string {
+	title := v.Title
+	if title == "" {
+		title = v.ID
+	}
+	if len(v.CVEs) > 0 {
+		return v.CVEs[0] + ": " + title
+	}
+	return title
 }

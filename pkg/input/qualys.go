@@ -38,8 +38,15 @@ type qualysCat struct {
 }
 
 type qualysEntry struct {
-	Number string `xml:"number,attr"`
-	Result string `xml:"RESULT"`
+	Number   string         `xml:"number,attr"`
+	Severity string         `xml:"severity,attr"`
+	Result   string         `xml:"RESULT"`
+	Title    string         `xml:"TITLE"`
+	CVEIDs   []qualysCVEID  `xml:"CVE_ID_LIST>CVE_ID"`
+}
+
+type qualysCVEID struct {
+	ID string `xml:"ID"`
 }
 
 // ParseQualys parses a Qualys VM scan XML report into ParsedHosts.
@@ -128,6 +135,26 @@ func parseQualysIP(ip *qualysIP) *ParsedHost {
 	processCats(ip.Infos.Cats, func(c *qualysCat) []qualysEntry { return c.Infos })
 	processCats(ip.Services.Cats, func(c *qualysCat) []qualysEntry { return c.Services })
 	processCats(ip.Vulns.Cats, func(c *qualysCat) []qualysEntry { return c.Vulns })
+
+	// Extract vulnerabilities from the VULNS section.
+	for i := range ip.Vulns.Cats {
+		cat := &ip.Vulns.Cats[i]
+		for _, entry := range cat.Vulns {
+			pv := ParsedVuln{
+				ID:       entry.Number,
+				Title:    strings.TrimSpace(entry.Title),
+				Severity: entry.Severity,
+				Source:   "qualys",
+			}
+			for _, cid := range entry.CVEIDs {
+				id := strings.TrimSpace(cid.ID)
+				if id != "" {
+					pv.CVEs = append(pv.CVEs, id)
+				}
+			}
+			ph.Vulns = append(ph.Vulns, pv)
+		}
+	}
 
 	return ph
 }

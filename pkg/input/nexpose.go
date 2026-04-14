@@ -4,8 +4,12 @@ import (
 	"encoding/xml"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 )
+
+// reCVEInID matches CVE identifiers embedded in Nexpose vulnerability IDs like "azul-zulu-cve-2023-22006".
+var reCVEInID = regexp.MustCompile(`(?i)(cve-\d{4}-\d{4,})`)
 
 // Nexpose XML document structures.
 // Three formats are supported:
@@ -147,9 +151,15 @@ type nexposeTest struct {
 }
 
 type nexposeVuln struct {
-	ID       string `xml:"id,attr"`
-	Title    string `xml:"title,attr"`
-	Severity string `xml:"severity,attr"`
+	ID       string             `xml:"id,attr"`
+	Title    string             `xml:"title,attr"`
+	Severity string             `xml:"severity,attr"`
+	Refs     []nexposeReference `xml:"references>reference"`
+}
+
+type nexposeReference struct {
+	Source string `xml:"source,attr"`
+	Value  string `xml:",chardata"`
 }
 
 // ParseNexpose parses a Rapid7 Nexpose/InsightVM XML report.
@@ -220,6 +230,21 @@ func parseSimpleDevice(dev *nexposeSimpleDevice) *ParsedHost {
 	// Vulnerability count
 	vulnCount := len(dev.Vulns)
 
+	// Extract device-level vulns.
+	for _, v := range dev.Vulns {
+		pv := ParsedVuln{
+			ID:     v.ID,
+			Title:  v.ID,
+			Source: "nexpose",
+		}
+		if matches := reCVEInID.FindAllStringSubmatch(v.ID, -1); len(matches) > 0 {
+			for _, m := range matches {
+				pv.CVEs = append(pv.CVEs, strings.ToUpper(m[1]))
+			}
+		}
+		ph.Vulns = append(ph.Vulns, pv)
+	}
+
 	for i := range dev.Services {
 		svc := &dev.Services[i]
 		ps := ParsedService{
@@ -242,6 +267,20 @@ func parseSimpleDevice(dev *nexposeSimpleDevice) *ParsedHost {
 				ps.Attributes["vendor"] = svc.FP.Vendor
 			}
 		}
+		// Extract service-level vulns.
+		for _, v := range svc.Vulns {
+			pv := ParsedVuln{
+				ID:     v.ID,
+				Title:  v.ID,
+				Source: "nexpose",
+			}
+			if matches := reCVEInID.FindAllStringSubmatch(v.ID, -1); len(matches) > 0 {
+				for _, m := range matches {
+					pv.CVEs = append(pv.CVEs, strings.ToUpper(m[1]))
+				}
+			}
+			ph.Vulns = append(ph.Vulns, pv)
+		}
 		vulnCount += len(svc.Vulns)
 		ph.Services = append(ph.Services, ps)
 	}
@@ -253,16 +292,39 @@ func parseSimpleDevice(dev *nexposeSimpleDevice) *ParsedHost {
 	return ph
 }
 
+// nexposeVulnInfo holds pre-parsed vulnerability definition data.
+type nexposeVulnInfo struct {
+	Title    string
+	Severity string
+	CVEs     []string
+}
+
 func parseNexposeReport(data []byte) (*ParseResult, error) {
 	var doc nexposeReport
 	if err := xml.Unmarshal(data, &doc); err != nil {
 		return nil, fmt.Errorf("nexpose report: decode: %w", err)
 	}
 
+	// Build vulnerability definition lookup.
+	vulnDefs := make(map[string]*nexposeVulnInfo, len(doc.VulnDef))
+	for i := range doc.VulnDef {
+		vd := &doc.VulnDef[i]
+		info := &nexposeVulnInfo{
+			Title:    vd.Title,
+			Severity: vd.Severity,
+		}
+		for _, ref := range vd.Refs {
+			if ref.Source == "CVE" && ref.Value != "" {
+				info.CVEs = append(info.CVEs, strings.TrimSpace(ref.Value))
+			}
+		}
+		vulnDefs[vd.ID] = info
+	}
+
 	result := &ParseResult{}
 	for i := range doc.Nodes {
 		node := &doc.Nodes[i]
-		ph := parseReportNode(node)
+		ph := parseReportNode(node, vulnDefs)
 		if ph != nil {
 			result.Hosts = append(result.Hosts, ph)
 		}
@@ -270,7 +332,7 @@ func parseNexposeReport(data []byte) (*ParseResult, error) {
 	return result, nil
 }
 
-func parseReportNode(node *nexposeNode) *ParsedHost {
+func parseReportNode(node *nexposeNode, vulnDefs map[string]*nexposeVulnInfo) *ParsedHost {
 	if node.Address == "" {
 		return nil
 	}
@@ -347,6 +409,7 @@ func parseReportNode(node *nexposeNode) *ParsedHost {
 
 	// Vulnerability count from node-level tests
 	vulnCount := countVulnerableTests(node.Tests)
+	extractNexposeVulns(ph, node.Tests, vulnDefs)
 
 	// Endpoints → services
 	for i := range node.Endpoints {
@@ -384,9 +447,11 @@ func parseReportNode(node *nexposeNode) *ParsedHost {
 			}
 
 			vulnCount += countVulnerableTests(svc.Tests)
+			extractNexposeVulns(ph, svc.Tests, vulnDefs)
 		}
 
 		vulnCount += countVulnerableTests(ep.Tests)
+		extractNexposeVulns(ph, ep.Tests, vulnDefs)
 		ph.Services = append(ph.Services, ps)
 	}
 
@@ -432,6 +497,34 @@ func countVulnerableTests(tests []nexposeTest) int {
 		}
 	}
 	return count
+}
+
+// extractNexposeVulns creates ParsedVuln entries from Nexpose tests using the
+// vulnerability definition lookup.
+func extractNexposeVulns(ph *ParsedHost, tests []nexposeTest, vulnDefs map[string]*nexposeVulnInfo) {
+	for _, t := range tests {
+		if !strings.HasPrefix(t.Status, "vulnerable") {
+			continue
+		}
+		pv := ParsedVuln{
+			ID:     t.ID,
+			Source: "nexpose",
+		}
+		if info, ok := vulnDefs[t.ID]; ok {
+			pv.Title = info.Title
+			pv.Severity = info.Severity
+			pv.CVEs = info.CVEs
+		} else {
+			// Try to extract CVE from the vuln ID itself.
+			pv.Title = t.ID
+			if matches := reCVEInID.FindAllStringSubmatch(t.ID, -1); len(matches) > 0 {
+				for _, m := range matches {
+					pv.CVEs = append(pv.CVEs, strings.ToUpper(m[1]))
+				}
+			}
+		}
+		ph.Vulns = append(ph.Vulns, pv)
+	}
 }
 
 // normalizeNexposeMAC converts a bare hex MAC like "000C29D22B02" to "00:0c:29:d2:2b:02".

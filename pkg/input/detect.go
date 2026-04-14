@@ -4,7 +4,6 @@ package input
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net"
 	"os"
@@ -28,6 +27,7 @@ const (
 	FileTypeShodan                // Shodan JSONL export
 	FileTypeOneSixtyOne           // onesixtyone SNMP scanner output
 	FileTypeNexpose               // Rapid7 Nexpose/InsightVM XML report
+	FileTypeQualysCSV             // Qualys VM scan CSV report
 )
 
 // String returns a human-readable name for the file type.
@@ -57,6 +57,8 @@ func (ft FileType) String() string {
 		return "onesixtyone"
 	case FileTypeNexpose:
 		return "nexpose"
+	case FileTypeQualysCSV:
+		return "qualys-csv"
 	default:
 		return "unknown"
 	}
@@ -155,11 +157,12 @@ func DetectFileType(path string) (FileType, error) {
 		return FileTypeSNMPWalk, nil
 	}
 
-	// 7. Fallback to runZero JSONL (reject clearly unsupported extensions)
-	switch {
-	case strings.HasSuffix(lower, ".csv"):
-		return FileTypeUnknown, fmt.Errorf("CSV format is not supported; use an XML or JSON export instead")
+	// 7. CSV detection: check for Qualys CSV header
+	if strings.HasSuffix(lower, ".csv") && looksLikeQualysCSV(header) {
+		return FileTypeQualysCSV, nil
 	}
+
+	// 8. Fallback to runZero JSONL
 	return FileTypeRunZeroJSONL, nil
 }
 
@@ -252,4 +255,12 @@ func looksLikeNetBox(data []byte) bool {
 	return strings.Contains(s, `"count"`) &&
 		strings.Contains(s, `"results"`) &&
 		strings.HasPrefix(strings.TrimSpace(s), "{")
+}
+
+// looksLikeQualysCSV returns true when the header area contains a Qualys CSV
+// scan results marker or the standard Qualys CSV data header row.
+func looksLikeQualysCSV(data []byte) bool {
+	s := string(data)
+	return strings.Contains(s, "Scan_Results") ||
+		(strings.Contains(s, `"IP"`) && strings.Contains(s, `"QID"`))
 }

@@ -597,6 +597,65 @@ func TestParseQualys(t *testing.T) {
 	}
 }
 
+// TestParseQualysCSV validates Qualys VM scan CSV parsing.
+func TestParseQualysCSV(t *testing.T) {
+	path := filepath.Join("..", "..", "examples", "rzlab-qualys.csv")
+	result, err := input.ParseQualysCSV(path)
+	if err != nil {
+		t.Fatalf("ParseQualysCSV: %v", err)
+	}
+	if len(result.Hosts) != 4 {
+		t.Fatalf("got %d hosts, want 4", len(result.Hosts))
+	}
+
+	byIP := make(map[string]*input.ParsedHost)
+	for _, h := range result.Hosts {
+		if len(h.Addresses) > 0 {
+			byIP[h.Addresses[0]] = h
+		}
+	}
+
+	// win2022-infra01
+	infra, ok := byIP["10.114.128.23"]
+	if !ok {
+		t.Fatal("host 10.114.128.23 not found")
+	}
+	if infra.OS != "Windows 2016/2019/10" {
+		t.Errorf("infra OS: %q", infra.OS)
+	}
+	foundDNS := false
+	foundNB := false
+	for _, n := range infra.Names {
+		if n == "win2022-infra01.corp.neonray.biz" {
+			foundDNS = true
+		}
+		if n == "WIN2022-INFRA01" {
+			foundNB = true
+		}
+	}
+	if !foundDNS {
+		t.Errorf("missing DNS name, got %v", infra.Names)
+	}
+	if !foundNB {
+		t.Errorf("missing NetBIOS name, got %v", infra.Names)
+	}
+	if len(infra.Services) < 5 {
+		t.Errorf("infra services: got %d, want >= 5", len(infra.Services))
+	}
+	if infra.Attributes["vuln_count"] == "" || infra.Attributes["vuln_count"] == "0" {
+		t.Error("expected vuln_count > 0")
+	}
+
+	// unnamed host 10.114.128.32 — no OS
+	unnamed, ok := byIP["10.114.128.32"]
+	if !ok {
+		t.Fatal("host 10.114.128.32 not found")
+	}
+	if unnamed.OS != "" {
+		t.Errorf("unnamed OS: %q, want empty", unnamed.OS)
+	}
+}
+
 // TestParseMasscanXML validates Masscan XML parsing.
 func TestParseMasscanXML(t *testing.T) {
 	path := filepath.Join("..", "..", "examples", "rzlab-masscan.xml")

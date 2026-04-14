@@ -33,12 +33,29 @@ type ParsedHost struct {
 	// (e.g. SNMP ARP cache entries, MAC table entries, CDP/LLDP neighbours).
 	SubAssets []SubAsset
 
+	// Vulns holds vulnerabilities discovered on this host.
+	Vulns []ParsedVuln
+
 	// Generic key→value attributes from the source data.
 	Attributes map[string]string
 
 	// Unique fingerprints used for cross-source correlation.
 	// Keys:   "ssh_hostkey_fp", "tls_cert_fp", "smb_guid", "snmpv3_engine_id"
 	UniqueKeys map[string]string
+}
+
+// ParsedVuln represents a vulnerability finding on a host.
+type ParsedVuln struct {
+	// ID is a source-specific identifier (plugin ID, QID, OID, vuln def ID).
+	ID string
+	// Title is the human-readable name of the vulnerability.
+	Title string
+	// Severity is the severity level or score from the source.
+	Severity string
+	// CVEs holds zero or more CVE identifiers associated with this vulnerability.
+	CVEs []string
+	// Source identifies the scanner that reported this vulnerability.
+	Source string
 }
 
 // TracerouteHop represents a single router hop in a traceroute path.
