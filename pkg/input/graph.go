@@ -8,6 +8,7 @@ import (
 
 	"github.com/runZeroInc/runZeroHound/pkg/bloodhound"
 	"github.com/runZeroInc/runZeroHound/pkg/runzero"
+	"github.com/runZeroInc/runZeroHound/pkg/runzero/sanitize"
 )
 
 // BuildOpenGraph converts a slice of ParsedHosts (from any source) into
@@ -384,7 +385,24 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 		},
 	})
 
+	// Sanitize all node properties to remove null bytes and invalid UTF-8
+	// that would cause PostgreSQL JSONB errors during BHCE ingestion.
+	for _, n := range nodes {
+		sanitizeProperties(n.Properties)
+	}
+
 	return nodes, edges
+}
+
+// sanitizeProperties scrubs null bytes and invalid UTF-8 from all string
+// values in a property map. This prevents PostgreSQL "unsupported Unicode
+// escape sequence" errors when BHCE ingests the data.
+func sanitizeProperties(props map[string]any) {
+	for k, v := range props {
+		if s, ok := v.(string); ok {
+			props[k] = sanitize.String(s)
+		}
+	}
 }
 
 // hostNodeID derives a stable node ID from the host's primary address.

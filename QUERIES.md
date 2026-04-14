@@ -304,7 +304,7 @@ LIMIT 20
 
 ```cypher
 MATCH (a:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert)
-WHERE cert.not_after < datetime().epochMillis
+WHERE cert.not_after < timestamp()
 RETURN a.displayname, cert.cn, cert.sha1, cert.not_after
 LIMIT 20
 ```

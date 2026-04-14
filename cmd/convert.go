@@ -233,6 +233,9 @@ func generateOpenGraph(inputFiles []string, outputFD *os.File) error {
 	if err != nil {
 		return err
 	}
+	// Scrub null bytes and invalid UTF-8 from the serialized JSON to prevent
+	// PostgreSQL "unsupported Unicode escape sequence" errors during BHCE ingestion.
+	data = sanitize.Bytes(data)
 	if _, err = outputFD.Write(data); err != nil {
 		return fmt.Errorf("error writing output: %v", err)
 	}
