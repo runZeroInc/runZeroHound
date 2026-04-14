@@ -168,19 +168,20 @@ API interaction and we plan to add a helper tool to support this in the future.
 
 ## What It Extracts
 
-runZeroHound converts flat asset data into a richly connected graph with **30 node types** and **50+ edge types** spanning IT, OT, and IoT environments.
+runZeroHound converts flat asset data into a richly connected graph with **30+ node types** and **50+ edge types** spanning IT, OT, and IoT environments.
 
 | Category | Node Types |
 |----------|------------|
 | **Core** | `RZAsset`, `RZService`, `RZNetwork`, `RZDomain`, `RZVLAN` |
 | **Cryptographic Identity** | `RZSSHKey`, `RZTLSCert`, `RZTLSCAChain`, `RZSMBGUID`, `RZSerialNumber` |
 | **Network Infrastructure** | `RZRouter`, `RZMACAddress`, `RZMACVendor`, `RZSwitch`, `RZSwitchPort`, `RZSubAsset` |
-| **Protocol Fingerprints** | `RZSNMPEngineID`, `RZSNMPDeviceType`, `RZIPMICredential`, `RZFavicon`, `RZIKEIdentity` |
+| **Protocol Fingerprints** | `RZSNMPEngineID`, `RZSNMPDeviceType`, `RZSNMPCommunity`, `RZIPMICredential`, `RZFavicon`, `RZIKEIdentity` |
 | **OT / Building Automation** | `RZGateway`, `RZKNXnetDevice`, `RZBACnetDevice` |
 | **Time & DNS** | `RZNTPReference`, `RZDNSIdentity`, `RZDNSVersion` |
 | **Windows / AD** | `RZNTLMDomain`, `RZNTLMComputer` |
+| **Vulnerabilities** | `RZVuln` |
 
-18 relationship extractors automatically create edges between nodes wherever assets share a cryptographic key, serial number, CA chain, NTP source, NTLM domain, favicon hash, or any other correlatable identity.
+18 relationship extractors automatically create edges between nodes wherever assets share a cryptographic key, serial number, CA chain, NTP source, NTLM domain, favicon hash, vulnerability finding, or any other correlatable identity.
 
 For the complete schema (every node kind, edge, and property), see [QUERIES.md](QUERIES.md#schema-reference).
 
@@ -252,6 +253,27 @@ WITH dom, collect(DISTINCT net.displayname) AS subnets, count(DISTINCT a) AS hos
 WHERE size(subnets) > 1
 RETURN dom.dns_domain, subnets, hosts
 ORDER BY hosts DESC
+```
+
+### Vulnerabilities
+
+Most widespread vulnerabilities (affecting the most hosts):
+
+```cypher
+MATCH (a)-[:RZHasVuln]->(v:RZVuln)
+WITH v, count(a) AS affected_hosts
+RETURN v.displayname, v.source, v.severity, affected_hosts
+ORDER BY affected_hosts DESC
+LIMIT 20
+```
+
+High-severity vulnerabilities with CVEs:
+
+```cypher
+MATCH (v:RZVuln)
+WHERE v.cve IS NOT NULL
+RETURN v.displayname, v.cve, v.source
+LIMIT 20
 ```
 
 ### Expert — Full Graph Traversal

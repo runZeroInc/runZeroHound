@@ -28,9 +28,11 @@ See the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cyp
   - [OT / Building Automation](#ot--building-automation)
   - [Infrastructure Fingerprinting](#infrastructure-fingerprinting)
   - [Windows / Active Directory](#windows--active-directory)
+  - [Vulnerabilities](#vulnerabilities)
 - [4 — Advanced Queries](#4--advanced-queries)
   - [Cross-Source Correlation](#cross-source-correlation)
   - [Exposure & Risk](#exposure--risk)
+  - [Vulnerability Analysis](#vulnerability-analysis)
   - [Dependency Mapping](#dependency-mapping)
 - [5 — Expert Queries](#5--expert-queries)
 - [6 — Quirky & Surprising](#6--quirky--surprising)
@@ -72,6 +74,8 @@ See the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cyp
 | `RZSerialNumber` | A device serial number (cross-protocol) |
 | `RZNTLMDomain` | An NTLM SSP domain |
 | `RZNTLMComputer` | An NTLM SSP computer identity |
+| `RZVuln` | A vulnerability finding (from Nessus, Nexpose, OpenVAS, Qualys) |
+| `RZSNMPCommunity` | An SNMP community string |
 
 ### Edge Kinds
 
@@ -105,6 +109,8 @@ See the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cyp
 | `RZHasNTLMDomain` / `RZNTLMDomainUsedBy` | Asset → NTLMDomain → Service | NTLM domain |
 | `RZHasNTLMComputer` / `RZNTLMComputerUsedBy` | Asset → NTLMComputer → Service | NTLM computer |
 | `RZNTLMPartOfDomain` / `RZNTLMDomainContains` | NTLMComputer ↔ NTLMDomain | Domain membership |
+| `RZHasVuln` / `RZVulnAsset` | Asset ↔ Vuln | Vulnerability finding |
+| `RZHasSNMPCommunity` / `RZSNMPCommunityUsedBy` | Asset ↔ SNMPCommunity | SNMP community string |
 
 ---
 
@@ -302,9 +308,12 @@ LIMIT 20
 #### Expired TLS certificates
 `tags: exposure, compliance`
 
+> **Note:** Replace `2026-01-01` with today's date. BHCE Cypher does not expose
+> a `now()` or `timestamp()` function, so the threshold must be a literal.
+
 ```cypher
 MATCH (a:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert)
-WHERE cert.not_after < timestamp()
+WHERE cert.not_after < "2026-01-01"
 RETURN a.displayname, cert.cn, cert.sha1, cert.not_after
 LIMIT 20
 ```
@@ -542,6 +551,69 @@ WHERE ipmi.cipher_zero = "enabled"
 RETURN a.displayname, a.ip_addresses, ipmi.conn_versions, ipmi.user_auth
 ```
 
+### Vulnerabilities
+
+#### Vulnerabilities by scanner source
+`tags: inventory, vulnerabilities`
+
+```cypher
+MATCH (v:RZVuln)
+RETURN DISTINCT v.source AS source
+```
+
+#### Vulnerabilities with CVEs
+`tags: vulnerabilities, exposure`
+
+```cypher
+MATCH (v:RZVuln)
+WHERE v.cve IS NOT NULL
+RETURN v.displayname, v.cve, v.source
+LIMIT 20
+```
+
+#### High-severity vulnerabilities
+`tags: vulnerabilities, exposure`
+
+```cypher
+MATCH (a)-[:RZHasVuln]->(v:RZVuln)
+WHERE v.severity >= "4" OR v.risk_factor IN ["Critical", "High"]
+RETURN v.displayname, v.severity, v.risk_factor, v.cvss_score, a.displayname
+LIMIT 20
+```
+
+#### Vulnerabilities with CVSS scores
+`tags: vulnerabilities, exposure`
+
+```cypher
+MATCH (v:RZVuln)
+WHERE v.cvss_score IS NOT NULL
+RETURN v.displayname, v.cvss_score, v.risk_factor, v.source
+ORDER BY v.cvss_score DESC
+LIMIT 20
+```
+
+#### Assets with the most vulnerabilities
+`tags: vulnerabilities, inventory`
+
+```cypher
+MATCH (a)-[:RZHasVuln]->(v:RZVuln)
+WITH a, count(v) AS vuln_count
+RETURN a.displayname, a.ip_addresses, vuln_count
+ORDER BY vuln_count DESC
+LIMIT 20
+```
+
+#### Most widespread vulnerabilities (affecting the most hosts)
+`tags: vulnerabilities, exposure`
+
+```cypher
+MATCH (a)-[:RZHasVuln]->(v:RZVuln)
+WITH v, count(a) AS affected_hosts
+RETURN v.displayname, v.source, v.severity, affected_hosts
+ORDER BY affected_hosts DESC
+LIMIT 20
+```
+
 ---
 
 ## 4 — Advanced Queries
@@ -668,6 +740,53 @@ MATCH (a:RZAsset)-[:RZHasSNMPDeviceType]->(oid:RZSNMPDeviceType)
 WHERE oid.sys_object_id STARTS WITH ".1.3.6.1.4.1.14988"
 RETURN a.displayname, oid.sys_object_id, oid.sys_name
 ORDER BY a.displayname
+```
+
+### Vulnerability Analysis
+
+#### Vulnerabilities per subnet
+`tags: vulnerabilities, topology, exposure`
+
+```cypher
+MATCH (a)-[:RZInsideOfSubnet]->(net:RZNetwork),
+      (a)-[:RZHasVuln]->(v:RZVuln)
+WITH net, count(DISTINCT v) AS vuln_count, count(DISTINCT a) AS host_count
+RETURN net.displayname, host_count, vuln_count
+ORDER BY vuln_count DESC
+LIMIT 20
+```
+
+#### Vulnerabilities spanning multiple subnets
+`tags: vulnerabilities, correlation, topology`
+
+```cypher
+MATCH (a)-[:RZHasVuln]->(v:RZVuln),
+      (a)-[:RZInsideOfSubnet]->(net:RZNetwork)
+WITH v, collect(DISTINCT net.displayname) AS subnets, count(DISTINCT a) AS hosts
+WHERE size(subnets) > 1
+RETURN v.displayname, v.cve, subnets, hosts
+ORDER BY hosts DESC
+LIMIT 10
+```
+
+#### Vulnerable assets with TLS certificates (attack surface overlap)
+`tags: vulnerabilities, identity, exposure`
+
+```cypher
+MATCH (a)-[:RZHasVuln]->(v:RZVuln),
+      (a)-[:RZHasTLSCert]->(cert:RZTLSCert)
+RETURN a.displayname, cert.cn, v.displayname
+LIMIT 20
+```
+
+#### Vulnerable assets with SSH keys
+`tags: vulnerabilities, identity, exposure`
+
+```cypher
+MATCH (a)-[:RZHasVuln]->(v:RZVuln),
+      (a)-[:RZHasSSHKey]->(key:RZSSHKey)
+RETURN a.displayname, key.fingerprint, v.displayname
+LIMIT 20
 ```
 
 ### Dependency Mapping
