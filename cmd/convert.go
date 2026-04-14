@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/runZeroInc/runZeroHound/pkg/bloodhound"
+	"github.com/runZeroInc/runZeroHound/pkg/input"
 	"github.com/runZeroInc/runZeroHound/pkg/runzero"
 	"github.com/runZeroInc/runZeroHound/pkg/runzero/models"
 	"github.com/runZeroInc/runZeroHound/pkg/runzero/sanitize"
@@ -21,39 +22,54 @@ import (
 )
 
 type ConvertSettings struct {
-	Prefix    string
-	InputFile string
-	OutputFD  *os.File
-	Type      string
+	Prefix     string
+	OutputFile string
+	OutputFD   *os.File
+	Type       string
 }
 
 var convertSettings = ConvertSettings{}
 
 func init() {
 	convertCmd.Flags().StringVarP(&convertSettings.Type, "type", "t", "opengraph", "Specify the type of graph to generate")
+	convertCmd.Flags().StringVarP(&convertSettings.OutputFile, "output", "o", "-", "Output file path ('-' for stdout)")
 	rootCmd.AddCommand(convertCmd)
 }
 
 var convertCmd = &cobra.Command{
-	Use:   "convert <assets.jsonl> <bloodhound-assets.json>",
-	Short: "Generate graph data from a runZero asset export",
-	Run:   generateGraph,
+	Use:   "convert <input1> [input2 ...]",
+	Short: "Generate graph data from one or more network scan files",
+	Long: `Convert one or more input files into BloodHound OpenGraph format.
+
+Supported input types (auto-detected):
+  runzero      runZero asset export (.json.gz or .jsonl)
+  nmap         Nmap XML output (-oX)
+  snmpwalk     net-snmp snmpwalk text output
+  onesixtyone  onesixtyone SNMP scanner output (.161)
+  nessus       Nessus vulnerability scanner report (.nessus)
+  openvas      OpenVAS/GVM XML report
+  netbox       NetBox DCIM/IPAM JSON API export
+  qualys       Qualys VM scan XML report
+  masscan      Masscan XML (-oX) or JSON (-oJ) output
+  shodan       Shodan JSONL export
+  nexpose      Rapid7 Nexpose/InsightVM XML report
+
+Use -o/--output to specify the output file (default: stdout).
+`,
+	Run: generateGraph,
 }
 
 func generateGraph(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
-		fmt.Printf("Usage: %s graph [options] <input.json> <output>\n", ToolName)
+		fmt.Printf("Usage: %s convert [options] <input1> [input2 ...]\n", ToolName)
 		return
 	}
-	convertSettings.InputFile = args[0]
-	outFile := "-"
-	if len(args) > 1 && args[1] != "" {
-		outFile = args[1]
-	}
+
+	outFile := convertSettings.OutputFile
 	outFd := os.Stdout
 	if outFile != "-" {
 		var err error
-		outFd, err = os.Create(outFile)
+		outFd, err = os.Create(outFile) // #nosec G304
 		if err != nil {
 			fmt.Printf("error creating output file %s: %v\n", outFile, err)
 			return
@@ -64,7 +80,7 @@ func generateGraph(cmd *cobra.Command, args []string) {
 
 	switch convertSettings.Type {
 	case "opengraph":
-		err := generateOpenGraph(convertSettings.InputFile, convertSettings.OutputFD)
+		err := generateOpenGraph(args, convertSettings.OutputFD)
 		if err != nil {
 			fmt.Printf("error generating OpenGraph: %v\n", err)
 		}
@@ -73,24 +89,143 @@ func generateGraph(cmd *cobra.Command, args []string) {
 	}
 }
 
-func generateOpenGraph(inputFile string, outputFD *os.File) error {
-	assets, err := loadGraphAssets()
-	if err != nil {
-		return err
+func generateOpenGraph(inputFiles []string, outputFD *os.File) error {
+	allNodes := []*bloodhound.Node{}
+	allEdges := []*bloodhound.Edge{}
+
+	// Track which subnet / domain / vlan nodes have already been added so we
+	// don't duplicate them when merging results across multiple input files.
+	addedNodes := make(map[string]bool)
+
+	mergeResult := func(nodes []*bloodhound.Node, edges []*bloodhound.Edge) {
+		for _, n := range nodes {
+			if !addedNodes[n.ID] {
+				addedNodes[n.ID] = true
+				allNodes = append(allNodes, n)
+			}
+		}
+		allEdges = append(allEdges, edges...)
 	}
 
-	nodes, edges, err := buildOpenGraph(assets)
-	if err != nil {
-		return err
+	for _, path := range inputFiles {
+		ft, err := input.DetectFileType(path)
+		if err != nil {
+			return fmt.Errorf("cannot detect type of %s: %w", path, err)
+		}
+		rlog("info", "processing %s as %s", path, ft)
+
+		switch ft {
+		case input.FileTypeRunZeroGZIP, input.FileTypeRunZeroJSONL:
+			assets, err := loadGraphAssets(path)
+			if err != nil {
+				return fmt.Errorf("load runzero %s: %w", path, err)
+			}
+			nodes, edges, err := buildOpenGraph(assets)
+			if err != nil {
+				return fmt.Errorf("build graph from %s: %w", path, err)
+			}
+			mergeResult(nodes, edges)
+
+		case input.FileTypeNmapXML:
+			result, err := input.ParseNmapXML(path)
+			if err != nil {
+				return fmt.Errorf("parse nmap %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeSNMPWalk:
+			result, err := input.ParseSNMPWalk(path)
+			if err != nil {
+				return fmt.Errorf("parse snmpwalk %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeOneSixtyOne:
+			result, err := input.ParseOneSixtyOne(path)
+			if err != nil {
+				return fmt.Errorf("parse onesixtyone %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeNessus:
+			result, err := input.ParseNessus(path)
+			if err != nil {
+				return fmt.Errorf("parse nessus %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeOpenVAS:
+			result, err := input.ParseOpenVAS(path)
+			if err != nil {
+				return fmt.Errorf("parse openvas %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeNetBox:
+			result, err := input.ParseNetBox(path)
+			if err != nil {
+				return fmt.Errorf("parse netbox %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeQualys:
+			result, err := input.ParseQualys(path)
+			if err != nil {
+				return fmt.Errorf("parse qualys %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeQualysCSV:
+			result, err := input.ParseQualysCSV(path)
+			if err != nil {
+				return fmt.Errorf("parse qualys csv %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeMasscan:
+			result, err := input.ParseMasscan(path)
+			if err != nil {
+				return fmt.Errorf("parse masscan %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeShodan:
+			result, err := input.ParseShodan(path)
+			if err != nil {
+				return fmt.Errorf("parse shodan %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeNexpose:
+			result, err := input.ParseNexpose(path)
+			if err != nil {
+				return fmt.Errorf("parse nexpose %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		default:
+			return fmt.Errorf("unsupported file type for %s", path)
+		}
 	}
 
 	g := &bloodhound.GraphContainer{
 		Metadata: map[string]any{
-			"source_kind": "RunZero",
+			"source_kind": "RunZeroHound",
 		},
 		Graph: &bloodhound.Graph{
-			Nodes: nodes,
-			Edges: edges,
+			Nodes: allNodes,
+			Edges: allEdges,
 		},
 	}
 
@@ -98,22 +233,22 @@ func generateOpenGraph(inputFile string, outputFD *os.File) error {
 	if err != nil {
 		return err
 	}
-	_, err = convertSettings.OutputFD.Write(data)
-	if err != nil {
+	// Scrub null bytes and invalid UTF-8 from the serialized JSON to prevent
+	// PostgreSQL "unsupported Unicode escape sequence" errors during BHCE ingestion.
+	data = sanitize.Bytes(data)
+	if _, err = outputFD.Write(data); err != nil {
 		return fmt.Errorf("error writing output: %v", err)
 	}
 
-	err = convertSettings.OutputFD.Close()
-	if err != nil {
+	if err = outputFD.Close(); err != nil {
 		return fmt.Errorf("error closing output: %v", err)
 	}
 
-	rlog("info", "OpenGraph generation complete with %d nodes and %d edges", len(nodes), len(edges))
-
+	rlog("info", "OpenGraph generation complete with %d nodes and %d edges", len(allNodes), len(allEdges))
 	return nil
 }
 
-func loadGraphAssets() ([]*models.Asset, error) {
+func loadGraphAssets(path string) ([]*models.Asset, error) {
 	wg := sync.WaitGroup{}
 	fdc := make(chan string, 1)
 	assets := make([]*models.Asset, 0)
@@ -147,11 +282,10 @@ func loadGraphAssets() ([]*models.Asset, error) {
 		}
 	}
 
-	fd, err := os.Open(convertSettings.InputFile)
+	fd, err := os.Open(path) // #nosec G304
 	if err != nil {
 		return nil, err
 	}
-	// #nosec
 	defer fd.Close()
 
 	for i := 0; i < runtime.NumCPU(); i++ {
@@ -183,6 +317,9 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 	subnets := make(map[string]uint64)
 	domains := make(map[string]uint64)
 	vlans := make(map[string]uint64)
+
+	// Collect asset references for the relationship extractors (second pass).
+	assetRefs := make([]assetNodeRef, 0, len(assets))
 
 	bCount := 0
 
@@ -248,7 +385,10 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 			labelSplit[1] = fmt.Sprintf("(%s)", host)
 			label = strings.Join(labelSplit, " ")
 		}
-		deviceType := "device"
+		deviceType := asset.Type
+		if deviceType == "" {
+			deviceType = "device"
+		}
 
 		nodeID := "rz-asset-" + asset.ID.String()
 
@@ -272,6 +412,13 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 			sourceNames[i] = sname
 		}
 
+		// Convert functions map to a sorted comma-joined string for OpenGraph schema compliance
+		funcList := make([]string, 0, len(asset.Functions))
+		for k := range asset.Functions {
+			funcList = append(funcList, k)
+		}
+		sort.Strings(funcList)
+
 		assetNode := &bloodhound.Node{
 			ID:    nodeID,
 			Kinds: []string{"RZAsset"},
@@ -279,16 +426,18 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 				"displayname":            label,
 				"name":                   ntlmName,
 				"hostname":               hostName,
-				"names":                  asset.Names,
-				"domains":                asset.Domains,
+				"names":                  strings.Join(asset.Names, ","),
+				"domains":                strings.Join(asset.Domains, ","),
 				"type":                   deviceType,
+				"category":               asset.Category,
+				"rz_functions":           strings.Join(funcList, ","),
 				"os":                     asset.OS,
 				"hw":                     asset.HW,
-				"ip_addresses":           asset.Addresses,
+				"ip_addresses":           strings.Join(asset.Addresses, ","),
 				"ip_address_count":       len(asset.Addresses),
-				"ip_addresses_extra":     asset.AddressesExtra,
+				"ip_addresses_extra":     strings.Join(asset.AddressesExtra, ","),
 				"ip_address_extra_count": len(asset.AddressesExtra),
-				"mac_addresses":          asset.MACs,
+				"mac_addresses":          strings.Join(asset.MACs, ","),
 				"newest_mac":             asset.NewestMAC,
 				"newest_mac_vendor":      asset.NewestMACVendor,
 				"newest_mac_age":         asset.NewestMACAge,
@@ -312,7 +461,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 				"last_seen":              asset.LastSeen,
 				"created_at":             asset.CreatedAt,
 				"updated_at":             asset.UpdatedAt,
-				"sources":                sourceNames,
+				"sources":                strings.Join(sourceNames, ","),
 				"organization_name":      asset.OrganizationName,
 				"site_name":              asset.SiteName,
 				"agent_name":             asset.AgentName,
@@ -325,19 +474,19 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 		}
 
 		if len(asset.ServiceProtocols) > 0 {
-			assetNode.Properties["service_protocols"] = asset.ServiceProtocols
+			assetNode.Properties["service_protocols"] = strings.Join(asset.ServiceProtocols, ",")
 		}
 
 		if len(asset.ServiceProducts) > 0 {
-			assetNode.Properties["service_products"] = asset.ServiceProducts
+			assetNode.Properties["service_products"] = strings.Join(asset.ServiceProducts, ",")
 		}
 
 		if len(asset.ServicePortsTCP) > 0 {
-			assetNode.Properties["service_ports_tcp"] = asset.ServicePortsTCP
+			assetNode.Properties["service_ports_tcp"] = strings.Join(asset.ServicePortsTCP, ",")
 		}
 
 		if len(asset.ServicePortsUDP) > 0 {
-			assetNode.Properties["service_ports_udp"] = asset.ServicePortsUDP
+			assetNode.Properties["service_ports_udp"] = strings.Join(asset.ServicePortsUDP, ",")
 		}
 
 		// Add Asset tags
@@ -351,7 +500,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 				}
 			}
 			sort.Strings(tags)
-			assetNode.Properties["tags"] = tags
+			assetNode.Properties["tags"] = strings.Join(tags, ",")
 		}
 
 		// Add Asset attributes (flattened, deduplicated, and sorted)
@@ -360,7 +509,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 			if strings.HasPrefix(k, "_") {
 				continue
 			}
-			attrKey := "runzero." + k
+			attrKey := strings.ToLower("runzero." + k)
 			if k == "vlan" {
 				attrKey = k
 			}
@@ -375,7 +524,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 		for attrType, attrSet := range asset.ForeignAttributes {
 			for _, attrVals := range attrSet {
 				for k, tsv := range attrVals {
-					attrKey := strings.ReplaceAll(attrType, "@", "") + "." + k
+					attrKey := strings.ToLower(strings.ReplaceAll(attrType, "@", "") + "." + k)
 					for _, v := range strings.Split(tsv, "\t") {
 						if _, ok := assetAttr[attrKey]; !ok {
 							assetAttr[attrKey] = make(map[string]struct{})
@@ -392,7 +541,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 				vals = append(vals, v)
 			}
 			sort.Strings(vals)
-			assetNode.Properties[ak] = vals
+			assetNode.Properties[ak] = strings.Join(vals, ",")
 		}
 
 		// Add runZero site subnet mappings
@@ -400,7 +549,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 		for k := range asset.Subnets {
 			rzSubnets = append(rzSubnets, k)
 		}
-		assetNode.Properties["subnets"] = rzSubnets
+		assetNode.Properties["subnets"] = strings.Join(rzSubnets, ",")
 
 		// TODO: Implement layer-2 switch links
 		/*
@@ -413,6 +562,9 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 
 		// Add the Asset node
 		nodes = append(nodes, assetNode)
+
+		// Collect ref for second-pass relationship extraction
+		assetRefs = append(assetRefs, assetNodeRef{nodeID: nodeID, asset: asset})
 
 		// Create and link the Service nodes
 		for sk, svc := range asset.Services {
@@ -435,7 +587,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 					continue
 				}
 				for _, v := range strings.Split(sv, "\t") {
-					attrKey := "attr_" + k
+					attrKey := strings.ToLower("attr_" + k)
 					if _, ok := svcAttr[attrKey]; !ok {
 						svcAttr[attrKey] = make(map[string]struct{})
 					}
@@ -449,7 +601,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 					vals = append(vals, v)
 				}
 				sort.Strings(vals)
-				svcNode.Properties[ak] = vals
+				svcNode.Properties[ak] = strings.Join(vals, ",")
 			}
 
 			// Add the Service node
@@ -572,6 +724,11 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 		}
 	}
 
+	// --- Second pass: extract protocol-specific relationships ---
+	relNodes, relEdges := extractAllRelationships(assetRefs)
+	nodes = append(nodes, relNodes...)
+	edges = append(edges, relEdges...)
+
 	// Build the subnet nodes and edges
 	for network := range subnets {
 		bip := strings.Split(network, "/")
@@ -615,7 +772,7 @@ func buildOpenGraph(assets []*models.Asset) ([]*bloodhound.Node, []*bloodhound.E
 	}
 
 	// Always create the internet node to represent the public internet
-	network := "Global Internet"
+	network := "Public Internet"
 	nodes = append(nodes, &bloodhound.Node{
 		ID:    "rz-network-public",
 		Kinds: []string{"RZNetwork"},

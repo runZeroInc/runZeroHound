@@ -1,0 +1,16 @@
+Scanning 256 hosts, 2 communities
+192.168.0.19 [public] APC Web/SNMP Management Card (MB:v4.1.0 PF:v6.8.2 PN:apc_hw05_aos_682.bin AF1:v6.8.0 AN1:apc_hw05_sumx_680.bin MN:AP9631 HR:08 SN: ZA1703123684 MD:01/21/2017) (Embedded PowerNet SNMP Agent SW v2.2 compatible)
+192.168.0.81 [public] Cisco NX-OS(tm) nxos.9.3.7.bin, Software (nxos), Version 9.3(7), RELEASE SOFTWARE Copyright (c) 2002-2021 by Cisco Systems, Inc. Compiled 3/10/2021 3:00:00
+Error in sendto: Permission denied
+192.168.0.19 [private] APC Web/SNMP Management Card (MB:v4.1.0 PF:v6.8.2 PN:apc_hw05_aos_682.bin AF1:v6.8.0 AN1:apc_hw05_sumx_680.bin MN:AP9631 HR:08 SN: ZA1703123684 MD:01/21/2017) (Embedded PowerNet SNMP Agent SW v2.2 compatible)
+Error in sendto: Permission denied
+Scanning 256 hosts, 2 communities
+192.168.30.20 [public] Brother NC-8900h, Firmware Ver.ZZA  ,MID 8C5-J77,FID 2
+Error in sendto: Permission denied
+Error in sendto: Permission denied
+Scanning 256 hosts, 2 communities
+192.168.40.13 [public] ProCurve J4905A Switch 3400cl-24G, revision M.10.104, ROM I.08.12 (/sw/code/build/makf)
+192.168.40.23 [public] Cisco IOS Software, C3750 Software (C3750-IPBASE-M), Version 12.2(35)SE5, RELEASE SOFTWARE (fc1)  Copyright (c) 1986-2007 by Cisco Systems, Inc.  Compiled Thu 19-Jul-07 19:15 by nachen
+192.168.40.244 [public] VBrick Systems Inc., Model 4300 Serial 01051500004
+Error in sendto: Permission denied
+Error in sendto: Permission denied

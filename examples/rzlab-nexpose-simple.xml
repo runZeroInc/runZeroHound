@@ -1,0 +1,4592 @@
+<NeXposeSimpleXML version="1.0">
+<generated>20240111T214351891</generated>
+<devices>
+<device address="192.168.0.19" id="23">
+<fingerprint certainty="0.80">
+<description>APC AP9631 6.8.0</description>
+<vendor>APC</vendor>
+<family></family>
+<product>AP9631</product>
+<version>6.8.0</version>
+<device-class>UPS</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-read-0001" resultCode="VE">
+<id type="cve">CVE-1999-0186</id>
+<id type="cve">CVE-1999-0254</id>
+<id type="cve">CVE-1999-0472</id>
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<id type="cve">CVE-2001-0514</id>
+<id type="cve">CVE-2002-0109</id>
+<id type="cve">CVE-2010-1574</id>
+<id type="bid">2896</id>
+<id type="bid">3795</id>
+<id type="bid">3797</id>
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-read-0002" resultCode="VE">
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<id type="cve">CVE-2000-0147</id>
+<id type="cve">CVE-2010-1574</id>
+<id type="bid">973</id>
+<id type="url">ftp://ftp.sco.com/SSE/security_bulletins/SB-00.04a</id>
+<id type="url">http://archives.neohapsis.com/archives/bugtraq/2000-02/0045.html</id>
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.2" id="8">
+<fingerprint certainty="0.85">
+<description>Debian Linux 8.0</description>
+<vendor>Debian</vendor>
+<family>Linux</family>
+<product>Linux</product>
+<version>8.0</version>
+<device-class></device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="debian-obsolete" resultCode="VV">
+<id type="url">https://wiki.debian.org/LTS</id>
+<key>Debian Linux 8.0</key>
+</vulnerability>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 6.7p1</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>6.7p1</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTPS" port="8443" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Ubiquiti UniFi</description>
+<vendor>Ubiquiti</vendor>
+<family></family>
+<product>UniFi</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cert-expired" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTPS" port="443" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>nginx</description>
+<vendor>nginx</vendor>
+<family>nginx</family>
+<product>nginx</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cert-expired" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-static-key-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc7540/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-dh-prime-under-2048-bits" resultCode="VE">
+<id type="url">https://weakdh.org/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-dh-primes" resultCode="VE">
+<id type="url">https://weakdh.org/</id>
+<id type="url">https://www.openssl.org/docs/man1.1.0/apps/dhparam.html</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.21" id="20">
+<fingerprint certainty="0.69">
+<description>Linux DD-WRT V24-SP2 (LINUX 2.4.36) 2.4.36</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>DD-WRT V24-SP2 (LINUX 2.4.36)</product>
+<version>2.4.36</version>
+<device-class>WAP</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.216" id="44">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 3.4 - 3.10 3.4</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 3.4 - 3.10</product>
+<version>3.4</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="UPnP-HTTPU" port="5000" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>nginx</description>
+<vendor>nginx</vendor>
+<family>nginx</family>
+<product>nginx</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="upnp-ssdp-amplification" resultCode="VV">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="CIFS Name Service" port="137" protocol="udp">
+<vulnerabilities>
+<vulnerability id="netbios-nbstat-amplification" resultCode="VV">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTPS" port="443" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>nginx</description>
+<vendor>nginx</vendor>
+<family>nginx</family>
+<product>nginx</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.235" id="97">
+<fingerprint certainty="0.75">
+<description>Ubuntu Linux</description>
+<vendor>Ubuntu</vendor>
+<family>Linux</family>
+<product>Linux</product>
+<version></version>
+<device-class></device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 8.9p1</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>8.9p1</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.244" id="42">
+<fingerprint certainty="0.85">
+<description>Microsoft Windows Server 2016 Standard Edition</description>
+<vendor>Microsoft</vendor>
+<family>Windows</family>
+<product>Windows Server 2016 Standard Edition</product>
+<version></version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="cifs-invalid-logins-permitted" resultCode="VE">
+<id type="url">http://www.microsoft.com/technet/security/advisory/906574.mspx</id>
+<id type="url">http://www.windowsnetworking.com/articles_tutorials/wxpsimsh.html</id>
+<id type="url">http://www.samba.org</id>
+<key></key>
+</vulnerability>
+<vulnerability id="cifs-nt-0001" resultCode="VE">
+<id type="cve">CVE-1999-0519</id>
+<id type="url">http://www.hsc.fr/ressources/presentations/null_sessions/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="cifs-insecure-password-length-min" resultCode="VV">
+<key>Microsoft Windows Server 2016 Standard Edition</key>
+</vulnerability>
+<vulnerability id="cifs-no-acct-lockout-limit" resultCode="VV">
+<key>Microsoft Windows Server 2016 Standard Edition</key>
+</vulnerability>
+<vulnerability id="cifs-nt-0002" resultCode="VE">
+<id type="cve">CVE-2000-1200</id>
+<id type="bid">959</id>
+<key></key>
+</vulnerability>
+<vulnerability id="cifs-share-everyone-readable" resultCode="VE">
+<key>Documents</key>
+</vulnerability>
+<vulnerability id="cifs-share-everyone-writeable" resultCode="VE">
+<key>Documents</key>
+</vulnerability>
+<vulnerability id="cifs-share-world-readable" resultCode="VE">
+<key>Documents</key>
+</vulnerability>
+<vulnerability id="cifs-share-world-readable" resultCode="VE">
+<key>Documents</key>
+</vulnerability>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="5986" protocol="tcp">
+<fingerprint certainty="0.75">
+<description>Microsoft-HTTPAPI 2.0</description>
+<vendor></vendor>
+<family></family>
+<product>Microsoft-HTTPAPI</product>
+<version>2.0</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-cve-2016-2183-sweet32" resultCode="VE">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<id type="url">https://www.openssl.org/blog/blog/2016/08/24/sweet32</id>
+<id type="url">https://access.redhat.com/articles/2548661</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-cve-2011-3389-beast" resultCode="VE">
+<id type="cve">CVE-2011-3389</id>
+<id type="url">http://vnhacker.blogspot.co.uk/2011/09/beast.html</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tlsv1_0-enabled" resultCode="VE">
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-static-key-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc7540/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tlsv1_1-enabled" resultCode="VE">
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-3des-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-only-weak-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="VNC" port="5900" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="backdoor-vnc-0001" resultCode="VV">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="CIFS" port="445" protocol="tcp">
+<fingerprint certainty="1.00">
+<description>Windows Server 2016 Standard 10.0</description>
+<vendor></vendor>
+<family></family>
+<product>Windows Server 2016 Standard 10.0</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="cifs-smb-signing-disabled" resultCode="VE">
+<id type="url">http://blogs.technet.com/b/josebda/archive/2010/12/01/the-basics-of-smb-signing-covering-both-smb1-and-smb2.aspx</id>
+<key></key>
+</vulnerability>
+<vulnerability id="cifs-smb-signing-not-required" resultCode="VE">
+<id type="url">http://blogs.technet.com/b/josebda/archive/2010/12/01/the-basics-of-smb-signing-covering-both-smb1-and-smb2.aspx</id>
+<key></key>
+</vulnerability>
+<vulnerability id="cifs-smb1-deprecated" resultCode="VE">
+<id type="url">https://blogs.technet.microsoft.com/filecab/2016/09/16/stop-using-smb1/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="cifs-smb2-signing-not-required" resultCode="VV">
+<id type="url">https://blogs.technet.com/b/josebda/archive/2010/12/01/the-basics-of-smb-signing-covering-both-smb1-and-smb2.aspx</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="TDS" port="1433" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="database-open-access" resultCode="VV">
+<id type="url">https://www.pcisecuritystandards.org/documents/PCI_DSS_v3-1.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="CIFS Name Service" port="137" protocol="udp">
+<vulnerabilities>
+<vulnerability id="netbios-nbstat-amplification" resultCode="VV">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="CIFS" port="139" protocol="tcp">
+<fingerprint certainty="1.00">
+<description>Windows Server 2016 Standard 10.0</description>
+<vendor></vendor>
+<family></family>
+<product>Windows Server 2016 Standard 10.0</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="cifs-smb-signing-disabled" resultCode="VE">
+<id type="url">http://blogs.technet.com/b/josebda/archive/2010/12/01/the-basics-of-smb-signing-covering-both-smb1-and-smb2.aspx</id>
+<key></key>
+</vulnerability>
+<vulnerability id="cifs-smb-signing-not-required" resultCode="VE">
+<id type="url">http://blogs.technet.com/b/josebda/archive/2010/12/01/the-basics-of-smb-signing-covering-both-smb1-and-smb2.aspx</id>
+<key></key>
+</vulnerability>
+<vulnerability id="cifs-smb1-deprecated" resultCode="VE">
+<id type="url">https://blogs.technet.microsoft.com/filecab/2016/09/16/stop-using-smb1/</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.32" id="17">
+<fingerprint certainty="0.62">
+<description>Linux LINUX 3.6 - 3.10 3.6</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 3.6 - 3.10</product>
+<version>3.6</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="8443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-static-key-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc7540/</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTP" port="8080" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="http-options-method-enabled" resultCode="VE">
+<id type="url">https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTPS" port="4443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="http-options-method-enabled" resultCode="VE">
+<id type="url">https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTP" port="80" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="http-options-method-enabled" resultCode="VE">
+<id type="url">https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.34" id="21">
+<fingerprint certainty="0.62">
+<description>Linux LINUX 4.4</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX </product>
+<version>4.4</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="8443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-static-key-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc7540/</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTP" port="8080" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="http-options-method-enabled" resultCode="VE">
+<id type="url">https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTPS" port="4443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="http-options-method-enabled" resultCode="VE">
+<id type="url">https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTP" port="80" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="http-options-method-enabled" resultCode="VE">
+<id type="url">https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.4" id="63">
+<fingerprint certainty="0.80">
+<description>Ubuntu Linux</description>
+<vendor>Ubuntu</vendor>
+<family></family>
+<product>Linux</product>
+<version></version>
+<device-class></device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTP" port="80" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Apache HTTPD</description>
+<vendor>Apache</vendor>
+<family>Apache</family>
+<product>HTTPD</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="http-options-method-enabled" resultCode="VE">
+<id type="url">https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 8.9p1</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>8.9p1</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.41" id="14">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 3.2 - 4.9 3.2</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 3.2 - 4.9</product>
+<version>3.2</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="UPnP-HTTPU" port="5000" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>nginx</description>
+<vendor>nginx</vendor>
+<family>nginx</family>
+<product>nginx</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="upnp-ssdp-amplification" resultCode="VV">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="CIFS Name Service" port="137" protocol="udp">
+<vulnerabilities>
+<vulnerability id="netbios-nbstat-amplification" resultCode="VV">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTPS" port="443" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>nginx</description>
+<vendor>nginx</vendor>
+<family>nginx</family>
+<product>nginx</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cert-expired" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.6" id="45">
+<fingerprint certainty="0.75">
+<description>ARCH LINUX ARM</description>
+<vendor></vendor>
+<family>Linux</family>
+<product>ARCH LINUX ARM</product>
+<version></version>
+<device-class></device-class>
+<architecture>aarch64</architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="linux-icmp-redirect" resultCode="VE">
+<id type="bid">6823</id>
+<key></key>
+</vulnerability>
+<vulnerability id="linux-grub-missing-passwd" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 9.4</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>9.4</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.61" id="48">
+<fingerprint certainty="0.90">
+<description>VMware ESXi Server 8.0.1</description>
+<vendor>VMware</vendor>
+<family>VMware ESX/ESXi</family>
+<product>VMware ESXi Server</product>
+<version>8.0.1</version>
+<device-class>Virtualization host</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.62" id="50">
+<fingerprint certainty="0.90">
+<description>VMware ESXi Server 8.0.1</description>
+<vendor>VMware</vendor>
+<family>VMware ESX/ESXi</family>
+<product>VMware ESXi Server</product>
+<version>8.0.1</version>
+<device-class>Virtualization host</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.63" id="46">
+<fingerprint certainty="0.90">
+<description>VMware ESXi Server 8.0.1</description>
+<vendor>VMware</vendor>
+<family>VMware ESX/ESXi</family>
+<product>VMware ESXi Server</product>
+<version>8.0.1</version>
+<device-class>Virtualization host</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.0.8" id="6">
+<fingerprint certainty="0.85">
+<description>Raspbian Linux 9.0</description>
+<vendor>Raspbian</vendor>
+<family>Linux</family>
+<product>Linux</product>
+<version>9.0</version>
+<device-class></device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 7.4p1</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>7.4p1</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.115" id="33">
+<fingerprint certainty="0.80">
+<description>Ubiquiti Linux</description>
+<vendor>Ubiquiti</vendor>
+<family>Linux</family>
+<product></product>
+<version></version>
+<device-class>WAP</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SNMP" port="161" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Dropbear SSH Project Dropbear SSH 2020.81</description>
+<vendor>Dropbear SSH Project</vendor>
+<family>Dropbear</family>
+<product>Dropbear SSH</product>
+<version>2020.81</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.127" id="31">
+<fingerprint certainty="0.80">
+<description>Ubiquiti Linux</description>
+<vendor>Ubiquiti</vendor>
+<family>Linux</family>
+<product></product>
+<version></version>
+<device-class>WAP</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SNMP" port="161" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Dropbear SSH Project Dropbear SSH 2020.81</description>
+<vendor>Dropbear SSH Project</vendor>
+<family>Dropbear</family>
+<product>Dropbear SSH</product>
+<version>2020.81</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.138" id="29">
+<fingerprint certainty="0.80">
+<description>Ubiquiti Linux</description>
+<vendor>Ubiquiti</vendor>
+<family>Linux</family>
+<product></product>
+<version></version>
+<device-class>WAP</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SNMP" port="161" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Dropbear SSH Project Dropbear SSH 2020.81</description>
+<vendor>Dropbear SSH Project</vendor>
+<family>Dropbear</family>
+<product>Dropbear SSH</product>
+<version>2020.81</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.171" id="30">
+<fingerprint certainty="0.80">
+<description>Ubiquiti Linux</description>
+<vendor>Ubiquiti</vendor>
+<family>Linux</family>
+<product></product>
+<version></version>
+<device-class>WAP</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SNMP" port="161" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Dropbear SSH Project Dropbear SSH 2020.81</description>
+<vendor>Dropbear SSH Project</vendor>
+<family>Dropbear</family>
+<product>Dropbear SSH</product>
+<version>2020.81</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.186" id="105">
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+</services>
+</device>
+<device address="192.168.30.198" id="9">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 2.6.32 - 3.10 2.6.32</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 2.6.32 - 3.10</product>
+<version>2.6.32</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+</services>
+</device>
+<device address="192.168.30.215" id="71">
+<vulnerabilities>
+</vulnerabilities>
+<services>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-read-0001" resultCode="VE">
+<id type="cve">CVE-1999-0186</id>
+<id type="cve">CVE-1999-0254</id>
+<id type="cve">CVE-1999-0472</id>
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<id type="cve">CVE-2001-0514</id>
+<id type="cve">CVE-2002-0109</id>
+<id type="cve">CVE-2010-1574</id>
+<id type="bid">2896</id>
+<id type="bid">3795</id>
+<id type="bid">3797</id>
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.228" id="27">
+<fingerprint certainty="0.69">
+<description>Linux LINUX 2.6.32 - 3.10 2.6.32</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 2.6.32 - 3.10</product>
+<version>2.6.32</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="8443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.238" id="111">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 4.15 - 5.6 4.15</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 4.15 - 5.6</product>
+<version>4.15</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="UPnP-HTTPU" port="1900" protocol="udp">
+<vulnerabilities>
+<vulnerability id="upnp-ssdp-amplification" resultCode="VV">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.246" id="110">
+<fingerprint certainty="0.68">
+<description>Linux LINUX 4.15 - 5.6 4.15</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 4.15 - 5.6</product>
+<version>4.15</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SNMP" port="161" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTPS" port="8080" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-static-key-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc7540/</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Dropbear SSH Project Dropbear SSH 2020.81</description>
+<vendor>Dropbear SSH Project</vendor>
+<family>Dropbear</family>
+<product>Dropbear SSH</product>
+<version>2020.81</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.25" id="99">
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+</services>
+</device>
+<device address="192.168.30.252" id="103">
+<fingerprint certainty="0.69">
+<description>Linux LINUX 5.0 - 5.3 5.0</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 5.0 - 5.3</product>
+<version>5.0</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.26" id="3">
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+</services>
+</device>
+<device address="192.168.30.30" id="12">
+<fingerprint certainty="0.69">
+<description>Linux LINUX 2.6.32 - 3.10 2.6.32</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 2.6.32 - 3.10</product>
+<version>2.6.32</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="8443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cert-sig-alg-sha1" resultCode="VE">
+<id type="url">https://technet.microsoft.com/en-us/library/security/2880823.aspx</id>
+<id type="url">https://blog.mozilla.org/security/2014/09/23/phasing-out-certificates-with-sha-1-based-signature-algorithms/</id>
+<id type="url">http://googleonlinesecurity.blogspot.co.uk/2014/09/gradually-sunsetting-sha-1.html</id>
+<id type="url">https://www.schneier.com/blog/archives/2005/02/cryptanalysis_o.html</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.33" id="13">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 3.2 - 4.9 3.2</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 3.2 - 4.9</product>
+<version>3.2</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="8443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.37" id="10">
+<fingerprint certainty="0.69">
+<description>Linux LINUX 2.6.32 - 3.10 2.6.32</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 2.6.32 - 3.10</product>
+<version>2.6.32</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="8443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.47" id="32">
+<fingerprint certainty="0.80">
+<description>Ubiquiti Linux</description>
+<vendor>Ubiquiti</vendor>
+<family>Linux</family>
+<product></product>
+<version></version>
+<device-class>WAP</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SNMP" port="161" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Dropbear SSH Project Dropbear SSH 2020.81</description>
+<vendor>Dropbear SSH Project</vendor>
+<family>Dropbear</family>
+<product>Dropbear SSH</product>
+<version>2020.81</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.75" id="104">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 4.15 - 5.6 4.15</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 4.15 - 5.6</product>
+<version>4.15</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Dropbear SSH Project Dropbear SSH 2020.81</description>
+<vendor>Dropbear SSH Project</vendor>
+<family>Dropbear</family>
+<product>Dropbear SSH</product>
+<version>2020.81</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.30.89" id="41">
+<fingerprint certainty="0.80">
+<description>Ubiquiti Linux</description>
+<vendor>Ubiquiti</vendor>
+<family>Linux</family>
+<product></product>
+<version></version>
+<device-class>WAP</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SNMP" port="161" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Dropbear SSH Project Dropbear SSH 2020.81</description>
+<vendor>Dropbear SSH Project</vendor>
+<family>Dropbear</family>
+<product>Dropbear SSH</product>
+<version>2020.81</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.128" id="61">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 5.0 - 5.4 5.0</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 5.0 - 5.4</product>
+<version>5.0</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 8.0</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>8.0</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-kex-algorithms" resultCode="VV">
+<id type="url">https://wiki.mozilla.org/Security/Guidelines/OpenSSH</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cbc-ciphers" resultCode="VV">
+<id type="url">https://www.kb.cert.org/vuls/id/958563</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.13" id="70">
+<fingerprint certainty="0.80">
+<description>HP J4905A M.10.104</description>
+<vendor>HP</vendor>
+<family>ProCurve</family>
+<product>J4905A</product>
+<version>M.10.104</version>
+<device-class>Switch</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="Telnet" port="23" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="telnet-open-port" resultCode="VV">
+<id type="url">https://www.pcisecuritystandards.org/documents/PCI_DSS_v3.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-read-0001" resultCode="VE">
+<id type="cve">CVE-1999-0186</id>
+<id type="cve">CVE-1999-0254</id>
+<id type="cve">CVE-1999-0472</id>
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<id type="cve">CVE-2001-0514</id>
+<id type="cve">CVE-2002-0109</id>
+<id type="cve">CVE-2010-1574</id>
+<id type="bid">2896</id>
+<id type="bid">3795</id>
+<id type="bid">3797</id>
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.130" id="67">
+<fingerprint certainty="0.80">
+<description>Wind River VxWorks 6.4</description>
+<vendor>Wind River</vendor>
+<family></family>
+<product>VxWorks</product>
+<version>6.4</version>
+<device-class></device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+</vulnerabilities>
+<services>
+<service name="Telnet" port="23" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="telnet-default-account-guest" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="telnet-generic-0005" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="telnet-open-port" resultCode="VV">
+<id type="url">https://www.pcisecuritystandards.org/documents/PCI_DSS_v3.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="Remote Login" port="513" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="service-rlogin" resultCode="VV">
+<id type="cve">CVE-1999-0651</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="FTP" port="21" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="ftp-plaintext-auth" resultCode="VV">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-read-0001" resultCode="VE">
+<id type="cve">CVE-1999-0186</id>
+<id type="cve">CVE-1999-0254</id>
+<id type="cve">CVE-1999-0472</id>
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<id type="cve">CVE-2001-0514</id>
+<id type="cve">CVE-2002-0109</id>
+<id type="cve">CVE-2010-1574</id>
+<id type="bid">2896</id>
+<id type="bid">3795</id>
+<id type="bid">3797</id>
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-read-0011" resultCode="VE">
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.134" id="24">
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+</services>
+</device>
+<device address="192.168.40.136" id="77">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 2.6.24 - 2.6.36 2.6.24</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 2.6.24 - 2.6.36</product>
+<version>2.6.24</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Dropbear SSH Project Dropbear SSH 2016.74</description>
+<vendor>Dropbear SSH Project</vendor>
+<family>Dropbear</family>
+<product>Dropbear SSH</product>
+<version>2016.74</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-cve-2016-2183-sweet32" resultCode="VV">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cve-2015-4000" resultCode="VV">
+<id type="cve">CVE-2015-4000</id>
+<id type="url">https://weakdh.org/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-kex-algorithms" resultCode="VV">
+<id type="url">https://wiki.mozilla.org/Security/Guidelines/OpenSSH</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cbc-ciphers" resultCode="VV">
+<id type="url">https://www.kb.cert.org/vuls/id/958563</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-3des-ciphers" resultCode="VV">
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">https://bettercrypto.org/static/applied-crypto-hardening.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="&lt;unknown&gt;" port="8099" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-cve-2016-2183-sweet32" resultCode="VE">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<id type="url">https://www.openssl.org/blog/blog/2016/08/24/sweet32</id>
+<id type="url">https://access.redhat.com/articles/2548661</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-cve-2011-3389-beast" resultCode="VE">
+<id type="cve">CVE-2011-3389</id>
+<id type="url">http://vnhacker.blogspot.co.uk/2011/09/beast.html</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tlsv1_0-enabled" resultCode="VE">
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-static-key-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc7540/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tlsv1_1-enabled" resultCode="VE">
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-3des-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-only-weak-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTPS" port="443" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>EmbedThis GoAhead Webserver</description>
+<vendor>EmbedThis</vendor>
+<family>GoAhead Webserver</family>
+<product>GoAhead Webserver</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-cve-2016-2183-sweet32" resultCode="VE">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<id type="url">https://www.openssl.org/blog/blog/2016/08/24/sweet32</id>
+<id type="url">https://access.redhat.com/articles/2548661</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-cve-2011-3389-beast" resultCode="VE">
+<id type="cve">CVE-2011-3389</id>
+<id type="url">http://vnhacker.blogspot.co.uk/2011/09/beast.html</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tlsv1_0-enabled" resultCode="VE">
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-static-key-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc7540/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tlsv1_1-enabled" resultCode="VE">
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-3des-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-only-weak-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.138" id="28">
+<fingerprint certainty="0.85">
+<description>SonicWall SonicOS</description>
+<vendor>SonicWall</vendor>
+<family></family>
+<product>SonicOS</product>
+<version></version>
+<device-class>WAP</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+</services>
+</device>
+<device address="192.168.40.159" id="60">
+<fingerprint certainty="0.69">
+<description>Linux LINUX 5.4</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX </product>
+<version>5.4</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 7.4</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>7.4</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-cve-2016-2183-sweet32" resultCode="VV">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cve-2015-4000" resultCode="VV">
+<id type="cve">CVE-2015-4000</id>
+<id type="url">https://weakdh.org/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-kex-algorithms" resultCode="VV">
+<id type="url">https://wiki.mozilla.org/Security/Guidelines/OpenSSH</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cbc-ciphers" resultCode="VV">
+<id type="url">https://www.kb.cert.org/vuls/id/958563</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-3des-ciphers" resultCode="VV">
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">https://bettercrypto.org/static/applied-crypto-hardening.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.165" id="59">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 5.1</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX </product>
+<version>5.1</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 7.4</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>7.4</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-cve-2016-2183-sweet32" resultCode="VV">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cve-2015-4000" resultCode="VV">
+<id type="cve">CVE-2015-4000</id>
+<id type="url">https://weakdh.org/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-kex-algorithms" resultCode="VV">
+<id type="url">https://wiki.mozilla.org/Security/Guidelines/OpenSSH</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cbc-ciphers" resultCode="VV">
+<id type="url">https://www.kb.cert.org/vuls/id/958563</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-3des-ciphers" resultCode="VV">
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">https://bettercrypto.org/static/applied-crypto-hardening.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.176" id="112">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 5.1</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX </product>
+<version>5.1</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 8.0</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>8.0</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-kex-algorithms" resultCode="VV">
+<id type="url">https://wiki.mozilla.org/Security/Guidelines/OpenSSH</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cbc-ciphers" resultCode="VV">
+<id type="url">https://www.kb.cert.org/vuls/id/958563</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.19" id="57">
+<fingerprint certainty="0.85">
+<description>Cisco IOS 15.0(2)SE4</description>
+<vendor>Cisco</vendor>
+<family>IOS</family>
+<product>IOS</product>
+<version>15.0(2)SE4</version>
+<device-class>Router</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-read-0001" resultCode="VE">
+<id type="cve">CVE-1999-0186</id>
+<id type="cve">CVE-1999-0254</id>
+<id type="cve">CVE-1999-0472</id>
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<id type="cve">CVE-2001-0514</id>
+<id type="cve">CVE-2002-0109</id>
+<id type="cve">CVE-2010-1574</id>
+<id type="bid">2896</id>
+<id type="bid">3795</id>
+<id type="bid">3797</id>
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.198" id="25">
+<vulnerabilities>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="ssh-cve-2016-2183-sweet32" resultCode="VV">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-kex-algorithms" resultCode="VV">
+<id type="url">https://wiki.mozilla.org/Security/Guidelines/OpenSSH</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cbc-ciphers" resultCode="VV">
+<id type="url">https://www.kb.cert.org/vuls/id/958563</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-3des-ciphers" resultCode="VV">
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">https://bettercrypto.org/static/applied-crypto-hardening.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.23" id="66">
+<fingerprint certainty="1.00">
+<description>Cisco IOS 12.2(35)SE5</description>
+<vendor>Cisco</vendor>
+<family>IOS</family>
+<product>IOS</product>
+<version>12.2(35)SE5</version>
+<device-class>Switch</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="cisco-ios-obsolete-version" resultCode="VV">
+<id type="url">http://www.cisco.com/en/US/products/hw/tsd_products_support_end-of-sale_and_end-of-life_products_list.html</id>
+<key>Cisco IOS 12.2(35)SE5</key>
+</vulnerability>
+<vulnerability id="cisco-sa-20130327-cve-2013-1142" resultCode="VV">
+<id type="cve">CVE-2013-1142</id>
+<id type="url">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/Cisco-SA-20130327-CVE-2013-1142</id>
+<id type="url">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20130327-nat</id>
+<key>Cisco IOS 12.2(35)SE5</key>
+</vulnerability>
+<vulnerability id="cisco-sa-20080924-mfi" resultCode="VV">
+<id type="cve">CVE-2008-3804</id>
+<id type="url">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20080924-mfi</id>
+<key>Cisco IOS 12.2(35)SE5</key>
+</vulnerability>
+<vulnerability id="cisco-sa-20090325-ip" resultCode="VV">
+<id type="cve">CVE-2009-0630</id>
+<id type="bid">34242</id>
+<id type="url">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20090325-ip</id>
+<key>Cisco IOS 12.2(35)SE5</key>
+</vulnerability>
+<vulnerability id="cisco-sa-20090908-tcp24" resultCode="VV">
+<id type="cve">CVE-2008-4609</id>
+<id type="url">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20090908-tcp24</id>
+<key>Cisco IOS 12.2(35)SE5</key>
+</vulnerability>
+<vulnerability id="cisco-sa-20090923-auth-proxy" resultCode="VV">
+<id type="cve">CVE-2009-2863</id>
+<id type="bid">36491</id>
+<id type="url">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20090923-auth-proxy</id>
+<key>Cisco IOS 12.2(35)SE5</key>
+</vulnerability>
+<vulnerability id="cisco-sa-20090923-tunnels" resultCode="VV">
+<id type="cve">CVE-2009-2872</id>
+<id type="cve">CVE-2009-2873</id>
+<id type="url">https://sec.cloudapps.cisco.comsecurity/center/content/CiscoSecurityAdvisory/cisco-sa-20090923-tunnels</id>
+<key>Cisco IOS 12.2(35)SE5</key>
+</vulnerability>
+<vulnerability id="cisco-sa-20090325-tcp" resultCode="VV">
+<id type="cve">CVE-2009-0629</id>
+<id type="bid">34238</id>
+<id type="url">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20090325-tcp</id>
+<key>Cisco IOS 12.2(35)SE5</key>
+</vulnerability>
+<vulnerability id="cisco-ios-gre-decapsulation-acl-bypass" resultCode="VV">
+<id type="cve">CVE-2006-4650</id>
+<id type="bid">19878</id>
+<id type="url">http://tools.cisco.com/security/center/content/CiscoSecurityResponse/cisco-sr-20060906-gre</id>
+<key></key>
+</vulnerability>
+<vulnerability id="cisco-sa-20151120-ns" resultCode="VV">
+<id type="cve">CVE-2015-6375</id>
+<id type="bid">77676</id>
+<id type="url">http://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20151120-ns</id>
+<key>Cisco IOS 12.2(35)SE5</key>
+</vulnerability>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="Telnet" port="23" protocol="tcp">
+<fingerprint certainty="0.80">
+<description>Cisco</description>
+<vendor>Cisco</vendor>
+<family></family>
+<product>&lt;unknown&gt;</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="telnet-open-port" resultCode="VV">
+<id type="url">https://www.pcisecuritystandards.org/documents/PCI_DSS_v3.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-read-0001" resultCode="VE">
+<id type="cve">CVE-1999-0186</id>
+<id type="cve">CVE-1999-0254</id>
+<id type="cve">CVE-1999-0472</id>
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<id type="cve">CVE-2001-0514</id>
+<id type="cve">CVE-2002-0109</id>
+<id type="cve">CVE-2010-1574</id>
+<id type="bid">2896</id>
+<id type="bid">3795</id>
+<id type="bid">3797</id>
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.231" id="56">
+<fingerprint certainty="0.85">
+<description>Cisco IOS 12</description>
+<vendor>Cisco</vendor>
+<family>IOS</family>
+<product>IOS</product>
+<version>12</version>
+<device-class>Router</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Cisco SSH 1.25</description>
+<vendor>Cisco</vendor>
+<family></family>
+<product>SSH</product>
+<version>1.25</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-v1-supported" resultCode="VV">
+<id type="cve">CVE-2001-1473</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cve-2016-2183-sweet32" resultCode="VV">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cve-2015-4000" resultCode="VV">
+<id type="cve">CVE-2015-4000</id>
+<id type="url">https://weakdh.org/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-kex-algorithms" resultCode="VV">
+<id type="url">https://wiki.mozilla.org/Security/Guidelines/OpenSSH</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cbc-ciphers" resultCode="VV">
+<id type="url">https://www.kb.cert.org/vuls/id/958563</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-3des-ciphers" resultCode="VV">
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">https://bettercrypto.org/static/applied-crypto-hardening.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="Telnet" port="23" protocol="tcp">
+<fingerprint certainty="0.80">
+<description>Cisco</description>
+<vendor>Cisco</vendor>
+<family></family>
+<product>&lt;unknown&gt;</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="telnet-open-port" resultCode="VV">
+<id type="url">https://www.pcisecuritystandards.org/documents/PCI_DSS_v3.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTPS" port="443" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Cisco IOS 12</description>
+<vendor>Cisco</vendor>
+<family>IOS</family>
+<product>IOS</product>
+<version>12</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cert-expired" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-des-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc5469</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-cve-2016-2183-sweet32" resultCode="VE">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<id type="url">https://www.openssl.org/blog/blog/2016/08/24/sweet32</id>
+<id type="url">https://access.redhat.com/articles/2548661</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cert-sig-alg-md5" resultCode="VE">
+<id type="cve">CVE-2004-2761</id>
+<id type="bid">33065</id>
+<id type="url">http://blogs.technet.com/swi/archive/2008/12/30/information-regarding-md5-collisions-problem.aspx</id>
+<id type="url">http://www.microsoft.com/technet/security/advisory/961509.mspx</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cve-2015-2808" resultCode="VE">
+<id type="cve">CVE-2015-2808</id>
+<id type="url">https://blog.pcisecuritystandards.org/migrating-from-ssl-and-early-tls</id>
+<id type="url">http://www.imperva.com/docs/HII_Attacking_SSL_when_using_RC4.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="rc4-cve-2013-2566" resultCode="VE">
+<id type="cve">CVE-2013-2566</id>
+<id type="url">http://www.isg.rhul.ac.uk/tls/</id>
+<id type="url">https://tools.ietf.org/html/rfc7465</id>
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-cve-2011-3389-beast" resultCode="VE">
+<id type="cve">CVE-2011-3389</id>
+<id type="url">http://vnhacker.blogspot.co.uk/2011/09/beast.html</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+<vulnerability id="sslv3-cve-2014-3566-poodle" resultCode="VE">
+<id type="cve">CVE-2014-3566</id>
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">https://www.us-cert.gov/ncas/alerts/TA14-290A</id>
+<key></key>
+</vulnerability>
+<vulnerability id="sslv3-supported" resultCode="VE">
+<id type="cve">CVE-2014-3566</id>
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-static-key-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc7540/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="weak-crypto-key" resultCode="VE">
+<id type="url">http://csrc.nist.gov/groups/ST/toolkit/key_management.html</id>
+<id type="url">http://csrc.nist.gov/publications/nistpubs/800-131A/sp800-131A.pdf</id>
+<id type="url">http://www.bundesnetzagentur.de/SharedDocs/Downloads/DE/BNetzA/Sachgebiete/QES/Veroeffentlichungen/Algorithmen/2011_2_AlgoKatpdf.pdf</id>
+<id type="url">http://www.ecrypt.eu.org/documents/D.SPA.17.pdf</id>
+<id type="url">http://www.keylength.com</id>
+<id type="url">http://www.ssi.gouv.fr/IMG/pdf/RGS_B_1.pdf</id>
+<id type="url">http://www.symantec.com/page.jsp?id=1024-bit-certificate-support</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-3des-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-only-weak-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="Smart Install" port="4786" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="cisco-sr-20170214-smi" resultCode="VV">
+<id type="url">https://blog.talosintelligence.com/2017/02/cisco-coverage-for-smart-install-client.html</id>
+<id type="url">https://blogs.cisco.com/security/cisco-psirt-mitigating-and-detecting-potential-abuse-of-cisco-smart-install-feature</id>
+<id type="url">https://tools.cisco.com/security/center/content/CiscoSecurityResponse/cisco-sr-20170214-smi</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.24" id="69">
+<fingerprint certainty="1.00">
+<description>Cisco IOS 12.2(55)SE11</description>
+<vendor>Cisco</vendor>
+<family>IOS</family>
+<product>IOS</product>
+<version>12.2(55)SE11</version>
+<device-class></device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="cisco-sa-20170629-snmp" resultCode="VV">
+<id type="cve">CVE-2017-6736</id>
+<id type="cve">CVE-2017-6737</id>
+<id type="cve">CVE-2017-6738</id>
+<id type="cve">CVE-2017-6740</id>
+<id type="cve">CVE-2017-6743</id>
+<id type="cve">CVE-2017-6744</id>
+<id type="bid">99345</id>
+<id type="url">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20170629-snmp</id>
+<key>Cisco IOS 12.2(55)SE11</key>
+</vulnerability>
+<vulnerability id="cisco-ios-cve-2020-3204" resultCode="VV">
+<id type="cve">CVE-2020-3204</id>
+<id type="url">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-tcl-ace-C9KuVKmm</id>
+<key>Cisco IOS 12.2(55)SE11</key>
+</vulnerability>
+<vulnerability id="cisco-ios-gre-decapsulation-acl-bypass" resultCode="VV">
+<id type="cve">CVE-2006-4650</id>
+<id type="bid">19878</id>
+<id type="url">http://tools.cisco.com/security/center/content/CiscoSecurityResponse/cisco-sr-20060906-gre</id>
+<key></key>
+</vulnerability>
+<vulnerability id="cisco-ios-cve-2020-3477" resultCode="VV">
+<id type="cve">CVE-2020-3477</id>
+<id type="url">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-info-disclosure-V4BmJBNF</id>
+<key>Cisco IOS 12.2(55)SE11</key>
+</vulnerability>
+<vulnerability id="cisco-sa-20151120-ns" resultCode="VV">
+<id type="cve">CVE-2015-6375</id>
+<id type="bid">77676</id>
+<id type="url">http://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20151120-ns</id>
+<key>Cisco IOS 12.2(55)SE11</key>
+</vulnerability>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Cisco SSH 1.25</description>
+<vendor>Cisco</vendor>
+<family></family>
+<product>SSH</product>
+<version>1.25</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-v1-supported" resultCode="VV">
+<id type="cve">CVE-2001-1473</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cve-2016-2183-sweet32" resultCode="VV">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cve-2015-4000" resultCode="VV">
+<id type="cve">CVE-2015-4000</id>
+<id type="url">https://weakdh.org/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-kex-algorithms" resultCode="VV">
+<id type="url">https://wiki.mozilla.org/Security/Guidelines/OpenSSH</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cbc-ciphers" resultCode="VV">
+<id type="url">https://www.kb.cert.org/vuls/id/958563</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-3des-ciphers" resultCode="VV">
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">https://bettercrypto.org/static/applied-crypto-hardening.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="Telnet" port="23" protocol="tcp">
+<fingerprint certainty="0.80">
+<description>Cisco</description>
+<vendor>Cisco</vendor>
+<family></family>
+<product>&lt;unknown&gt;</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="telnet-default-account-admin-password-password" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="telnet-default-account-guest" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="telnet-default-account-root-password-password" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="telnet-generic-0003" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="generic-users-sharing-passwords" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="telnet-open-port" resultCode="VV">
+<id type="url">https://www.pcisecuritystandards.org/documents/PCI_DSS_v3.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTPS" port="443" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Cisco IOS 12</description>
+<vendor>Cisco</vendor>
+<family>IOS</family>
+<product>IOS</product>
+<version>12</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cert-expired" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-des-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc5469</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-cve-2016-2183-sweet32" resultCode="VE">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<id type="url">https://www.openssl.org/blog/blog/2016/08/24/sweet32</id>
+<id type="url">https://access.redhat.com/articles/2548661</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cert-sig-alg-md5" resultCode="VE">
+<id type="cve">CVE-2004-2761</id>
+<id type="bid">33065</id>
+<id type="url">http://blogs.technet.com/swi/archive/2008/12/30/information-regarding-md5-collisions-problem.aspx</id>
+<id type="url">http://www.microsoft.com/technet/security/advisory/961509.mspx</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cve-2015-2808" resultCode="VE">
+<id type="cve">CVE-2015-2808</id>
+<id type="url">https://blog.pcisecuritystandards.org/migrating-from-ssl-and-early-tls</id>
+<id type="url">http://www.imperva.com/docs/HII_Attacking_SSL_when_using_RC4.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="rc4-cve-2013-2566" resultCode="VE">
+<id type="cve">CVE-2013-2566</id>
+<id type="url">http://www.isg.rhul.ac.uk/tls/</id>
+<id type="url">https://tools.ietf.org/html/rfc7465</id>
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-cve-2011-3389-beast" resultCode="VE">
+<id type="cve">CVE-2011-3389</id>
+<id type="url">http://vnhacker.blogspot.co.uk/2011/09/beast.html</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+<vulnerability id="sslv3-cve-2014-3566-poodle" resultCode="VE">
+<id type="cve">CVE-2014-3566</id>
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">https://www.us-cert.gov/ncas/alerts/TA14-290A</id>
+<key></key>
+</vulnerability>
+<vulnerability id="sslv3-supported" resultCode="VE">
+<id type="cve">CVE-2014-3566</id>
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-static-key-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc7540/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="weak-crypto-key" resultCode="VE">
+<id type="url">http://csrc.nist.gov/groups/ST/toolkit/key_management.html</id>
+<id type="url">http://csrc.nist.gov/publications/nistpubs/800-131A/sp800-131A.pdf</id>
+<id type="url">http://www.bundesnetzagentur.de/SharedDocs/Downloads/DE/BNetzA/Sachgebiete/QES/Veroeffentlichungen/Algorithmen/2011_2_AlgoKatpdf.pdf</id>
+<id type="url">http://www.ecrypt.eu.org/documents/D.SPA.17.pdf</id>
+<id type="url">http://www.keylength.com</id>
+<id type="url">http://www.ssi.gouv.fr/IMG/pdf/RGS_B_1.pdf</id>
+<id type="url">http://www.symantec.com/page.jsp?id=1024-bit-certificate-support</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-3des-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-only-weak-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="Smart Install" port="4786" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="cisco-sr-20170214-smi" resultCode="VV">
+<id type="url">https://blog.talosintelligence.com/2017/02/cisco-coverage-for-smart-install-client.html</id>
+<id type="url">https://blogs.cisco.com/security/cisco-psirt-mitigating-and-detecting-potential-abuse-of-cisco-smart-install-feature</id>
+<id type="url">https://tools.cisco.com/security/center/content/CiscoSecurityResponse/cisco-sr-20170214-smi</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-read-0001" resultCode="VE">
+<id type="cve">CVE-1999-0186</id>
+<id type="cve">CVE-1999-0254</id>
+<id type="cve">CVE-1999-0472</id>
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<id type="cve">CVE-2001-0514</id>
+<id type="cve">CVE-2002-0109</id>
+<id type="cve">CVE-2010-1574</id>
+<id type="bid">2896</id>
+<id type="bid">3795</id>
+<id type="bid">3797</id>
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.243" id="82">
+<fingerprint certainty="0.85">
+<description>Ubuntu Linux 20.04</description>
+<vendor>Ubuntu</vendor>
+<family>Linux</family>
+<product>Linux</product>
+<version>20.04</version>
+<device-class></device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 8.2p1</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>8.2p1</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.244" id="108">
+<fingerprint certainty="0.85">
+<description>Ubuntu Linux 20.04</description>
+<vendor>Ubuntu</vendor>
+<family>Linux</family>
+<product>Linux</product>
+<version>20.04</version>
+<device-class></device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 8.2p1</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>8.2p1</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.25" id="58">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 2.6.9 - 2.6.19 2.6.9</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 2.6.9 - 2.6.19</product>
+<version>2.6.9</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="Telnet" port="23" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="telnet-generic-0002" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="telnet-open-port" resultCode="VV">
+<id type="url">https://www.pcisecuritystandards.org/documents/PCI_DSS_v3.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="DNS" port="53" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Thekelleys Dnsmasq 2.52</description>
+<vendor>Thekelleys</vendor>
+<family>Dnsmasq</family>
+<product>Dnsmasq</product>
+<version>2.52</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="dns-allows-cache-snooping" resultCode="VE">
+<id type="url">http://cs.unc.edu/~fabian/course_papers/cache_snooping.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="dns-processes-recursive-queries" resultCode="VE">
+<id type="url">http://www.us-cert.gov/reading_room/DNS-recursion033006.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="DNS" port="53" protocol="udp">
+<fingerprint certainty="0.90">
+<description>Thekelleys Dnsmasq 2.52</description>
+<vendor>Thekelleys</vendor>
+<family>Dnsmasq</family>
+<product>Dnsmasq</product>
+<version>2.52</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="dns-allows-cache-snooping" resultCode="VE">
+<id type="url">http://cs.unc.edu/~fabian/course_papers/cache_snooping.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="dns-processes-recursive-queries" resultCode="VE">
+<id type="url">http://www.us-cert.gov/reading_room/DNS-recursion033006.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.251" id="64">
+<fingerprint certainty="0.65">
+<description>Linux OPENWRT (LINUX 2.4.32) 2.4.32</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>OPENWRT (LINUX 2.4.32)</product>
+<version>2.4.32</version>
+<device-class>WAP</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="udp-ipid-zero" resultCode="VV">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 5.0</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>5.0</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-cve-2016-2183-sweet32" resultCode="VV">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cve-2015-4000" resultCode="VV">
+<id type="cve">CVE-2015-4000</id>
+<id type="url">https://weakdh.org/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-rc4-ciphers" resultCode="VV">
+<id type="url">http://www.openssh.com/txt/release-6.7</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-kex-algorithms" resultCode="VV">
+<id type="url">https://wiki.mozilla.org/Security/Guidelines/OpenSSH</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cbc-ciphers" resultCode="VV">
+<id type="url">https://www.kb.cert.org/vuls/id/958563</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-openssh-cbc-mode-info-disclosure" resultCode="VV">
+<id type="cve">CVE-2008-5161</id>
+<id type="bid">32319</id>
+<id type="url">http://www.ssh.com/company/news/article/953/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-3des-ciphers" resultCode="VV">
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">https://bettercrypto.org/static/applied-crypto-hardening.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-openssh-x11uselocalhost-x11-forwarding-session-hijack" resultCode="VV">
+<id type="cve">CVE-2008-3259</id>
+<id type="bid">30339</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.252" id="51">
+<fingerprint certainty="0.75">
+<description>Ubuntu Linux</description>
+<vendor>Ubuntu</vendor>
+<family>Linux</family>
+<product>Linux</product>
+<version></version>
+<device-class></device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 8.9p1</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>8.9p1</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.26" id="87">
+<fingerprint certainty="0.68">
+<description>Linux LINUX 2.6.32</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX </product>
+<version>2.6.32</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+</services>
+</device>
+<device address="192.168.40.27" id="68">
+<fingerprint certainty="0.85">
+<description>ADTRAN NetVanta</description>
+<vendor>ADTRAN</vendor>
+<family>NetVanta</family>
+<product></product>
+<version></version>
+<device-class>Router</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-netmask" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="Telnet" port="23" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="telnet-open-port" resultCode="VV">
+<id type="url">https://www.pcisecuritystandards.org/documents/PCI_DSS_v3.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Allegro Software RomSShell 4.31</description>
+<vendor>Allegro Software</vendor>
+<family></family>
+<product>RomSShell</product>
+<version>4.31</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-cve-2016-2183-sweet32" resultCode="VV">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cve-2015-4000" resultCode="VV">
+<id type="cve">CVE-2015-4000</id>
+<id type="url">https://weakdh.org/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-kex-algorithms" resultCode="VV">
+<id type="url">https://wiki.mozilla.org/Security/Guidelines/OpenSSH</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cbc-ciphers" resultCode="VV">
+<id type="url">https://www.kb.cert.org/vuls/id/958563</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-3des-ciphers" resultCode="VV">
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">https://bettercrypto.org/static/applied-crypto-hardening.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-read-0001" resultCode="VE">
+<id type="cve">CVE-1999-0186</id>
+<id type="cve">CVE-1999-0254</id>
+<id type="cve">CVE-1999-0472</id>
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<id type="cve">CVE-2001-0514</id>
+<id type="cve">CVE-2002-0109</id>
+<id type="cve">CVE-2010-1574</id>
+<id type="bid">2896</id>
+<id type="bid">3795</id>
+<id type="bid">3797</id>
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.29" id="62">
+<fingerprint certainty="0.80">
+<description>Brocade Fabric OS</description>
+<vendor>Brocade</vendor>
+<family></family>
+<product>Fabric OS</product>
+<version></version>
+<device-class>Switch</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="gnu-bash-cve-2014-6277" resultCode="VV">
+<id type="cve">CVE-2014-6277</id>
+<key></key>
+</vulnerability>
+<vulnerability id="gnu-bash-cve-2014-6278" resultCode="VE">
+<id type="cve">CVE-2014-6278</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 5.2</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>5.2</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-default-account-admin-password-password" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-default-account-root-password-password" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="generic-users-sharing-passwords" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cve-2016-2183-sweet32" resultCode="VV">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cve-2015-4000" resultCode="VV">
+<id type="cve">CVE-2015-4000</id>
+<id type="url">https://weakdh.org/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-rc4-ciphers" resultCode="VV">
+<id type="url">http://www.openssh.com/txt/release-6.7</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-kex-algorithms" resultCode="VV">
+<id type="url">https://wiki.mozilla.org/Security/Guidelines/OpenSSH</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cbc-ciphers" resultCode="VV">
+<id type="url">https://www.kb.cert.org/vuls/id/958563</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-3des-ciphers" resultCode="VV">
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">https://bettercrypto.org/static/applied-crypto-hardening.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="Telnet" port="23" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="telnet-default-account-admin-password-password" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="telnet-default-account-root-password-password" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="generic-users-sharing-passwords" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="telnet-open-port" resultCode="VV">
+<id type="url">https://www.pcisecuritystandards.org/documents/PCI_DSS_v3.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-read-0001" resultCode="VE">
+<id type="cve">CVE-1999-0186</id>
+<id type="cve">CVE-1999-0254</id>
+<id type="cve">CVE-1999-0472</id>
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<id type="cve">CVE-2001-0514</id>
+<id type="cve">CVE-2002-0109</id>
+<id type="cve">CVE-2010-1574</id>
+<id type="bid">2896</id>
+<id type="bid">3795</id>
+<id type="bid">3797</id>
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-read-0002" resultCode="VE">
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<id type="cve">CVE-2000-0147</id>
+<id type="cve">CVE-2010-1574</id>
+<id type="bid">973</id>
+<id type="url">ftp://ftp.sco.com/SSE/security_bulletins/SB-00.04a</id>
+<id type="url">http://archives.neohapsis.com/archives/bugtraq/2000-02/0045.html</id>
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-read-0010" resultCode="VE">
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-read-0019" resultCode="VE">
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.30" id="75">
+<fingerprint certainty="0.80">
+<description>Cisco IOS</description>
+<vendor>Cisco</vendor>
+<family></family>
+<product>IOS</product>
+<version></version>
+<device-class></device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Cisco SSH 1.25</description>
+<vendor>Cisco</vendor>
+<family></family>
+<product>SSH</product>
+<version>1.25</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-v1-supported" resultCode="VV">
+<id type="cve">CVE-2001-1473</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="&lt;unknown&gt;" port="443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="http-openssl-cve-2014-0224" resultCode="VE">
+<id type="cve">CVE-2014-0224</id>
+<id type="url">https://www.openssl.org/news/secadv/20140605.txt</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-export-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cert-sig-alg-md5" resultCode="VE">
+<id type="cve">CVE-2004-2761</id>
+<id type="bid">33065</id>
+<id type="url">http://blogs.technet.com/swi/archive/2008/12/30/information-regarding-md5-collisions-problem.aspx</id>
+<id type="url">http://www.microsoft.com/technet/security/advisory/961509.mspx</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cve-2015-2808" resultCode="VE">
+<id type="cve">CVE-2015-2808</id>
+<id type="url">https://blog.pcisecuritystandards.org/migrating-from-ssl-and-early-tls</id>
+<id type="url">http://www.imperva.com/docs/HII_Attacking_SSL_when_using_RC4.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="rc4-cve-2013-2566" resultCode="VE">
+<id type="cve">CVE-2013-2566</id>
+<id type="url">http://www.isg.rhul.ac.uk/tls/</id>
+<id type="url">https://tools.ietf.org/html/rfc7465</id>
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tlsv1_0-enabled" resultCode="VE">
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-static-key-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc7540/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="weak-crypto-key" resultCode="VE">
+<id type="url">http://csrc.nist.gov/groups/ST/toolkit/key_management.html</id>
+<id type="url">http://csrc.nist.gov/publications/nistpubs/800-131A/sp800-131A.pdf</id>
+<id type="url">http://www.bundesnetzagentur.de/SharedDocs/Downloads/DE/BNetzA/Sachgebiete/QES/Veroeffentlichungen/Algorithmen/2011_2_AlgoKatpdf.pdf</id>
+<id type="url">http://www.ecrypt.eu.org/documents/D.SPA.17.pdf</id>
+<id type="url">http://www.keylength.com</id>
+<id type="url">http://www.ssi.gouv.fr/IMG/pdf/RGS_B_1.pdf</id>
+<id type="url">http://www.symantec.com/page.jsp?id=1024-bit-certificate-support</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-only-weak-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.40.73" id="76">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 3.2 - 3.16 3.2</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 3.2 - 3.16</product>
+<version>3.2</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Dropbear SSH Project Dropbear SSH 2014.63</description>
+<vendor>Dropbear SSH Project</vendor>
+<family>Dropbear</family>
+<product>Dropbear SSH</product>
+<version>2014.63</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-cve-2016-2183-sweet32" resultCode="VV">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cve-2015-4000" resultCode="VV">
+<id type="cve">CVE-2015-4000</id>
+<id type="url">https://weakdh.org/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-kex-algorithms" resultCode="VV">
+<id type="url">https://wiki.mozilla.org/Security/Guidelines/OpenSSH</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-cbc-ciphers" resultCode="VV">
+<id type="url">https://www.kb.cert.org/vuls/id/958563</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssh-3des-ciphers" resultCode="VV">
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">https://bettercrypto.org/static/applied-crypto-hardening.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="Telnet" port="23" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="telnet-open-port" resultCode="VV">
+<id type="url">https://www.pcisecuritystandards.org/documents/PCI_DSS_v3.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTPS" port="443" protocol="tcp">
+<fingerprint certainty="0.50">
+<description>Genscape Power IQ</description>
+<vendor>Genscape</vendor>
+<family></family>
+<product>Power IQ</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cert-expired" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-cve-2016-2183-sweet32" resultCode="VE">
+<id type="cve">CVE-2016-2183</id>
+<id type="url">https://sweet32.info/</id>
+<id type="url">https://www.openssl.org/blog/blog/2016/08/24/sweet32</id>
+<id type="url">https://access.redhat.com/articles/2548661</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-cve-2011-3389-beast" resultCode="VE">
+<id type="cve">CVE-2011-3389</id>
+<id type="url">http://vnhacker.blogspot.co.uk/2011/09/beast.html</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+<vulnerability id="sslv3-cve-2014-3566-poodle" resultCode="VE">
+<id type="cve">CVE-2014-3566</id>
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">https://www.us-cert.gov/ncas/alerts/TA14-290A</id>
+<key></key>
+</vulnerability>
+<vulnerability id="sslv3-supported" resultCode="VE">
+<id type="cve">CVE-2014-3566</id>
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tlsv1_0-enabled" resultCode="VE">
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-static-key-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc7540/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cert-sig-alg-sha1" resultCode="VE">
+<id type="url">https://technet.microsoft.com/en-us/library/security/2880823.aspx</id>
+<id type="url">https://blog.mozilla.org/security/2014/09/23/phasing-out-certificates-with-sha-1-based-signature-algorithms/</id>
+<id type="url">http://googleonlinesecurity.blogspot.co.uk/2014/09/gradually-sunsetting-sha-1.html</id>
+<id type="url">https://www.schneier.com/blog/archives/2005/02/cryptanalysis_o.html</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tlsv1_1-enabled" resultCode="VE">
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-3des-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">http://www.ecrypt.eu.org/ecrypt2/documents/D.SPA.20.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-only-weak-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SNMP" port="161" protocol="udp">
+<vulnerabilities>
+<vulnerability id="snmp-read-0001" resultCode="VE">
+<id type="cve">CVE-1999-0186</id>
+<id type="cve">CVE-1999-0254</id>
+<id type="cve">CVE-1999-0472</id>
+<id type="cve">CVE-1999-0516</id>
+<id type="cve">CVE-1999-0517</id>
+<id type="cve">CVE-2001-0514</id>
+<id type="cve">CVE-2002-0109</id>
+<id type="cve">CVE-2010-1574</id>
+<id type="bid">2896</id>
+<id type="bid">3795</id>
+<id type="bid">3797</id>
+<key></key>
+</vulnerability>
+<vulnerability id="snmp-cleartext-credential" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.50.1" id="80">
+<fingerprint certainty="0.70">
+<description>FreeBSD 11.2-RELEASE</description>
+<vendor>FreeBSD</vendor>
+<family>FreeBSD</family>
+<product>FreeBSD</product>
+<version>11.2-RELEASE</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="DNS" port="53" protocol="udp">
+<fingerprint certainty="0.90">
+<description>NLnet Labs unbound 1.19.0</description>
+<vendor>NLnet Labs</vendor>
+<family>Unbound</family>
+<product>unbound</product>
+<version>1.19.0</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="dns-allows-cache-snooping" resultCode="VE">
+<id type="url">http://cs.unc.edu/~fabian/course_papers/cache_snooping.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="dns-processes-recursive-queries" resultCode="VE">
+<id type="url">http://www.us-cert.gov/reading_room/DNS-recursion033006.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="DNS" port="53" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>NLnet Labs unbound 1.19.0</description>
+<vendor>NLnet Labs</vendor>
+<family>Unbound</family>
+<product>unbound</product>
+<version>1.19.0</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="dns-allows-cache-snooping" resultCode="VE">
+<id type="url">http://cs.unc.edu/~fabian/course_papers/cache_snooping.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="dns-processes-recursive-queries" resultCode="VE">
+<id type="url">http://www.us-cert.gov/reading_room/DNS-recursion033006.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.50.20" id="40">
+<fingerprint certainty="1.00">
+<description>Ubuntu Linux 20.04</description>
+<vendor>Ubuntu</vendor>
+<family>Linux</family>
+<product>Linux</product>
+<version>20.04</version>
+<device-class></device-class>
+<architecture>x86_64</architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="linux-icmp-redirect" resultCode="VE">
+<id type="bid">6823</id>
+<key></key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2018-25032" resultCode="VV">
+<id type="cve">CVE-2018-25032</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2020-14803" resultCode="VV">
+<id type="cve">CVE-2020-14803</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21426" resultCode="VV">
+<id type="cve">CVE-2022-21426</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21434" resultCode="VV">
+<id type="cve">CVE-2022-21434</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21449" resultCode="VV">
+<id type="cve">CVE-2022-21449</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21476" resultCode="VV">
+<id type="cve">CVE-2022-21476</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21496" resultCode="VV">
+<id type="cve">CVE-2022-21496</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="linux-grub-missing-passwd" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ubuntu-cve-2019-15132" resultCode="VV">
+<id type="cve">CVE-2019-15132</id>
+<key></key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21443" resultCode="VV">
+<id type="cve">CVE-2022-21443</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21540" resultCode="VV">
+<id type="cve">CVE-2022-21540</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21541" resultCode="VV">
+<id type="cve">CVE-2022-21541</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21549" resultCode="VV">
+<id type="cve">CVE-2022-21549</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21618" resultCode="VV">
+<id type="cve">CVE-2022-21618</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21619" resultCode="VV">
+<id type="cve">CVE-2022-21619</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21624" resultCode="VV">
+<id type="cve">CVE-2022-21624</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21626" resultCode="VV">
+<id type="cve">CVE-2022-21626</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-21628" resultCode="VV">
+<id type="cve">CVE-2022-21628</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-34169" resultCode="VV">
+<id type="cve">CVE-2022-34169</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2022-39399" resultCode="VV">
+<id type="cve">CVE-2022-39399</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2023-21830" resultCode="VV">
+<id type="cve">CVE-2023-21830</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2023-21835" resultCode="VV">
+<id type="cve">CVE-2023-21835</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2023-21843" resultCode="VV">
+<id type="cve">CVE-2023-21843</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/collector/jre/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="ubuntu-cve-2020-15803" resultCode="VV">
+<id type="cve">CVE-2020-15803</id>
+<key></key>
+</vulnerability>
+<vulnerability id="unix-partition-mounting-weakness" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="443" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 8.9p1</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>8.9p1</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.50.25" id="26">
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+</services>
+</device>
+<device address="192.168.50.3" id="2">
+<fingerprint certainty="1.00">
+<description>Ubuntu Linux 22.04</description>
+<vendor>Ubuntu</vendor>
+<family>Linux</family>
+<product>Linux</product>
+<version>22.04</version>
+<device-class></device-class>
+<architecture>x86_64</architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="linux-icmp-redirect" resultCode="VE">
+<id type="bid">6823</id>
+<key></key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2020-14803" resultCode="VV">
+<id type="cve">CVE-2020-14803</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/nexpose/_jvm1.8.0_332/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="linux-grub-missing-passwd" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ubuntu-cve-2021-3610" resultCode="VV">
+<id type="cve">CVE-2021-3610</id>
+<key></key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2023-22006" resultCode="VV">
+<id type="cve">CVE-2023-22006</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/nexpose/_jvm1.8.0_372/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2023-22036" resultCode="VV">
+<id type="cve">CVE-2023-22036</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/nexpose/_jvm1.8.0_372/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2023-22041" resultCode="VV">
+<id type="cve">CVE-2023-22041</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/nexpose/_jvm1.8.0_372/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2023-22043" resultCode="VV">
+<id type="cve">CVE-2023-22043</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/nexpose/_jvm1.8.0_372/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2023-22044" resultCode="VV">
+<id type="cve">CVE-2023-22044</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/nexpose/_jvm1.8.0_372/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2023-22045" resultCode="VV">
+<id type="cve">CVE-2023-22045</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/nexpose/_jvm1.8.0_372/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2023-22049" resultCode="VV">
+<id type="cve">CVE-2023-22049</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/nexpose/_jvm1.8.0_372/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="azul-zulu-cve-2023-25193" resultCode="VV">
+<id type="cve">CVE-2023-25193</id>
+<id type="url">https://www.azul.com/downloads/</id>
+<key>/opt/rapid7/nexpose/_jvm1.8.0_372/lib/rt.jar</key>
+</vulnerability>
+<vulnerability id="google-chrome-cve-2022-3195" resultCode="VV">
+<id type="cve">CVE-2022-3195</id>
+<id type="url">https://chromereleases.googleblog.com/2022/09/stable-channel-update-for-desktop_14.html</id>
+<id type="url">https://crbug.com/1358381</id>
+<key></key>
+</vulnerability>
+<vulnerability id="google-chrome-cve-2022-3196" resultCode="VV">
+<id type="cve">CVE-2022-3196</id>
+<id type="url">https://chromereleases.googleblog.com/2022/09/stable-channel-update-for-desktop_14.html</id>
+<id type="url">https://crbug.com/1358090</id>
+<key></key>
+</vulnerability>
+<vulnerability id="google-chrome-cve-2022-3197" resultCode="VV">
+<id type="cve">CVE-2022-3197</id>
+<id type="url">https://chromereleases.googleblog.com/2022/09/stable-channel-update-for-desktop_14.html</id>
+<id type="url">https://crbug.com/1358075</id>
+<key></key>
+</vulnerability>
+<vulnerability id="google-chrome-cve-2022-3198" resultCode="VV">
+<id type="cve">CVE-2022-3198</id>
+<id type="url">https://chromereleases.googleblog.com/2022/09/stable-channel-update-for-desktop_14.html</id>
+<id type="url">https://crbug.com/1355682</id>
+<key></key>
+</vulnerability>
+<vulnerability id="google-chrome-cve-2022-3199" resultCode="VV">
+<id type="cve">CVE-2022-3199</id>
+<id type="url">https://chromereleases.googleblog.com/2022/09/stable-channel-update-for-desktop_14.html</id>
+<id type="url">https://crbug.com/1355237</id>
+<key></key>
+</vulnerability>
+<vulnerability id="google-chrome-cve-2022-3200" resultCode="VV">
+<id type="cve">CVE-2022-3200</id>
+<id type="url">https://chromereleases.googleblog.com/2022/09/stable-channel-update-for-desktop_14.html</id>
+<id type="url">https://crbug.com/1355103</id>
+<key></key>
+</vulnerability>
+<vulnerability id="google-chrome-cve-2022-3201" resultCode="VV">
+<id type="cve">CVE-2022-3201</id>
+<id type="url">https://crbug.com/1343104</id>
+<key></key>
+</vulnerability>
+<vulnerability id="spring-cve-2022-22950" resultCode="VV">
+<id type="cve">CVE-2022-22950</id>
+<id type="url">https://tanzu.vmware.com/security/cve-2022-22950</id>
+<key>/opt/rapid7/nexpose/shared/lib/managed/spring-beans-4.2.4.RELEASE.jar</key>
+</vulnerability>
+<vulnerability id="ubuntu-cve-2021-3933" resultCode="VV">
+<id type="cve">CVE-2021-3933</id>
+<id type="CVE">CVE-2021-3933</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ubuntu-cve-2023-1289" resultCode="VV">
+<id type="cve">CVE-2023-1289</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ubuntu-cve-2023-1906" resultCode="VV">
+<id type="cve">CVE-2023-1906</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ubuntu-cve-2023-3195" resultCode="VV">
+<id type="cve">CVE-2023-3195</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ubuntu-cve-2023-34151" resultCode="VV">
+<id type="cve">CVE-2023-34151</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ubuntu-cve-2023-3428" resultCode="VV">
+<id type="cve">CVE-2023-3428</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ubuntu-cve-2021-3941" resultCode="VV">
+<id type="cve">CVE-2021-3941</id>
+<id type="CVE">CVE-2021-3941</id>
+<key></key>
+</vulnerability>
+<vulnerability id="unix-partition-mounting-weakness" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="unix-user-home-dir-mode" resultCode="VV">
+<key></key>
+</vulnerability>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenBSD OpenSSH 8.9p1</description>
+<vendor>OpenBSD</vendor>
+<family>OpenSSH</family>
+<product>OpenSSH</product>
+<version>8.9p1</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.50.61" id="83">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 2.6.38 - 3.0 2.6.38</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 2.6.38 - 3.0</product>
+<version>2.6.38</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTP" port="80" protocol="tcp">
+<fingerprint certainty="0.75">
+<description>App-webs</description>
+<vendor></vendor>
+<family></family>
+<product>App-webs</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="http-delete-method-enabled" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="jquery-cve-2015-9251" resultCode="VV">
+<id type="cve">CVE-2015-9251</id>
+<id type="bid">105658</id>
+<key></key>
+</vulnerability>
+<vulnerability id="http-options-method-enabled" resultCode="VE">
+<id type="url">https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.50.62" id="85">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 2.6.38 - 3.0 2.6.38</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 2.6.38 - 3.0</product>
+<version>2.6.38</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTP" port="80" protocol="tcp">
+<fingerprint certainty="0.75">
+<description>App-webs</description>
+<vendor></vendor>
+<family></family>
+<product>App-webs</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="http-delete-method-enabled" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="jquery-cve-2015-9251" resultCode="VV">
+<id type="cve">CVE-2015-9251</id>
+<id type="bid">105658</id>
+<key></key>
+</vulnerability>
+<vulnerability id="http-options-method-enabled" resultCode="VE">
+<id type="url">https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.50.65" id="74">
+<fingerprint certainty="0.70">
+<description>Linux LINUX 2.6.38 - 3.0 2.6.38</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 2.6.38 - 3.0</product>
+<version>2.6.38</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="Telnet" port="23" protocol="tcp">
+<vulnerabilities>
+<vulnerability id="telnet-open-port" resultCode="VV">
+<id type="url">https://www.pcisecuritystandards.org/documents/PCI_DSS_v3.pdf</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.50.66" id="81">
+<fingerprint certainty="0.80">
+<description>Linux 3.18.20</description>
+<vendor>Linux</vendor>
+<family></family>
+<product>Linux</product>
+<version>3.18.20</version>
+<device-class></device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+<service name="HTTPS" port="443" protocol="tcp">
+<fingerprint certainty="0.50">
+<description>Hikvision Web Server</description>
+<vendor>Hikvision</vendor>
+<family></family>
+<product>Hikvision Web Server</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="certificate-common-name-mismatch" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-server-cert-expired" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="http-delete-method-enabled" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="tls-untrusted-ca" resultCode="VE">
+<id type="url">http://httpd.apache.org/docs/2.2/mod/mod_ssl.html</id>
+<id type="url">http://nginx.org/en/docs/http/configuring_https_servers.html</id>
+<id type="url">https://support.microsoft.com/en-us/kb/954755</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-self-signed-certificate" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-weak-message-authentication-code-algorithms" resultCode="VE">
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">https://blog.pcisecuritystandards.org/how-the-sha-1-collision-impacts-security-of-payments</id>
+<key></key>
+</vulnerability>
+<vulnerability id="http-options-method-enabled" resultCode="VE">
+<id type="url">https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-static-key-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<id type="url">https://tools.ietf.org/html/rfc7540/</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tls-dh-primes" resultCode="VE">
+<id type="url">https://weakdh.org/</id>
+<id type="url">https://www.openssl.org/docs/man1.1.0/apps/dhparam.html</id>
+<key></key>
+</vulnerability>
+<vulnerability id="tlsv1_1-enabled" resultCode="VE">
+<id type="url">https://www.pcisecuritystandards.org/documents/Migrating_from_SSL_Early_TLS_Information%20Supplement_v1.pdf</id>
+<id type="url">http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-52r1.pdf</id>
+<key></key>
+</vulnerability>
+<vulnerability id="ssl-only-weak-ciphers" resultCode="VE">
+<id type="url">http://www.nist.gov/manuscript-publication-search.cfm?pub_id=915295</id>
+<id type="url">https://wiki.mozilla.org/Security/Server_Side_TLS</id>
+<id type="url">https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers</id>
+<id type="url">http://support.microsoft.com/kb/245030/</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="HTTP" port="80" protocol="tcp">
+<fingerprint certainty="0.50">
+<description>Hikvision Web Server</description>
+<vendor>Hikvision</vendor>
+<family></family>
+<product>Hikvision Web Server</product>
+<version></version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="http-delete-method-enabled" resultCode="VE">
+<key></key>
+</vulnerability>
+<vulnerability id="http-options-method-enabled" resultCode="VE">
+<id type="url">https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>Dropbear SSH Project Dropbear SSH 2018.76</description>
+<vendor>Dropbear SSH Project</vendor>
+<family>Dropbear</family>
+<product>Dropbear SSH</product>
+<version>2018.76</version>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="ssh-weak-message-authentication-code-algorithms" resultCode="VV">
+<id type="url">https://tools.cisco.com/security/center/resources/next_generation_cryptography</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+</service>
+</services>
+</device>
+<device address="192.168.50.67" id="109">
+<fingerprint certainty="0.67">
+<description>Linux LINUX 5.3 - 5.4 5.3</description>
+<vendor>Linux</vendor>
+<family>Linux</family>
+<product>LINUX 5.3 - 5.4</product>
+<version>5.3</version>
+<device-class>General</device-class>
+<architecture></architecture>
+</fingerprint>
+<vulnerabilities>
+<vulnerability id="generic-icmp-timestamp" resultCode="VE">
+<id type="cve">CVE-1999-0524</id>
+<id type="osvdb">95</id>
+<key></key>
+</vulnerability>
+<vulnerability id="generic-tcp-timestamp" resultCode="VE">
+<id type="url">http://uptime.netcraft.com</id>
+<id type="url">http://www.forensicswiki.org/wiki/TCP_timestamps</id>
+<id type="url">http://www.ietf.org/rfc/rfc1323.txt</id>
+<key></key>
+</vulnerability>
+</vulnerabilities>
+<services>
+</services>
+</device>
+</devices>
+</NeXposeSimpleXML>

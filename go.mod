@@ -9,5 +9,6 @@ require (
 
 require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/runZeroInc/mac-tracker v0.0.0-20260413163728-11be7a5ca425 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 )

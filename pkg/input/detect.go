@@ -1,0 +1,266 @@
+// Package input provides file type detection and parsing for various network
+// scan output formats that runZeroHound can ingest.
+package input
+
+import (
+	"bytes"
+	"io"
+	"net"
+	"os"
+	"strings"
+)
+
+// FileType represents the detected type of an input file.
+type FileType int
+
+const (
+	FileTypeUnknown      FileType = iota
+	FileTypeRunZeroGZIP           // gzip-compressed runZero JSONL export
+	FileTypeRunZeroJSONL          // plain runZero JSONL export
+	FileTypeNmapXML               // Nmap XML output (-oX)
+	FileTypeSNMPWalk              // net-snmp snmpwalk text output
+	FileTypeNessus                // Nessus .nessus XML report
+	FileTypeOpenVAS               // OpenVAS/GVM XML report
+	FileTypeNetBox                // NetBox JSON API export
+	FileTypeQualys                // Qualys VM scan XML report
+	FileTypeMasscan               // Masscan XML or JSON output
+	FileTypeShodan                // Shodan JSONL export
+	FileTypeOneSixtyOne           // onesixtyone SNMP scanner output
+	FileTypeNexpose               // Rapid7 Nexpose/InsightVM XML report
+	FileTypeQualysCSV             // Qualys VM scan CSV report
+)
+
+// String returns a human-readable name for the file type.
+func (ft FileType) String() string {
+	switch ft {
+	case FileTypeRunZeroGZIP:
+		return "runzero-gzip"
+	case FileTypeRunZeroJSONL:
+		return "runzero-jsonl"
+	case FileTypeNmapXML:
+		return "nmap-xml"
+	case FileTypeSNMPWalk:
+		return "snmpwalk"
+	case FileTypeNessus:
+		return "nessus"
+	case FileTypeOpenVAS:
+		return "openvas"
+	case FileTypeNetBox:
+		return "netbox"
+	case FileTypeQualys:
+		return "qualys"
+	case FileTypeMasscan:
+		return "masscan"
+	case FileTypeShodan:
+		return "shodan"
+	case FileTypeOneSixtyOne:
+		return "onesixtyone"
+	case FileTypeNexpose:
+		return "nexpose"
+	case FileTypeQualysCSV:
+		return "qualys-csv"
+	default:
+		return "unknown"
+	}
+}
+
+// DetectFileType inspects the path (and its contents) to determine the format.
+// Detection order:
+//  1. .nessus extension → Nessus
+//  2. gzip magic bytes → runZero gzip-compressed JSONL
+//  3. XML header dispatch: nmaprun → Nmap, NessusClientData → Nessus, OpenVAS report → OpenVAS
+//  4. JSON with count+results → NetBox
+//  5. snmpwalk OID pattern → snmpwalk
+//  6. fallback → runZero JSONL
+func DetectFileType(path string) (FileType, error) {
+	lower := strings.ToLower(path)
+
+	// 1. Extension-based detection
+	if strings.HasSuffix(lower, ".nessus") {
+		return FileTypeNessus, nil
+	}
+	if strings.HasSuffix(lower, ".walk") {
+		return FileTypeSNMPWalk, nil
+	}
+	if strings.HasSuffix(lower, ".161") {
+		return FileTypeOneSixtyOne, nil
+	}
+
+	fd, err := os.Open(path) // #nosec G304
+	if err != nil {
+		return FileTypeUnknown, err
+	}
+	defer fd.Close()
+
+	header := make([]byte, 512)
+	n, err := fd.Read(header)
+	if err != nil && err != io.EOF {
+		return FileTypeUnknown, err
+	}
+	header = header[:n]
+
+	// 2. gzip magic bytes → runZero gzip JSONL
+	if len(header) >= 2 && header[0] == 0x1f && header[1] == 0x8b {
+		return FileTypeRunZeroGZIP, nil
+	}
+
+	// 3. XML dispatch
+	trimmed := bytes.TrimSpace(header)
+	if bytes.HasPrefix(trimmed, []byte("<?xml")) || bytes.HasPrefix(trimmed, []byte("<")) {
+		switch {
+		case bytes.Contains(trimmed, []byte("NessusClientData")):
+			return FileTypeNessus, nil
+		case bytes.Contains(trimmed, []byte("<nmaprun")):
+			// Distinguish masscan XML from nmap XML
+			if bytes.Contains(trimmed, []byte(`scanner="masscan"`)) {
+				return FileTypeMasscan, nil
+			}
+			return FileTypeNmapXML, nil
+		case bytes.Contains(trimmed, []byte("<report")) &&
+			(bytes.Contains(trimmed, []byte("openvas")) ||
+				bytes.Contains(trimmed, []byte("gvm")) ||
+				bytes.Contains(trimmed, []byte("<results"))):
+			return FileTypeOpenVAS, nil
+		case bytes.Contains(trimmed, []byte("<SCAN")) &&
+			(bytes.Contains(trimmed, []byte("<IP")) ||
+				bytes.Contains(trimmed, []byte("qualys")) ||
+				bytes.Contains(trimmed, []byte("scan-1.dtd"))):
+			return FileTypeQualys, nil
+		case bytes.Contains(trimmed, []byte("NeXposeSimpleXML")) ||
+			bytes.Contains(trimmed, []byte("NexposeReport")):
+			return FileTypeNexpose, nil
+		}
+	}
+
+	// 3b. Shodan JSONL detection: first line is a JSON object with "ip_str" key
+	if looksLikeShodan(header) {
+		return FileTypeShodan, nil
+	}
+
+	// 3c. Masscan JSON detection: array of objects with "ip" and "ports" keys
+	if looksLikeMasscanJSON(header) {
+		return FileTypeMasscan, nil
+	}
+
+	// 4. JSON with NetBox shape: {"count": N, "results": [...]}
+	if looksLikeNetBox(header) {
+		return FileTypeNetBox, nil
+	}
+
+	// 5. onesixtyone output: lines matching "IP [community] sysDescr"
+	if looksLikeOneSixtyOne(header) {
+		return FileTypeOneSixtyOne, nil
+	}
+
+	// 6. snmpwalk OID pattern
+	if looksLikeSNMPWalk(header) {
+		return FileTypeSNMPWalk, nil
+	}
+
+	// 7. CSV detection: check for Qualys CSV header
+	if strings.HasSuffix(lower, ".csv") && looksLikeQualysCSV(header) {
+		return FileTypeQualysCSV, nil
+	}
+
+	// 8. Fallback to runZero JSONL
+	return FileTypeRunZeroJSONL, nil
+}
+
+// looksLikeSNMPWalk returns true when the first few lines match typical
+// snmpwalk output. Handles both MIB-resolved names and numeric OID forms:
+//   - MIB names:   "SNMPv2-MIB::sysDescr.0 = STRING: ..."
+//   - Numeric OID: ".1.3.6.1.2.1.1.1.0 = STRING: ..."
+//   - iso prefix:  "iso.3.6.1.2.1.1.1.0 = STRING: ..."
+func looksLikeSNMPWalk(data []byte) bool {
+	s := string(data)
+	lines := strings.SplitN(s, "\n", 10)
+	matched := 0
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if len(line) == 0 || strings.HasPrefix(line, "#") {
+			continue
+		}
+		// Must contain " = " separator
+		if !strings.Contains(line, " = ") {
+			continue
+		}
+		// Match MIB-resolved (contains "::"), numeric OID (.1.), or iso prefix (iso.)
+		if strings.Contains(line, "::") || strings.HasPrefix(line, ".1.") || strings.HasPrefix(line, "iso.") {
+			matched++
+			if matched >= 2 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// looksLikeOneSixtyOne returns true when the first few lines match typical
+// onesixtyone output: "IP [community] sysDescr..." or status lines like
+// "Scanning N hosts, M communities".
+func looksLikeOneSixtyOne(data []byte) bool {
+	s := string(data)
+	lines := strings.SplitN(s, "\n", 10)
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if len(line) == 0 {
+			continue
+		}
+		// Match "IP [community] description" pattern
+		// e.g. "192.168.0.19 [public] APC Web/SNMP Management Card..."
+		bracketOpen := strings.Index(line, " [")
+		if bracketOpen < 0 {
+			continue
+		}
+		bracketClose := strings.Index(line[bracketOpen:], "] ")
+		if bracketClose < 0 {
+			continue
+		}
+		// The part before the bracket should look like an IP address
+		candidate := strings.TrimSpace(line[:bracketOpen])
+		if net.ParseIP(candidate) != nil {
+			return true
+		}
+	}
+	return false
+}
+
+// looksLikeShodan returns true when the first line looks like a Shodan JSONL
+// record: a JSON object with an "ip_str" key.
+func looksLikeShodan(data []byte) bool {
+	s := string(data)
+	firstLine := strings.SplitN(s, "\n", 2)[0]
+	firstLine = strings.TrimSpace(firstLine)
+	return strings.HasPrefix(firstLine, "{") && strings.Contains(firstLine, `"ip_str"`)
+}
+
+// looksLikeMasscanJSON returns true when the header looks like Masscan JSON
+// output: an array of objects with "ip" and "ports" keys (but not "ip_str"
+// which would indicate Shodan).
+func looksLikeMasscanJSON(data []byte) bool {
+	s := string(data)
+	trimmed := strings.TrimSpace(s)
+	if !strings.HasPrefix(trimmed, "[") && !strings.HasPrefix(trimmed, "{") {
+		return false
+	}
+	return strings.Contains(s, `"ip"`) &&
+		strings.Contains(s, `"ports"`) &&
+		!strings.Contains(s, `"ip_str"`)
+}
+
+// looksLikeNetBox returns true when the header bytes look like a NetBox API
+// response: a JSON object with both "count" and "results" keys.
+func looksLikeNetBox(data []byte) bool {
+	s := string(data)
+	return strings.Contains(s, `"count"`) &&
+		strings.Contains(s, `"results"`) &&
+		strings.HasPrefix(strings.TrimSpace(s), "{")
+}
+
+// looksLikeQualysCSV returns true when the header area contains a Qualys CSV
+// scan results marker or the standard Qualys CSV data header row.
+func looksLikeQualysCSV(data []byte) bool {
+	s := string(data)
+	return strings.Contains(s, "Scan_Results") ||
+		(strings.Contains(s, `"IP"`) && strings.Contains(s, `"QID"`))
+}
