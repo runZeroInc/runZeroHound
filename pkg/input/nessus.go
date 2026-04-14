@@ -13,19 +13,19 @@ import (
 // Reference: https://community.tenable.com/s/article/Nessus-v2-File-Format
 
 type nessusClientData struct {
-	XMLName xml.Name      `xml:"NessusClientData_v2"`
-	Report  nessusReport  `xml:"Report"`
+	XMLName xml.Name     `xml:"NessusClientData_v2"`
+	Report  nessusReport `xml:"Report"`
 }
 
 type nessusReport struct {
-	Name  string            `xml:"name,attr"`
+	Name  string             `xml:"name,attr"`
 	Hosts []nessusReportHost `xml:"ReportHost"`
 }
 
 type nessusReportHost struct {
-	Name       string              `xml:"name,attr"`
-	Properties nessusHostProps     `xml:"HostProperties"`
-	Items      []nessusReportItem  `xml:"ReportItem"`
+	Name       string             `xml:"name,attr"`
+	Properties nessusHostProps    `xml:"HostProperties"`
+	Items      []nessusReportItem `xml:"ReportItem"`
 }
 
 type nessusHostProps struct {
@@ -38,17 +38,17 @@ type nessusTag struct {
 }
 
 type nessusReportItem struct {
-	Port       string `xml:"port,attr"`
-	SvcName    string `xml:"svc_name,attr"`
-	Protocol   string `xml:"protocol,attr"`
-	Severity   string `xml:"severity,attr"`
-	PluginID   string `xml:"pluginID,attr"`
-	PluginName string `xml:"pluginName,attr"`
-	Output     string `xml:"plugin_output"`
+	Port        string `xml:"port,attr"`
+	SvcName     string `xml:"svc_name,attr"`
+	Protocol    string `xml:"protocol,attr"`
+	Severity    string `xml:"severity,attr"`
+	PluginID    string `xml:"pluginID,attr"`
+	PluginName  string `xml:"pluginName,attr"`
+	Output      string `xml:"plugin_output"`
 	Description string `xml:"description"`
-	CVE        string `xml:"cve"`
-	RiskFactor string `xml:"risk_factor"`
-	Synopsis   string `xml:"synopsis"`
+	CVE         string `xml:"cve"`
+	RiskFactor  string `xml:"risk_factor"`
+	Synopsis    string `xml:"synopsis"`
 }
 
 // Well-known Nessus plugin IDs that carry fingerprint/identity data.
@@ -59,8 +59,9 @@ const (
 	nessusPluginTLSCert2     = "70544" // SSL Certificate
 	nessusPluginSMB2         = "57608" // SMB2 Use Case Supported (has GUID)
 	nessusPluginSMBNative    = "10785" // Microsoft Windows SMB NativeLanManager
-	nessusPluginSNMPSettings = "40448" // SNMP Agent Default Community Names
+	nessusPluginSNMPSettings = "40448" // SNMP Supported Protocols Detection
 	nessusPluginSNMPEngine   = "161"   // SNMP Request
+	nessusPluginSNMPCommName = "41028" // SNMP Agent Default Community Name
 	nessusPluginTraceroute   = "10287" // Traceroute Information
 )
 
@@ -99,6 +100,10 @@ func extractSSHFP(text string) string {
 
 // reTracerouteHop matches lines like "1  192.168.1.1" or "  2  10.0.0.1  1.234 ms"
 var reTracerouteHop = regexp.MustCompile(`^\s*(\d+)\s+([\d.]+(?:\.\d+){3})\b`)
+
+// reBareIPv4 matches a line containing only an IPv4 address (optionally whitespace-padded).
+// Used for Nessus traceroute plugin output which lists bare IPs without hop numbers.
+var reBareIPv4 = regexp.MustCompile(`^\s*((?:\d{1,3}\.){3}\d{1,3})\s*$`)
 
 // ParseNessus parses a .nessus XML report file into ParsedHosts.
 func ParseNessus(path string) (*ParseResult, error) {
@@ -269,16 +274,52 @@ func extractNessusFingerprints(ph *ParsedHost, item *nessusReportItem) {
 			}
 		}
 
+	case nessusPluginSNMPCommName:
+		// Plugin 41028 output format:
+		//   The remote SNMP server replies to the following default community
+		//   string :
+		//
+		//   public
+		extractNessusSNMPCommunity(ph, out)
+
 	case nessusPluginTraceroute:
 		// Parse traceroute hops from plugin 10287 output.
-		// Lines typically look like: "1  192.168.1.1\n2  10.0.0.1\n..."
-		for _, line := range strings.Split(out, "\n") {
+		// Two formats are supported:
+		//   Numbered:   "1  192.168.1.1\n2  10.0.0.1\n..."
+		//   Nessus:     bare IPs in order (scanner, hops..., target)
+		lines := strings.Split(out, "\n")
+
+		// Try numbered format first.
+		var numbered []TracerouteHop
+		for _, line := range lines {
 			if m := reTracerouteHop.FindStringSubmatch(line); len(m) >= 3 {
 				ttl, _ := strconv.Atoi(m[1])
 				ip := strings.TrimSpace(m[2])
 				if ttl > 0 && ip != "" {
-					ph.TracerouteHops = append(ph.TracerouteHops, TracerouteHop{
+					numbered = append(numbered, TracerouteHop{
 						TTL:       ttl,
+						Addresses: []string{ip},
+					})
+				}
+			}
+		}
+
+		if len(numbered) > 0 {
+			ph.TracerouteHops = append(ph.TracerouteHops, numbered...)
+		} else {
+			// Fallback: Nessus bare-IP format.
+			// Lines are in order: scanner, intermediate hops, target.
+			// We emit only intermediate hops (skip first and last).
+			var bareIPs []string
+			for _, line := range lines {
+				if m := reBareIPv4.FindStringSubmatch(line); len(m) >= 2 {
+					bareIPs = append(bareIPs, m[1])
+				}
+			}
+			if len(bareIPs) > 2 {
+				for i, ip := range bareIPs[1 : len(bareIPs)-1] {
+					ph.TracerouteHops = append(ph.TracerouteHops, TracerouteHop{
+						TTL:       i + 1,
 						Addresses: []string{ip},
 					})
 				}
@@ -388,4 +429,38 @@ func isHexString(s string) bool {
 		}
 	}
 	return true
+}
+
+// extractNessusSNMPCommunity extracts SNMP community strings from plugin 41028
+// output and appends them to the host's snmp_communities attribute.
+func extractNessusSNMPCommunity(ph *ParsedHost, text string) {
+	// The output format is free-text with the community name on its own line
+	// after the descriptive text. We look for non-empty, non-boilerplate lines.
+	for _, line := range strings.Split(text, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		// Skip known boilerplate lines from plugin 41028
+		lower := strings.ToLower(line)
+		if strings.Contains(lower, "remote snmp") ||
+			strings.Contains(lower, "community") ||
+			strings.Contains(lower, "string") ||
+			strings.Contains(lower, "default") ||
+			strings.Contains(lower, "description") ||
+			strings.HasPrefix(lower, "nessus") ||
+			strings.HasPrefix(lower, "plugin") ||
+			strings.HasPrefix(lower, "the ") ||
+			strings.HasPrefix(lower, "this ") {
+			continue
+		}
+		// Whatever remains should be a community name
+		community := line
+		existing := ph.Attributes["snmp_communities"]
+		if existing == "" {
+			ph.Attributes["snmp_communities"] = community
+		} else if !strings.Contains(existing, community) {
+			ph.Attributes["snmp_communities"] = existing + "," + community
+		}
+	}
 }

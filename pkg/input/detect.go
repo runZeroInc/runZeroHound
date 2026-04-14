@@ -4,7 +4,9 @@ package input
 
 import (
 	"bytes"
+	"fmt"
 	"io"
+	"net"
 	"os"
 	"strings"
 )
@@ -24,6 +26,8 @@ const (
 	FileTypeQualys                // Qualys VM scan XML report
 	FileTypeMasscan               // Masscan XML or JSON output
 	FileTypeShodan                // Shodan JSONL export
+	FileTypeOneSixtyOne           // onesixtyone SNMP scanner output
+	FileTypeNexpose               // Rapid7 Nexpose/InsightVM XML report
 )
 
 // String returns a human-readable name for the file type.
@@ -49,6 +53,10 @@ func (ft FileType) String() string {
 		return "masscan"
 	case FileTypeShodan:
 		return "shodan"
+	case FileTypeOneSixtyOne:
+		return "onesixtyone"
+	case FileTypeNexpose:
+		return "nexpose"
 	default:
 		return "unknown"
 	}
@@ -65,9 +73,15 @@ func (ft FileType) String() string {
 func DetectFileType(path string) (FileType, error) {
 	lower := strings.ToLower(path)
 
-	// 1. Extension-based detection for Nessus
+	// 1. Extension-based detection
 	if strings.HasSuffix(lower, ".nessus") {
 		return FileTypeNessus, nil
+	}
+	if strings.HasSuffix(lower, ".walk") {
+		return FileTypeSNMPWalk, nil
+	}
+	if strings.HasSuffix(lower, ".161") {
+		return FileTypeOneSixtyOne, nil
 	}
 
 	fd, err := os.Open(path) // #nosec G304
@@ -106,8 +120,13 @@ func DetectFileType(path string) (FileType, error) {
 				bytes.Contains(trimmed, []byte("<results"))):
 			return FileTypeOpenVAS, nil
 		case bytes.Contains(trimmed, []byte("<SCAN")) &&
-			bytes.Contains(trimmed, []byte("<IP")):
+			(bytes.Contains(trimmed, []byte("<IP")) ||
+				bytes.Contains(trimmed, []byte("qualys")) ||
+				bytes.Contains(trimmed, []byte("scan-1.dtd"))):
 			return FileTypeQualys, nil
+		case bytes.Contains(trimmed, []byte("NeXposeSimpleXML")) ||
+			bytes.Contains(trimmed, []byte("NexposeReport")):
+			return FileTypeNexpose, nil
 		}
 	}
 
@@ -126,33 +145,78 @@ func DetectFileType(path string) (FileType, error) {
 		return FileTypeNetBox, nil
 	}
 
-	// 5. snmpwalk OID pattern
+	// 5. onesixtyone output: lines matching "IP [community] sysDescr"
+	if looksLikeOneSixtyOne(header) {
+		return FileTypeOneSixtyOne, nil
+	}
+
+	// 6. snmpwalk OID pattern
 	if looksLikeSNMPWalk(header) {
 		return FileTypeSNMPWalk, nil
 	}
 
-	// 6. Fallback to runZero JSONL
+	// 7. Fallback to runZero JSONL (reject clearly unsupported extensions)
+	switch {
+	case strings.HasSuffix(lower, ".csv"):
+		return FileTypeUnknown, fmt.Errorf("CSV format is not supported; use an XML or JSON export instead")
+	}
 	return FileTypeRunZeroJSONL, nil
 }
 
 // looksLikeSNMPWalk returns true when the first few lines match typical
-// snmpwalk output: "OID = TYPE: value" or ".1.3.6... = ...".
+// snmpwalk output. Handles both MIB-resolved names and numeric OID forms:
+//   - MIB names:   "SNMPv2-MIB::sysDescr.0 = STRING: ..."
+//   - Numeric OID: ".1.3.6.1.2.1.1.1.0 = STRING: ..."
+//   - iso prefix:  "iso.3.6.1.2.1.1.1.0 = STRING: ..."
 func looksLikeSNMPWalk(data []byte) bool {
 	s := string(data)
 	lines := strings.SplitN(s, "\n", 10)
 	matched := 0
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		if len(line) == 0 {
+		if len(line) == 0 || strings.HasPrefix(line, "#") {
 			continue
 		}
-		// Matches "SNMPv2-MIB::sysDescr.0 = STRING: ..." or ".1.3.6.1... = ..."
-		if strings.Contains(line, " = ") &&
-			(strings.Contains(line, "::") || strings.HasPrefix(line, ".1.")) {
+		// Must contain " = " separator
+		if !strings.Contains(line, " = ") {
+			continue
+		}
+		// Match MIB-resolved (contains "::"), numeric OID (.1.), or iso prefix (iso.)
+		if strings.Contains(line, "::") || strings.HasPrefix(line, ".1.") || strings.HasPrefix(line, "iso.") {
 			matched++
 			if matched >= 2 {
 				return true
 			}
+		}
+	}
+	return false
+}
+
+// looksLikeOneSixtyOne returns true when the first few lines match typical
+// onesixtyone output: "IP [community] sysDescr..." or status lines like
+// "Scanning N hosts, M communities".
+func looksLikeOneSixtyOne(data []byte) bool {
+	s := string(data)
+	lines := strings.SplitN(s, "\n", 10)
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if len(line) == 0 {
+			continue
+		}
+		// Match "IP [community] description" pattern
+		// e.g. "192.168.0.19 [public] APC Web/SNMP Management Card..."
+		bracketOpen := strings.Index(line, " [")
+		if bracketOpen < 0 {
+			continue
+		}
+		bracketClose := strings.Index(line[bracketOpen:], "] ")
+		if bracketClose < 0 {
+			continue
+		}
+		// The part before the bracket should look like an IP address
+		candidate := strings.TrimSpace(line[:bracketOpen])
+		if net.ParseIP(candidate) != nil {
+			return true
 		}
 	}
 	return false

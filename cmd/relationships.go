@@ -58,6 +58,7 @@ func extractAllRelationships(refs []assetNodeRef) ([]*bloodhound.Node, []*bloodh
 	extractTLSCAChainEntities(rc, refs)
 	extractSNMPEngineEntities(rc, refs)
 	extractSNMPDeviceTypeEntities(rc, refs)
+	extractSNMPCommunityEntities(rc, refs)
 	extractSMBGUIDEntities(rc, refs)
 	extractIPMIEntities(rc, refs)
 	extractTracerouteEntities(rc, refs)
@@ -1007,6 +1008,70 @@ func extractSNMPDeviceTypeEntities(rc *relationshipContext, refs []assetNodeRef)
 	}
 	if cnt > 0 {
 		rlog("info", "created %d SNMP device type nodes", cnt)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// SNMP community string entities
+// ---------------------------------------------------------------------------
+
+func extractSNMPCommunityEntities(rc *relationshipContext, refs []assetNodeRef) {
+	cnt := 0
+	for _, ref := range refs {
+		communities := make(map[string]bool)
+
+		// Collect from asset-level attribute (snmp.v2DefaultCommunities, tab-separated)
+		if cv := ref.asset.Attributes["snmp.v2DefaultCommunities"]; cv != "" {
+			for _, c := range strings.Split(cv, "\t") {
+				c = strings.TrimSpace(c)
+				if c != "" {
+					communities[c] = true
+				}
+			}
+		}
+
+		// Collect from service-level attribute (snmp.defaultCommunities, tab-separated)
+		for _, svc := range ref.asset.Services {
+			if cv := svc["snmp.defaultCommunities"]; cv != "" {
+				for _, c := range strings.Split(cv, "\t") {
+					c = strings.TrimSpace(c)
+					if c != "" {
+						communities[c] = true
+					}
+				}
+			}
+		}
+
+		if len(communities) == 0 {
+			continue
+		}
+
+		// Sort for deterministic output
+		sorted := make([]string, 0, len(communities))
+		for c := range communities {
+			sorted = append(sorted, c)
+		}
+		sort.Strings(sorted)
+
+		for _, community := range sorted {
+			commNodeID := "rz-snmp-community-" + sanitizeID(community)
+			if !rc.created[commNodeID] {
+				cnt++
+				rc.addNode(&bloodhound.Node{
+					ID:    commNodeID,
+					Kinds: []string{"RZSNMPCommunity"},
+					Properties: map[string]any{
+						"displayname": community,
+						"community":   community,
+					},
+				})
+			}
+			rc.addEdge(ref.nodeID, "RZHasSNMPCommunity", commNodeID)
+			rc.addEdge(commNodeID, "RZSNMPCommunityUsedBy", ref.nodeID)
+		}
+	}
+	if cnt > 0 {
+		rlog("info", "created %d SNMP community nodes", cnt)
 	}
 }
 

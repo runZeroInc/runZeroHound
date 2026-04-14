@@ -36,6 +36,9 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 	// routerNodes tracks already-created traceroute router nodes.
 	routerNodes := make(map[string]bool)
 
+	// communityNodes tracks already-created SNMP community string nodes.
+	communityNodes := make(map[string]bool)
+
 	for _, ph := range hosts {
 		if len(ph.Addresses) == 0 {
 			continue
@@ -276,6 +279,32 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 				edgeBetween(saID, "RZSubAssetOf", nodeID),
 			)
 		}
+
+		// SNMP community string nodes
+		if commStr, ok := ph.Attributes["snmp_communities"]; ok && commStr != "" {
+			for _, community := range strings.Split(commStr, ",") {
+				community = strings.TrimSpace(community)
+				if community == "" {
+					continue
+				}
+				commID := "rz-snmp-community-" + sanitizeFP(community)
+				if !communityNodes[commID] {
+					communityNodes[commID] = true
+					nodes = append(nodes, &bloodhound.Node{
+						ID:    commID,
+						Kinds: []string{"RZSNMPCommunity"},
+						Properties: map[string]any{
+							"displayname": community,
+							"community":   community,
+						},
+					})
+				}
+				edges = append(edges,
+					edgeBetween(nodeID, "RZHasSNMPCommunity", commID),
+					edgeBetween(commID, "RZSNMPCommunityUsedBy", nodeID),
+				)
+			}
+		}
 	}
 
 	// Build subnet nodes
@@ -347,6 +376,10 @@ func sourceKind(ft FileType) string {
 		return "RZMasscanHost"
 	case FileTypeShodan:
 		return "RZShodanHost"
+	case FileTypeOneSixtyOne:
+		return "RZOneSixtyOneHost"
+	case FileTypeNexpose:
+		return "RZNexposeHost"
 	default:
 		return "RZAsset"
 	}

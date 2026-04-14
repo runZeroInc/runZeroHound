@@ -24,7 +24,7 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BINARY="go run ${SCRIPT_DIR}/."
-SAMPLE="${SCRIPT_DIR}/examples/sample-runzero.jsonl"
+SAMPLE="${SCRIPT_DIR}/examples/"
 CONVERTED=$(mktemp /tmp/runzerohound-test-XXXXXX.json)
 QUERIES_MD="${SCRIPT_DIR}/QUERIES.md"
 
@@ -46,10 +46,10 @@ if ! $SKIP_LOAD; then
 # ============================================================
 # Step 1: Convert
 # ============================================================
-echo "==> Step 1: Converting ${SAMPLE} to opengraph JSON …"
-$BINARY convert -o "$CONVERTED" "$SAMPLE" 2>&1 | tail -5
+echo "==> Step 1: Converting ${SAMPLE}/* to opengraph JSON …"
+$BINARY convert -o "$CONVERTED" "$SAMPLE"/* 2>&1 | tail -5
 if [[ ! -s "$CONVERTED" ]]; then
-    echo -e "${RED}FATAL: converted file is empty${NC}"
+    echo -e "${RED}FATAL: converted files are empty${NC}"
     exit 1
 fi
 echo -e "${GREEN}OK${NC} — wrote $(wc -c < "$CONVERTED" | tr -d ' ') bytes to ${CONVERTED}"

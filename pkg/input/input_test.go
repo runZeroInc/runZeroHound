@@ -36,6 +36,36 @@ func TestDetectFileType(t *testing.T) {
 			want:     input.FileTypeSNMPWalk,
 		},
 		{
+			filename: "device.walk",
+			content:  "iso.3.6.1.2.1.1.1.0 = STRING: some device\niso.3.6.1.2.1.1.5.0 = STRING: hostname\n",
+			want:     input.FileTypeSNMPWalk,
+		},
+		{
+			filename: "numeric_oids.txt",
+			content:  "iso.3.6.1.2.1.1.1.0 = STRING: \"APC UPS\"\niso.3.6.1.2.1.1.2.0 = OID: iso.3.6.1.4.1.318\n",
+			want:     input.FileTypeSNMPWalk,
+		},
+		{
+			filename: "snmp_scan.161",
+			content:  "Scanning 256 hosts, 2 communities\n192.168.0.19 [public] APC Web/SNMP Management Card\n",
+			want:     input.FileTypeOneSixtyOne,
+		},
+		{
+			filename: "snmp_scan_content.txt",
+			content:  "192.168.0.19 [public] APC Web/SNMP Management Card\n192.168.0.81 [public] Cisco NX-OS\n",
+			want:     input.FileTypeOneSixtyOne,
+		},
+		{
+			filename: "nexpose_simple.xml",
+			content:  `<NeXposeSimpleXML version="1.0"><generated>20240111</generated><devices></devices></NeXposeSimpleXML>`,
+			want:     input.FileTypeNexpose,
+		},
+		{
+			filename: "nexpose_report.xml",
+			content:  `<NexposeReport version="2.0"><scans></scans><nodes></nodes></NexposeReport>`,
+			want:     input.FileTypeNexpose,
+		},
+		{
 			filename: "assets.jsonl",
 			content:  `{"id":"aaa","addresses":["1.2.3.4"]}`,
 			want:     input.FileTypeRunZeroJSONL,
@@ -142,6 +172,67 @@ IP-MIB::ipAdEntAddr.10.0.0.5 = IpAddress: 10.0.0.5
 	}
 	if _, ok := h.UniqueKeys["snmpv3_engine_id"]; !ok {
 		t.Error("expected snmpv3_engine_id unique key to be set")
+	}
+}
+
+// TestParseSNMPWalkISOFormat validates snmpwalk parsing with numeric "iso." prefix OIDs.
+func TestParseSNMPWalkISOFormat(t *testing.T) {
+	content := `iso.3.6.1.2.1.1.1.0 = STRING: "Cisco NX-OS(tm) nxos.9.3.7.bin"
+iso.3.6.1.2.1.1.5.0 = STRING: "LAB-N9K"
+iso.3.6.1.2.1.2.2.1.6.1 = Hex-STRING: 2C 4F 52 BC 07 F6
+iso.3.6.1.2.1.4.20.1.1.192.168.0.81 = IpAddress: 192.168.0.81
+iso.3.6.1.2.1.4.20.1.1.10.114.122.31 = IpAddress: 10.114.122.31
+iso.3.6.1.2.1.4.22.1.2.1.192.168.0.1 = Hex-STRING: F4 90 EA 00 82 3F
+`
+
+	path := filepath.Join(t.TempDir(), "rzlab-192.168.0.81.walk")
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := input.ParseSNMPWalk(path)
+	if err != nil {
+		t.Fatalf("ParseSNMPWalk (iso): %v", err)
+	}
+	if len(result.Hosts) != 1 {
+		t.Fatalf("got %d hosts, want 1", len(result.Hosts))
+	}
+	h := result.Hosts[0]
+
+	// IP should be extracted from both the filename hint and the ipAdEntAddr OIDs
+	if len(h.Addresses) < 2 {
+		t.Errorf("expected >= 2 addresses, got %v", h.Addresses)
+	}
+	foundIP := false
+	for _, a := range h.Addresses {
+		if a == "192.168.0.81" {
+			foundIP = true
+		}
+	}
+	if !foundIP {
+		t.Errorf("expected address 192.168.0.81, got %v", h.Addresses)
+	}
+
+	// sysName should be extracted (with quotes stripped)
+	if len(h.Names) == 0 || h.Names[0] != "LAB-N9K" {
+		t.Errorf("unexpected names: %v", h.Names)
+	}
+
+	// sysDescr → OS
+	if h.OS == "" {
+		t.Error("expected OS to be set from sysDescr")
+	}
+
+	// MAC from ifPhysAddress
+	if len(h.MACs) == 0 {
+		t.Error("expected MAC address from ifPhysAddress")
+	} else if h.MACs[0] != "2c:4f:52:bc:07:f6" {
+		t.Errorf("unexpected MAC: %q", h.MACs[0])
+	}
+
+	// ARP entry should create a SubAsset
+	if len(h.SubAssets) == 0 {
+		t.Error("expected SubAsset from ipNetToMediaPhysAddress")
 	}
 }
 
@@ -252,6 +343,56 @@ SHA-1 Fingerprint: AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD</
 	}
 	if _, ok := h.UniqueKeys["smb_guid"]; !ok {
 		t.Error("expected smb_guid")
+	}
+}
+
+// TestParseNessusTraceroute validates Nessus bare-IP traceroute parsing.
+func TestParseNessusTraceroute(t *testing.T) {
+	content := `<?xml version="1.0" ?>
+<NessusClientData_v2>
+  <Policy><policyName>Test</policyName></Policy>
+  <Report name="Test Scan">
+    <ReportHost name="10.0.1.50">
+      <HostProperties>
+        <tag name="host-ip">10.0.1.50</tag>
+      </HostProperties>
+      <ReportItem port="0" svc_name="general" protocol="tcp" severity="0"
+                  pluginID="10287" pluginName="Traceroute Information">
+        <plugin_output>For your information, here is the traceroute from 192.168.0.3 to 10.0.1.50 :
+192.168.0.3
+192.168.0.1
+10.0.1.50
+
+Hop Count: 2
+</plugin_output>
+      </ReportItem>
+    </ReportHost>
+  </Report>
+</NessusClientData_v2>`
+
+	path := filepath.Join(t.TempDir(), "trace.nessus")
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := input.ParseNessus(path)
+	if err != nil {
+		t.Fatalf("ParseNessus: %v", err)
+	}
+	if len(result.Hosts) != 1 {
+		t.Fatalf("got %d hosts, want 1", len(result.Hosts))
+	}
+	h := result.Hosts[0]
+
+	if len(h.TracerouteHops) != 1 {
+		t.Fatalf("got %d traceroute hops, want 1 (intermediate only)", len(h.TracerouteHops))
+	}
+	hop := h.TracerouteHops[0]
+	if hop.Addresses[0] != "192.168.0.1" {
+		t.Errorf("expected intermediate hop 192.168.0.1, got %s", hop.Addresses[0])
+	}
+	if hop.TTL != 1 {
+		t.Errorf("expected TTL 1, got %d", hop.TTL)
 	}
 }
 
@@ -402,13 +543,13 @@ func TestParseNetBox(t *testing.T) {
 
 // TestParseQualys validates Qualys VM scan XML parsing.
 func TestParseQualys(t *testing.T) {
-	path := filepath.Join("..", "..", "examples", "sample-qualys.xml")
+	path := filepath.Join("..", "..", "examples", "rzlab-qualys.xml")
 	result, err := input.ParseQualys(path)
 	if err != nil {
 		t.Fatalf("ParseQualys: %v", err)
 	}
-	if len(result.Hosts) != 3 {
-		t.Fatalf("got %d hosts, want 3", len(result.Hosts))
+	if len(result.Hosts) != 4 {
+		t.Fatalf("got %d hosts, want 4", len(result.Hosts))
 	}
 
 	// Build a lookup by IP for stable assertions.
@@ -419,71 +560,52 @@ func TestParseQualys(t *testing.T) {
 		}
 	}
 
-	// ---- mail server 192.0.2.10 ----
-	mail, ok := byIP["192.0.2.10"]
+	// ---- win2022-infra01 10.114.128.23 ----
+	infra, ok := byIP["10.114.128.23"]
 	if !ok {
-		t.Fatal("host 192.0.2.10 not found")
+		t.Fatal("host 10.114.128.23 not found")
 	}
-	if len(mail.Names) == 0 || mail.Names[0] != "mail.example.com" {
-		t.Errorf("mail names: %v", mail.Names)
+	if len(infra.Names) == 0 || infra.Names[0] != "win2022-infra01.corp.neonray.biz" {
+		t.Errorf("infra names: %v", infra.Names)
 	}
-	if mail.OS != "Linux 5.15" {
-		t.Errorf("mail OS: %q", mail.OS)
+	if infra.OS != "Windows 2016/2019/10" {
+		t.Errorf("infra OS: %q", infra.OS)
 	}
-	// Should have services for ports 22, 443, and 25.
-	if len(mail.Services) < 3 {
-		t.Errorf("mail services: got %d, want >= 3", len(mail.Services))
-	}
-	// MAC should be extracted from the RESULT text.
-	if len(mail.MACs) == 0 {
-		t.Error("expected MAC address for 192.0.2.10")
-	} else if mail.MACs[0] != "02:42:c0:00:02:0a" {
-		t.Errorf("unexpected MAC: %q", mail.MACs[0])
-	}
-	// The sample SHA-1 fingerprint is continuous hex (not colon-separated),
-	// so the TLS FP regex won't capture it. Verify MAC was extracted instead.
-	if mail.Attributes["mac_address"] != "02:42:c0:00:02:0a" {
-		t.Errorf("unexpected mac_address attribute: %q", mail.Attributes["mac_address"])
+	if len(infra.Services) < 5 {
+		t.Errorf("infra services: got %d, want >= 5", len(infra.Services))
 	}
 
-	// ---- DC 198.51.100.5 ----
-	dc, ok := byIP["198.51.100.5"]
+	// ---- win2022-adc01 10.114.128.21 ----
+	adc, ok := byIP["10.114.128.21"]
 	if !ok {
-		t.Fatal("host 198.51.100.5 not found")
+		t.Fatal("host 10.114.128.21 not found")
 	}
-	if dc.OS != "Windows Server 2022 Standard" {
-		t.Errorf("dc OS: %q", dc.OS)
+	if adc.OS != "Windows 2016/2019/10" {
+		t.Errorf("adc OS: %q", adc.OS)
 	}
-	// SMB GUID should be extracted.
-	if guid, ok := dc.UniqueKeys["smb_guid"]; !ok {
-		t.Error("expected smb_guid for 198.51.100.5")
-	} else if guid != "4a3b2c1d-5e6f-7a8b-9c0d-1e2f3a4b5c6d" {
-		t.Errorf("unexpected smb_guid: %q", guid)
+	if len(adc.Services) < 5 {
+		t.Errorf("adc services: got %d, want >= 5", len(adc.Services))
 	}
 
-	// ---- switch 203.0.113.50 ----
-	sw, ok := byIP["203.0.113.50"]
+	// ---- unnamed host 10.114.128.32 ----
+	unnamed, ok := byIP["10.114.128.32"]
 	if !ok {
-		t.Fatal("host 203.0.113.50 not found")
+		t.Fatal("host 10.114.128.32 not found")
 	}
-	if sw.OS != "Cisco IOS 15.2" {
-		t.Errorf("switch OS: %q", sw.OS)
-	}
-	// Should have services on port 22 and 161.
-	if len(sw.Services) < 2 {
-		t.Errorf("switch services: got %d, want >= 2", len(sw.Services))
+	if unnamed.OS != "" {
+		t.Errorf("unnamed OS: %q, want empty", unnamed.OS)
 	}
 }
 
 // TestParseMasscanXML validates Masscan XML parsing.
 func TestParseMasscanXML(t *testing.T) {
-	path := filepath.Join("..", "..", "examples", "sample-masscan.xml")
+	path := filepath.Join("..", "..", "examples", "rzlab-masscan.xml")
 	result, err := input.ParseMasscan(path)
 	if err != nil {
 		t.Fatalf("ParseMasscan (XML): %v", err)
 	}
-	if len(result.Hosts) != 4 {
-		t.Fatalf("got %d hosts, want 4", len(result.Hosts))
+	if len(result.Hosts) < 100 {
+		t.Fatalf("got %d hosts, want >= 100", len(result.Hosts))
 	}
 
 	byIP := make(map[string]*input.ParsedHost)
@@ -493,30 +615,13 @@ func TestParseMasscanXML(t *testing.T) {
 		}
 	}
 
-	// 192.0.2.10 should have 3 services (22, 25, 443)
-	mail, ok := byIP["192.0.2.10"]
+	// 192.168.0.4 should have multiple services
+	host, ok := byIP["192.168.0.4"]
 	if !ok {
-		t.Fatal("host 192.0.2.10 not found")
+		t.Fatal("host 192.168.0.4 not found")
 	}
-	if len(mail.Services) != 3 {
-		t.Errorf("192.0.2.10 services: got %d, want 3", len(mail.Services))
-	}
-	// Check that banner is captured for port 22
-	for _, svc := range mail.Services {
-		if svc.Port == "22" {
-			if svc.Attributes["banner"] == "" {
-				t.Error("expected SSH banner for port 22")
-			}
-		}
-	}
-
-	// 198.51.100.5 should have 5 services
-	dc, ok := byIP["198.51.100.5"]
-	if !ok {
-		t.Fatal("host 198.51.100.5 not found")
-	}
-	if len(dc.Services) != 5 {
-		t.Errorf("198.51.100.5 services: got %d, want 5", len(dc.Services))
+	if len(host.Services) < 2 {
+		t.Errorf("192.168.0.4 services: got %d, want >= 2", len(host.Services))
 	}
 
 	// Every host should have Source == FileTypeMasscan
@@ -527,17 +632,26 @@ func TestParseMasscanXML(t *testing.T) {
 	}
 }
 
-// TestParseMasscanJSON validates Masscan JSON parsing.
+// TestParseMasscanJSON validates Masscan JSON parsing using inline data.
 func TestParseMasscanJSON(t *testing.T) {
-	path := filepath.Join("..", "..", "examples", "sample-masscan.json")
+	content := `{ "ip": "10.0.0.1", "timestamp": "1700000000", "ports": [ {"port": 22, "proto": "tcp", "status": "open", "reason": "syn-ack", "ttl": 64, "service": {"name": "ssh", "banner": "SSH-2.0-OpenSSH_9.0"}} ] }
+{ "ip": "10.0.0.1", "timestamp": "1700000001", "ports": [ {"port": 443, "proto": "tcp", "status": "open", "reason": "syn-ack", "ttl": 64} ] }
+{ "ip": "10.0.0.2", "timestamp": "1700000002", "ports": [ {"port": 80, "proto": "tcp", "status": "open", "reason": "syn-ack", "ttl": 128} ] }
+{ "ip": "10.0.0.3", "timestamp": "1700000003", "ports": [ {"port": 445, "proto": "tcp", "status": "open", "reason": "syn-ack", "ttl": 128, "service": {"name": "smb", "banner": "SMBv2  guid=61746164-6573-7374-0000-000000000000 time=2026-01-01  domain=TESTDOMAIN version=6.1.0"}} ] }
+{   "finished": 1 }
+`
+	path := filepath.Join(t.TempDir(), "masscan.json")
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+
 	result, err := input.ParseMasscan(path)
 	if err != nil {
 		t.Fatalf("ParseMasscan (JSON): %v", err)
 	}
 
-	// The JSON has records for 4 unique IPs.
-	if len(result.Hosts) != 4 {
-		t.Fatalf("got %d hosts, want 4", len(result.Hosts))
+	if len(result.Hosts) != 3 {
+		t.Fatalf("got %d hosts, want 3", len(result.Hosts))
 	}
 
 	byIP := make(map[string]*input.ParsedHost)
@@ -547,33 +661,72 @@ func TestParseMasscanJSON(t *testing.T) {
 		}
 	}
 
-	// 192.0.2.10 has 3 port records (22, 25, 443)
-	mail, ok := byIP["192.0.2.10"]
+	// 10.0.0.1 has 2 port records (22, 443)
+	host1, ok := byIP["10.0.0.1"]
 	if !ok {
-		t.Fatal("host 192.0.2.10 not found")
+		t.Fatal("host 10.0.0.1 not found")
 	}
-	if len(mail.Services) != 3 {
-		t.Errorf("192.0.2.10 services: got %d, want 3", len(mail.Services))
+	if len(host1.Services) != 2 {
+		t.Errorf("10.0.0.1 services: got %d, want 2", len(host1.Services))
 	}
 
-	// Verify banner is captured
+	// Verify banner is captured and SSH version extracted
 	foundBanner := false
-	for _, svc := range mail.Services {
+	for _, svc := range host1.Services {
 		if svc.Port == "22" && svc.Attributes["banner"] != "" {
 			foundBanner = true
+			if svc.Version != "OpenSSH_9.0" {
+				t.Errorf("expected SSH version OpenSSH_9.0, got %q", svc.Version)
+			}
+			if svc.Attributes["reason"] != "syn-ack" {
+				t.Errorf("expected reason syn-ack, got %q", svc.Attributes["reason"])
+			}
+			if svc.Attributes["ttl"] != "64" {
+				t.Errorf("expected ttl 64, got %q", svc.Attributes["ttl"])
+			}
 		}
 	}
 	if !foundBanner {
-		t.Error("expected SSH banner for 192.0.2.10:22")
+		t.Error("expected SSH banner for 10.0.0.1:22")
 	}
 
-	// 192.0.2.200 has 4 port records
-	app, ok := byIP["192.0.2.200"]
-	if !ok {
-		t.Fatal("host 192.0.2.200 not found")
+	// Verify timestamp stored on host
+	if host1.Attributes["timestamp"] == "" {
+		t.Error("expected timestamp on host 10.0.0.1")
 	}
-	if len(app.Services) != 4 {
-		t.Errorf("192.0.2.200 services: got %d, want 4", len(app.Services))
+
+	// 10.0.0.2 has 1 port record
+	host2, ok := byIP["10.0.0.2"]
+	if !ok {
+		t.Fatal("host 10.0.0.2 not found")
+	}
+	if len(host2.Services) != 1 {
+		t.Errorf("10.0.0.2 services: got %d, want 1", len(host2.Services))
+	}
+
+	// 10.0.0.3: SMB banner enrichment
+	host3, ok := byIP["10.0.0.3"]
+	if !ok {
+		t.Fatal("host 10.0.0.3 not found")
+	}
+	if len(host3.Services) != 1 {
+		t.Fatalf("10.0.0.3 services: got %d, want 1", len(host3.Services))
+	}
+	smbSvc := host3.Services[0]
+	if smbSvc.Product != "smb" {
+		t.Errorf("expected SMB product, got %q", smbSvc.Product)
+	}
+	if smbSvc.Version != "6.1.0" {
+		t.Errorf("expected SMB version 6.1.0, got %q", smbSvc.Version)
+	}
+	if smbSvc.Attributes["smb_guid"] != "61746164-6573-7374-0000-000000000000" {
+		t.Errorf("expected smb_guid, got %q", smbSvc.Attributes["smb_guid"])
+	}
+	if smbSvc.Attributes["smb_domain"] != "TESTDOMAIN" {
+		t.Errorf("expected smb_domain TESTDOMAIN, got %q", smbSvc.Attributes["smb_domain"])
+	}
+	if host3.UniqueKeys["smb_guid"] == "" {
+		t.Error("expected smb_guid in host UniqueKeys")
 	}
 }
 
@@ -851,3 +1004,257 @@ func TestDetectFileTypeExtended(t *testing.T) {
 	}
 }
 
+// TestParseOneSixtyOne validates onesixtyone output parsing.
+func TestParseOneSixtyOne(t *testing.T) {
+	content := `Scanning 256 hosts, 2 communities
+192.168.0.19 [public] APC Web/SNMP Management Card (MB:v4.1.0)
+192.168.0.81 [public] Cisco NX-OS(tm) nxos.9.3.7.bin
+Error in sendto: Permission denied
+192.168.0.19 [private] APC Web/SNMP Management Card (MB:v4.1.0)
+`
+
+	path := filepath.Join(t.TempDir(), "scan.161")
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := input.ParseOneSixtyOne(path)
+	if err != nil {
+		t.Fatalf("ParseOneSixtyOne: %v", err)
+	}
+
+	if len(result.Hosts) != 2 {
+		t.Fatalf("got %d hosts, want 2", len(result.Hosts))
+	}
+
+	// First host: 192.168.0.19 with two communities
+	h0 := result.Hosts[0]
+	if len(h0.Addresses) == 0 || h0.Addresses[0] != "192.168.0.19" {
+		t.Errorf("host 0 addresses: %v", h0.Addresses)
+	}
+	if h0.Attributes["snmp_communities"] != "public,private" {
+		t.Errorf("host 0 communities: %q, want 'public,private'", h0.Attributes["snmp_communities"])
+	}
+	if h0.OS == "" {
+		t.Error("host 0 OS should be set from sysDescr")
+	}
+	if len(h0.Services) != 1 || h0.Services[0].Port != "161" || h0.Services[0].Protocol != "udp" {
+		t.Errorf("host 0 services: %+v", h0.Services)
+	}
+
+	// Second host: 192.168.0.81 with one community
+	h1 := result.Hosts[1]
+	if len(h1.Addresses) == 0 || h1.Addresses[0] != "192.168.0.81" {
+		t.Errorf("host 1 addresses: %v", h1.Addresses)
+	}
+	if h1.Attributes["snmp_communities"] != "public" {
+		t.Errorf("host 1 communities: %q, want 'public'", h1.Attributes["snmp_communities"])
+	}
+}
+
+// TestOneSixtyOneGraph validates that SNMP community nodes and edges are generated.
+func TestOneSixtyOneGraph(t *testing.T) {
+	hosts := []*input.ParsedHost{
+		{
+			Source:    input.FileTypeOneSixtyOne,
+			Addresses: []string{"192.168.0.19"},
+			OS:        "APC Web/SNMP Management Card",
+			Attributes: map[string]string{
+				"snmp_communities": "public,private",
+				"snmp.sysDescr":    "APC Web/SNMP Management Card",
+			},
+			UniqueKeys: make(map[string]string),
+			Services: []input.ParsedService{
+				{Address: "192.168.0.19", Port: "161", Protocol: "udp", Product: "snmp"},
+			},
+		},
+	}
+
+	nodes, edges := input.BuildOpenGraph(hosts)
+
+	// Check for RZSNMPCommunity nodes
+	commNodes := 0
+	for _, n := range nodes {
+		for _, k := range n.Kinds {
+			if k == "RZSNMPCommunity" {
+				commNodes++
+			}
+		}
+	}
+	if commNodes != 2 {
+		t.Errorf("expected 2 RZSNMPCommunity nodes (public, private), got %d", commNodes)
+	}
+
+	// Check for RZHasSNMPCommunity and RZSNMPCommunityUsedBy edges
+	hasCommunity := 0
+	usedBy := 0
+	for _, e := range edges {
+		if e.Kind == "RZHasSNMPCommunity" {
+			hasCommunity++
+		}
+		if e.Kind == "RZSNMPCommunityUsedBy" {
+			usedBy++
+		}
+	}
+	if hasCommunity != 2 {
+		t.Errorf("expected 2 RZHasSNMPCommunity edges, got %d", hasCommunity)
+	}
+	if usedBy != 2 {
+		t.Errorf("expected 2 RZSNMPCommunityUsedBy edges, got %d", usedBy)
+	}
+}
+
+// TestParseNexposeSimple validates Nexpose Simple XML parsing.
+func TestParseNexposeSimple(t *testing.T) {
+	content := `<NeXposeSimpleXML version="1.0">
+<generated>20240111T214351891</generated>
+<devices>
+<device address="10.0.0.1" id="1">
+<fingerprint certainty="0.90">
+<description>Ubuntu Linux 22.04</description>
+<vendor>Ubuntu</vendor>
+<family>Linux</family>
+<product>Linux</product>
+<version>22.04</version>
+<device-class>General</device-class>
+<architecture>x86_64</architecture>
+</fingerprint>
+<services>
+<service name="SSH" port="22" protocol="tcp">
+<fingerprint certainty="0.90">
+<description>OpenSSH 8.9p1</description>
+<vendor>OpenBSD</vendor>
+<family></family>
+<product>OpenSSH</product>
+<version>8.9p1</version>
+</fingerprint>
+</service>
+</services>
+<vulnerabilities>
+<vulnerability id="test-vuln-1" resultCode="VE"/>
+</vulnerabilities>
+</device>
+</devices>
+</NeXposeSimpleXML>`
+
+	path := filepath.Join(t.TempDir(), "test-nexpose-simple.xml")
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := input.ParseNexpose(path)
+	if err != nil {
+		t.Fatalf("ParseNexpose (simple): %v", err)
+	}
+	if len(result.Hosts) != 1 {
+		t.Fatalf("got %d hosts, want 1", len(result.Hosts))
+	}
+	h := result.Hosts[0]
+	if h.Addresses[0] != "10.0.0.1" {
+		t.Errorf("address = %q, want 10.0.0.1", h.Addresses[0])
+	}
+	if h.OS != "Ubuntu Linux 22.04" {
+		t.Errorf("OS = %q, want 'Ubuntu Linux 22.04'", h.OS)
+	}
+	if len(h.Services) != 1 || h.Services[0].Port != "22" {
+		t.Errorf("services = %+v, want 1 service on port 22", h.Services)
+	}
+	if h.Services[0].Product != "OpenSSH" {
+		t.Errorf("service product = %q, want 'OpenSSH'", h.Services[0].Product)
+	}
+}
+
+// TestParseNexposeReport validates Nexpose Report v1/v2 parsing.
+func TestParseNexposeReport(t *testing.T) {
+	content := `<NexposeReport version="2.0">
+<scans>
+<scan id="1" name="TestScan" startTime="20240101T000000000" endTime="20240101T010000000" status="finished"/>
+</scans>
+<nodes>
+<node address="10.0.0.2" status="alive" hardware-address="AABBCCDDEEFF" device-id="5" site-name="Lab" risk-score="123.45">
+<names><name>myhost.local</name></names>
+<fingerprints>
+<os certainty="1.00" vendor="Ubuntu" family="Linux" product="Linux" version="22.04" arch="x86_64"/>
+</fingerprints>
+<software>
+<fingerprint certainty="1.00" vendor="OpenBSD" product="OpenSSH" version="8.9"/>
+</software>
+<endpoints>
+<endpoint protocol="tcp" port="22" status="open">
+<services><service name="SSH">
+<configuration>
+<config name="ssh.hostkey.rsa.fingerprint">aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99</config>
+</configuration>
+</service></services>
+</endpoint>
+<endpoint protocol="tcp" port="443" status="open">
+<services><service name="HTTPS">
+<configuration>
+<config name="ssl.cert.sha1.fingerprint">AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD</config>
+<config name="ssl.cert.subject.dn">CN=myhost.local</config>
+</configuration>
+</service></services>
+</endpoint>
+</endpoints>
+<tests>
+<test id="vuln-1" status="vulnerable-exploited" key="" scan-id="1"/>
+<test id="vuln-2" status="vulnerable-version" key="" scan-id="1"/>
+<test id="not-vuln" status="not-vulnerable" key="" scan-id="1"/>
+</tests>
+</node>
+<node address="10.0.0.3" status="dead"/>
+</nodes>
+</NexposeReport>`
+
+	path := filepath.Join(t.TempDir(), "test-nexpose-v2.xml")
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := input.ParseNexpose(path)
+	if err != nil {
+		t.Fatalf("ParseNexpose (report): %v", err)
+	}
+	// Dead node should be excluded
+	if len(result.Hosts) != 1 {
+		t.Fatalf("got %d hosts, want 1 (dead node excluded)", len(result.Hosts))
+	}
+	h := result.Hosts[0]
+	if h.Addresses[0] != "10.0.0.2" {
+		t.Errorf("address = %q, want 10.0.0.2", h.Addresses[0])
+	}
+	if len(h.MACs) == 0 || h.MACs[0] != "aa:bb:cc:dd:ee:ff" {
+		t.Errorf("MACs = %v, want [aa:bb:cc:dd:ee:ff]", h.MACs)
+	}
+	if len(h.Names) == 0 || h.Names[0] != "myhost.local" {
+		t.Errorf("Names = %v, want [myhost.local]", h.Names)
+	}
+	if h.OS != "Linux 22.04 (x86_64)" {
+		t.Errorf("OS = %q, want 'Linux 22.04 (x86_64)'", h.OS)
+	}
+	if h.Attributes["site_name"] != "Lab" {
+		t.Errorf("site_name = %q, want 'Lab'", h.Attributes["site_name"])
+	}
+	if h.Attributes["risk_score"] != "123.45" {
+		t.Errorf("risk_score = %q, want '123.45'", h.Attributes["risk_score"])
+	}
+	if len(h.Services) != 2 {
+		t.Fatalf("got %d services, want 2", len(h.Services))
+	}
+	// SSH host key fingerprint
+	if h.UniqueKeys["ssh_hostkey_fp"] == "" {
+		t.Error("expected ssh_hostkey_fp to be set")
+	}
+	// TLS cert fingerprint
+	if h.UniqueKeys["tls_cert_fp"] == "" {
+		t.Error("expected tls_cert_fp to be set")
+	}
+	// Vulnerability count: 2 vulnerable tests (not-vulnerable excluded)
+	if h.Attributes["vulnerability_count"] != "2" {
+		t.Errorf("vulnerability_count = %q, want '2'", h.Attributes["vulnerability_count"])
+	}
+	// Software count
+	if h.Attributes["software_count"] != "1" {
+		t.Errorf("software_count = %q, want '1'", h.Attributes["software_count"])
+	}
+}

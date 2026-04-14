@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -15,9 +16,9 @@ import (
 // Reference: https://github.com/robertdavidgraham/masscan
 
 type masscanRun struct {
-	XMLName xml.Name       `xml:"nmaprun"`
-	Scanner string         `xml:"scanner,attr"`
-	Hosts   []masscanHost  `xml:"host"`
+	XMLName xml.Name      `xml:"nmaprun"`
+	Scanner string        `xml:"scanner,attr"`
+	Hosts   []masscanHost `xml:"host"`
 }
 
 type masscanHost struct {
@@ -42,12 +43,14 @@ type masscanPort struct {
 }
 
 type masscanState struct {
-	State string `xml:"state,attr"`
+	State     string `xml:"state,attr"`
+	Reason    string `xml:"reason,attr"`
+	ReasonTTL string `xml:"reason_ttl,attr"`
 }
 
 type masscanService struct {
-	Name    string `xml:"name,attr"`
-	Banner  string `xml:"banner,attr"`
+	Name   string `xml:"name,attr"`
+	Banner string `xml:"banner,attr"`
 }
 
 // Masscan JSON record structure.
@@ -61,6 +64,7 @@ type masscanJSONPort struct {
 	Port    int                `json:"port"`
 	Proto   string             `json:"proto"`
 	Status  string             `json:"status"`
+	Reason  string             `json:"reason"`
 	Service masscanJSONService `json:"service"`
 	TTL     int                `json:"ttl"`
 }
@@ -145,6 +149,13 @@ func parseMasscanXML(fd *os.File, path string) (*ParseResult, error) {
 			if port.Service.Banner != "" {
 				svc.Attributes["banner"] = port.Service.Banner
 			}
+			if port.State.Reason != "" {
+				svc.Attributes["reason"] = port.State.Reason
+			}
+			if port.State.ReasonTTL != "" {
+				svc.Attributes["ttl"] = port.State.ReasonTTL
+			}
+			enrichMasscanService(hd.ph, &svc)
 			hd.ph.Services = append(hd.ph.Services, svc)
 		}
 	}
@@ -216,6 +227,10 @@ func parseMasscanJSON(fd *os.File, path string) (*ParseResult, error) {
 			byIP[rec.IP] = hd
 		}
 
+		if rec.Timestamp != "" {
+			hd.ph.Attributes["timestamp"] = rec.Timestamp
+		}
+
 		for _, port := range rec.Ports {
 			if port.Status != "" && port.Status != "open" {
 				continue
@@ -237,6 +252,13 @@ func parseMasscanJSON(fd *os.File, path string) (*ParseResult, error) {
 			if port.Service.Banner != "" {
 				svc.Attributes["banner"] = port.Service.Banner
 			}
+			if port.Reason != "" {
+				svc.Attributes["reason"] = port.Reason
+			}
+			if port.TTL > 0 {
+				svc.Attributes["ttl"] = strconv.Itoa(port.TTL)
+			}
+			enrichMasscanService(hd.ph, &svc)
 			hd.ph.Services = append(hd.ph.Services, svc)
 		}
 	}
@@ -246,4 +268,64 @@ func parseMasscanJSON(fd *os.File, path string) (*ParseResult, error) {
 		result.Hosts = append(result.Hosts, hd.ph)
 	}
 	return result, nil
+}
+
+// Regexes for extracting structured data from masscan banners.
+var (
+	sshVersionRe = regexp.MustCompile(`^SSH-[\d.]+-(\S+)`)
+	smbGUIDRe    = regexp.MustCompile(`guid=([0-9a-fA-F-]{36})`)
+	smbDomainRe  = regexp.MustCompile(`domain=(\S+)`)
+	smbVersionRe = regexp.MustCompile(`version=(\S+)`)
+	httpServerRe = regexp.MustCompile(`(?i)Server:\s*(.+)`)
+)
+
+// enrichMasscanService extracts structured data from masscan banners and
+// populates host/service fields accordingly.
+func enrichMasscanService(ph *ParsedHost, svc *ParsedService) {
+	banner := svc.Attributes["banner"]
+	if banner == "" {
+		return
+	}
+
+	switch {
+	case strings.HasPrefix(banner, "SSH-"):
+		if m := sshVersionRe.FindStringSubmatch(banner); m != nil {
+			svc.Product = "ssh"
+			svc.Version = m[1]
+		}
+
+	case strings.HasPrefix(banner, "SMBv"):
+		if m := smbGUIDRe.FindStringSubmatch(banner); m != nil {
+			svc.Attributes["smb_guid"] = m[1]
+			ph.UniqueKeys["smb_guid"] = strings.ToLower(m[1])
+		}
+		if m := smbDomainRe.FindStringSubmatch(banner); m != nil {
+			svc.Attributes["smb_domain"] = m[1]
+			if ph.Attributes["smb_domain"] == "" {
+				ph.Attributes["smb_domain"] = m[1]
+			}
+		}
+		if m := smbVersionRe.FindStringSubmatch(banner); m != nil {
+			svc.Version = m[1]
+		}
+		svc.Product = "smb"
+
+	case strings.HasPrefix(banner, "HTTP/"):
+		if m := httpServerRe.FindStringSubmatch(banner); m != nil {
+			svc.Product = strings.TrimSpace(m[1])
+		}
+	}
+
+	// Masscan uses "http.server" service name to report the Server header value
+	// and "title" to report the HTML title; store these as attributes.
+	svcName := svc.Attributes["service_name"]
+	switch svcName {
+	case "http.server":
+		svc.Attributes["http_server"] = strings.TrimSpace(banner)
+		if svc.Product == "" || svc.Product == "http.server" {
+			svc.Product = strings.TrimSpace(banner)
+		}
+	case "title":
+		svc.Attributes["http_title"] = strings.TrimSpace(banner)
+	}
 }

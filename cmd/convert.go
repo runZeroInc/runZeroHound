@@ -42,15 +42,17 @@ var convertCmd = &cobra.Command{
 	Long: `Convert one or more input files into BloodHound OpenGraph format.
 
 Supported input types (auto-detected):
-  runzero   runZero asset export (.json.gz or .jsonl)
-  nmap      Nmap XML output (-oX)
-  snmpwalk  net-snmp snmpwalk text output
-  nessus    Nessus vulnerability scanner report (.nessus)
-  openvas   OpenVAS/GVM XML report
-  netbox    NetBox DCIM/IPAM JSON API export
-  qualys    Qualys VM scan XML report
-  masscan   Masscan XML (-oX) or JSON (-oJ) output
-  shodan    Shodan JSONL export
+  runzero      runZero asset export (.json.gz or .jsonl)
+  nmap         Nmap XML output (-oX)
+  snmpwalk     net-snmp snmpwalk text output
+  onesixtyone  onesixtyone SNMP scanner output (.161)
+  nessus       Nessus vulnerability scanner report (.nessus)
+  openvas      OpenVAS/GVM XML report
+  netbox       NetBox DCIM/IPAM JSON API export
+  qualys       Qualys VM scan XML report
+  masscan      Masscan XML (-oX) or JSON (-oJ) output
+  shodan       Shodan JSONL export
+  nexpose      Rapid7 Nexpose/InsightVM XML report
 
 Use -o/--output to specify the output file (default: stdout).
 `,
@@ -140,6 +142,14 @@ func generateOpenGraph(inputFiles []string, outputFD *os.File) error {
 			nodes, edges := input.BuildOpenGraph(result.Hosts)
 			mergeResult(nodes, edges)
 
+		case input.FileTypeOneSixtyOne:
+			result, err := input.ParseOneSixtyOne(path)
+			if err != nil {
+				return fmt.Errorf("parse onesixtyone %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
 		case input.FileTypeNessus:
 			result, err := input.ParseNessus(path)
 			if err != nil {
@@ -184,6 +194,14 @@ func generateOpenGraph(inputFiles []string, outputFD *os.File) error {
 			result, err := input.ParseShodan(path)
 			if err != nil {
 				return fmt.Errorf("parse shodan %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeNexpose:
+			result, err := input.ParseNexpose(path)
+			if err != nil {
+				return fmt.Errorf("parse nexpose %s: %w", path, err)
 			}
 			nodes, edges := input.BuildOpenGraph(result.Hosts)
 			mergeResult(nodes, edges)

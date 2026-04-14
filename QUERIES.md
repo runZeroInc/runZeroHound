@@ -28,7 +28,6 @@ See the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cyp
   - [OT / Building Automation](#ot--building-automation)
   - [Infrastructure Fingerprinting](#infrastructure-fingerprinting)
   - [Windows / Active Directory](#windows--active-directory)
-  - [Inter-Asset Relationships](#inter-asset-relationships)
 - [4 — Advanced Queries](#4--advanced-queries)
   - [Cross-Source Correlation](#cross-source-correlation)
   - [Exposure & Risk](#exposure--risk)
@@ -121,13 +120,12 @@ MATCH (n)
 RETURN DISTINCT labels(n) AS kind
 ```
 
-### List asset-to-service connections
+### Count all edge types
 `tags: inventory, basics`
 
 ```cypher
-MATCH (a:RZAsset)-[:RZHasService]->(svc:RZService)
-RETURN a.displayname, svc.displayname
-LIMIT 20
+MATCH ()-[r]->()
+RETURN DISTINCT type(r) AS edge_type
 ```
 
 ### Verify the internet node exists
@@ -262,6 +260,16 @@ Dig deeper into identity, fingerprinting, and protocol-specific relationships.
 `tags: exposure, identity, correlation`
 
 ```cypher
+MATCH (a1:RZAsset)-[:RZHasSSHKey]->(key:RZSSHKey)<-[:RZHasSSHKey]-(a2:RZAsset)
+WHERE id(a1) < id(a2)
+RETURN key.fingerprint, key.key_type, a1.displayname AS host1, a2.displayname AS host2
+LIMIT 20
+```
+
+#### Shared SSH keys ranked by reuse count
+`tags: exposure, identity`
+
+```cypher
 MATCH (key:RZSSHKey)<-[:RZHasSSHKey]-(a:RZAsset)
 WITH key, collect(a.displayname) AS hosts, count(a) AS cnt
 WHERE cnt > 1
@@ -274,11 +282,9 @@ LIMIT 20
 `tags: exposure, identity, correlation`
 
 ```cypher
-MATCH (cert:RZTLSCert)<-[:RZHasTLSCert]-(a:RZAsset)
-WITH cert, collect(a.displayname) AS hosts, count(a) AS cnt
-WHERE cnt > 1
-RETURN cert.cn, cert.sha1, hosts, cnt
-ORDER BY cnt DESC
+MATCH (a1:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert)<-[:RZHasTLSCert]-(a2:RZAsset)
+WHERE id(a1) < id(a2)
+RETURN cert.cn, cert.sha1, a1.displayname, a2.displayname
 LIMIT 20
 ```
 
@@ -293,19 +299,18 @@ ORDER BY cert.not_after
 LIMIT 20
 ```
 
-#### Earliest-expiring TLS certificates
+#### Expired TLS certificates
 `tags: exposure, compliance`
 
 ```cypher
 MATCH (a:RZAsset)-[:RZHasTLSCert]->(cert:RZTLSCert)
-WHERE cert.not_after IS NOT NULL
+WHERE cert.not_after < datetime().epochMillis
 RETURN a.displayname, cert.cn, cert.sha1, cert.not_after
-ORDER BY cert.not_after
 LIMIT 20
 ```
 
 #### TLS certificates by signing CA
-`tags: dependency, identity, infrastructure`
+`tags: dependency, identity`
 
 ```cypher
 MATCH (ca:RZTLSCAChain)<-[:RZSignedByCA]-(a:RZAsset)
@@ -315,15 +320,24 @@ ORDER BY signed_count DESC
 LIMIT 20
 ```
 
+#### Internal CAs (signing 10+ assets)
+`tags: dependency, identity, infrastructure`
+
+```cypher
+MATCH (ca:RZTLSCAChain)<-[:RZSignedByCA]-(a:RZAsset)
+WITH ca, count(a) AS cnt
+WHERE cnt > 10
+RETURN ca.issuer, ca.ca_sha1, cnt
+ORDER BY cnt DESC
+```
+
 #### SMB GUID sharing across assets
 `tags: identity, correlation`
 
 ```cypher
-MATCH (guid:RZSMBGUID)<-[:RZHasSMBGUID]-(a:RZAsset)
-WITH guid, collect(a.displayname) AS hosts, count(a) AS cnt
-WHERE cnt > 1
-RETURN guid.guid, hosts, cnt
-ORDER BY cnt DESC
+MATCH (a1:RZAsset)-[:RZHasSMBGUID]->(guid:RZSMBGUID)<-[:RZHasSMBGUID]-(a2:RZAsset)
+WHERE id(a1) < id(a2)
+RETURN guid.guid, a1.displayname, a2.displayname
 LIMIT 20
 ```
 
@@ -513,11 +527,9 @@ ORDER BY dom.dns_domain, comp.dns_computer
 `tags: identity, correlation, windows`
 
 ```cypher
-MATCH (dom:RZNTLMDomain)<-[:RZHasNTLMDomain]-(a:RZAsset)
-WITH dom, collect(a.displayname) AS hosts, count(a) AS cnt
-WHERE cnt > 1
-RETURN dom.dns_domain, hosts, cnt
-ORDER BY cnt DESC
+MATCH (a1:RZAsset)-[:RZHasNTLMDomain]->(dom:RZNTLMDomain)<-[:RZHasNTLMDomain]-(a2:RZAsset)
+WHERE id(a1) < id(a2)
+RETURN dom.dns_domain, a1.displayname AS host1, a2.displayname AS host2
 LIMIT 20
 ```
 
@@ -528,127 +540,6 @@ LIMIT 20
 MATCH (a:RZAsset)-[:RZHasIPMICredential]->(ipmi:RZIPMICredential)
 WHERE ipmi.cipher_zero = "enabled"
 RETURN a.displayname, a.ip_addresses, ipmi.conn_versions, ipmi.user_auth
-```
-
-### Inter-Asset Relationships
-
-Queries that reveal how assets relate to each other through shared infrastructure,
-identity nodes, and topology — not just single-asset properties.
-
-#### Multi-homed assets — network pivots and firewalls
-`tags: topology, exposure, correlation`
-
-```cypher
-MATCH (a:RZAsset)-[:RZInsideOfSubnet]->(net:RZNetwork)
-WITH a, collect(net.displayname) AS subnets, count(net) AS cnt
-WHERE cnt > 1
-RETURN a.displayname, a.os, subnets, cnt
-ORDER BY cnt DESC
-LIMIT 20
-```
-
-#### Subnet peer groups — who shares a network segment
-`tags: topology, correlation`
-
-```cypher
-MATCH (net:RZNetwork)<-[:RZInsideOfSubnet]-(a:RZAsset)
-WITH net, collect(a.displayname) AS peers, count(a) AS cnt
-WHERE cnt > 1
-RETURN net.displayname, cnt, peers
-ORDER BY cnt DESC
-LIMIT 10
-```
-
-#### VLAN member groups
-`tags: topology, correlation`
-
-```cypher
-MATCH (v:RZVLAN)<-[:RZPartOfVLAN]-(a:RZAsset)
-WITH v, collect(a.displayname) AS members, count(a) AS cnt
-RETURN v.displayname, cnt, members
-ORDER BY cnt DESC
-LIMIT 10
-```
-
-#### Domain membership by subnet — AD topology mapping
-`tags: topology, identity, windows, correlation`
-
-```cypher
-MATCH (a:RZAsset)-[:RZPartOfDomain]->(d:RZDomain),
-      (a)-[:RZInsideOfSubnet]->(net:RZNetwork)
-WITH d, net, collect(a.displayname) AS members, count(a) AS cnt
-RETURN d.displayname, net.displayname, cnt, members
-ORDER BY d.displayname, cnt DESC
-```
-
-#### Domain + VLAN overlay
-`tags: topology, identity, windows, correlation`
-
-```cypher
-MATCH (a:RZAsset)-[:RZPartOfDomain]->(d:RZDomain),
-      (a)-[:RZPartOfVLAN]->(v:RZVLAN)
-WITH d, v, collect(a.displayname) AS members, count(a) AS cnt
-RETURN d.displayname, v.displayname, cnt, members
-ORDER BY cnt DESC
-LIMIT 10
-```
-
-#### Assets with both SSH and TLS identities — protocol overlap
-`tags: correlation, identity`
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasSSHKey]->(ssh:RZSSHKey),
-      (a)-[:RZHasTLSCert]->(cert:RZTLSCert)
-WITH a, count(DISTINCT ssh) AS ssh_cnt, count(DISTINCT cert) AS tls_cnt
-RETURN a.displayname, a.os, ssh_cnt, tls_cnt
-ORDER BY ssh_cnt + tls_cnt DESC
-LIMIT 15
-```
-
-#### SNMP fleet peers — identical device types across the network
-`tags: inventory, correlation, infrastructure`
-
-```cypher
-MATCH (oid:RZSNMPDeviceType)<-[:RZHasSNMPDeviceType]-(a:RZAsset)
-WITH oid, collect(a.displayname) AS fleet, count(a) AS cnt
-WHERE cnt > 1
-RETURN oid.sys_name, oid.sys_object_id, fleet, cnt
-ORDER BY cnt DESC
-LIMIT 10
-```
-
-#### Switch-connected asset groups — physical adjacency
-`tags: topology, correlation`
-
-```cypher
-MATCH (sw:RZSwitch)-[:RZHasSwitchAssets]->(a:RZAsset)
-WITH sw, collect(a.displayname) AS connected, count(a) AS cnt
-RETURN sw.displayname, sw.ip, cnt, connected
-ORDER BY cnt DESC
-```
-
-#### Co-routed assets — sharing the same transit router
-`tags: topology, dependency, correlation`
-
-```cypher
-MATCH (router:RZRouter)<-[:RZHasRouter]-(a:RZAsset)
-WITH router, collect(a.displayname) AS peers, count(a) AS cnt
-WHERE cnt > 5
-RETURN router.displayname, cnt, peers
-ORDER BY cnt DESC
-LIMIT 10
-```
-
-#### MAC vendor distribution by subnet
-`tags: inventory, topology, correlation`
-
-```cypher
-MATCH (a:RZAsset)-[:RZHasMAC]->(mac:RZMACAddress)-[:RZHasMACVendor]->(v:RZMACVendor),
-      (a)-[:RZInsideOfSubnet]->(net:RZNetwork)
-WITH net, v, count(DISTINCT a) AS cnt
-RETURN net.displayname, v.vendor, cnt
-ORDER BY net.displayname, cnt DESC
-LIMIT 20
 ```
 
 ---
@@ -663,12 +554,11 @@ Cross-protocol correlation, multi-hop traversals, and risk analysis.
 `tags: correlation, exposure, topology`
 
 ```cypher
-MATCH (a:RZAsset)-[:RZHasSSHKey]->(key:RZSSHKey),
-      (a)-[:RZInsideOfSubnet]->(net:RZNetwork)
-WITH key, collect(DISTINCT net.displayname) AS subnets, collect(DISTINCT a.displayname) AS hosts
-WHERE size(subnets) > 1
-RETURN key.fingerprint, hosts, subnets
-ORDER BY size(subnets) DESC
+MATCH (a1:RZAsset)-[:RZHasSSHKey]->(key:RZSSHKey)<-[:RZHasSSHKey]-(a2:RZAsset),
+      (a1)-[:RZInsideOfSubnet]->(n1:RZNetwork),
+      (a2)-[:RZInsideOfSubnet]->(n2:RZNetwork)
+WHERE n1 <> n2 AND id(a1) < id(a2)
+RETURN key.fingerprint, a1.displayname, n1.displayname, a2.displayname, n2.displayname
 LIMIT 10
 ```
 
@@ -715,11 +605,9 @@ LIMIT 10
 `tags: correlation, ot`
 
 ```cypher
-MATCH (dev:RZKNXnetDevice)<-[:RZHasKNXnetDevice]-(a:RZAsset)
-WITH dev, collect(a.displayname) AS hosts, count(a) AS cnt
-WHERE cnt > 1
-RETURN dev.serial, dev.name, dev.mac, hosts, cnt
-ORDER BY cnt DESC
+MATCH (a1:RZAsset)-[:RZHasKNXnetDevice]->(dev:RZKNXnetDevice)<-[:RZHasKNXnetDevice]-(a2:RZAsset)
+WHERE id(a1) < id(a2)
+RETURN dev.serial, dev.name, dev.mac, a1.displayname AS host1, a2.displayname AS host2
 LIMIT 20
 ```
 
@@ -727,11 +615,10 @@ LIMIT 20
 `tags: correlation, ot`
 
 ```cypher
-MATCH (dev:RZBACnetDevice)<-[:RZHasBACnetDevice]-(a:RZAsset)
-WITH dev, collect(a.displayname) AS hosts, count(a) AS cnt
-WHERE cnt > 1
-RETURN dev.instance_id, dev.object_name, dev.vendor_name, hosts, cnt
-ORDER BY cnt DESC
+MATCH (a1:RZAsset)-[:RZHasBACnetDevice]->(dev:RZBACnetDevice)<-[:RZHasBACnetDevice]-(a2:RZAsset)
+WHERE id(a1) < id(a2)
+RETURN dev.instance_id, dev.object_name, dev.vendor_name,
+       a1.displayname AS host1, a2.displayname AS host2
 LIMIT 20
 ```
 
@@ -802,11 +689,9 @@ LIMIT 10
 `tags: dependency, infrastructure, correlation`
 
 ```cypher
-MATCH (dns:RZDNSIdentity)<-[:RZHasDNSIdentity]-(a:RZAsset)
-WITH dns, collect(a.displayname) AS hosts, count(a) AS cnt
-WHERE cnt > 1
-RETURN dns.server_id, hosts, cnt
-ORDER BY cnt DESC
+MATCH (a1:RZAsset)-[:RZHasDNSIdentity]->(dns:RZDNSIdentity)<-[:RZHasDNSIdentity]-(a2:RZAsset)
+WHERE id(a1) < id(a2)
+RETURN dns.server_id, a1.displayname AS host1, a2.displayname AS host2
 LIMIT 20
 ```
 
@@ -998,11 +883,9 @@ LIMIT 20
 `tags: identity, exposure, fun`
 
 ```cypher
-MATCH (comp:RZNTLMComputer)<-[:RZHasNTLMComputer]-(a:RZAsset)
-WITH comp, collect(a.displayname) AS hosts, count(a) AS cnt
-WHERE cnt > 1
-RETURN comp.dns_computer, comp.version, hosts, cnt
-ORDER BY cnt DESC
+MATCH (a1:RZAsset)-[:RZHasNTLMComputer]->(comp:RZNTLMComputer)<-[:RZHasNTLMComputer]-(a2:RZAsset)
+WHERE id(a1) < id(a2)
+RETURN comp.dns_computer, comp.version, a1.displayname, a2.displayname
 LIMIT 20
 ```
 
