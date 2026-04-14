@@ -80,21 +80,38 @@ match (n:RZNetwork) where n.network_address = '0.0.0.0' return n
 
 ### Upload Directly to BloodHound CE via CLI
 
-Instead of manually dragging the file, you can upload using the `upload` command:
+Instead of manually dragging the file, you can upload using the `upload` command.
 
-```
-# Set credentials via environment variables
+All BloodHound CE commands (`upload`, `cypher`, `purge`) share the same authentication flags and accept either **API token** or **username/password** credentials. Environment variables are used when flags are not set.
+
+| Flag | Environment Variable | Description |
+|------|---------------------|-------------|
+| `--url` | `BLOODHOUND_URL` | BloodHound CE base URL |
+| `--token-id` | `BLOODHOUND_TOKEN_ID` | API token ID |
+| `--token-key` | `BLOODHOUND_TOKEN_KEY` | API token key/secret |
+| `--username` | `BLOODHOUND_USERNAME` | BloodHound CE username |
+| `--password` | `BLOODHOUND_PASSWORD` | BloodHound CE password |
+| `--insecure` | | Skip TLS certificate verification |
+
+To create an API token in BloodHound CE, navigate to Administration → API Tokens.
+
+```bash
+# Using API token auth
 export BLOODHOUND_URL=http://127.0.0.1:8080
 export BLOODHOUND_TOKEN_ID=<your-token-id>
 export BLOODHOUND_TOKEN_KEY=<your-token-key>
+go run main.go upload opengraph.json
 
-# Upload the graph
+# Using username/password auth
+export BLOODHOUND_URL=http://127.0.0.1:8080
+export BLOODHOUND_USERNAME=admin
+export BLOODHOUND_PASSWORD=<your-password>
 go run main.go upload opengraph.json
 ```
 
 Or pass credentials as flags:
 
-```
+```bash
 go run main.go upload \
   --url http://127.0.0.1:8080 \
   --token-id <id> \
@@ -102,9 +119,47 @@ go run main.go upload \
   opengraph.json
 ```
 
-To create an API token in BloodHound CE, navigate to Administration → API Tokens.
+#### Waiting for Ingest Completion
 
-Use `--insecure` to skip TLS verification for self-signed certificates.
+Use `--wait` to block until all ingest jobs finish and the datapipe is idle:
+
+```bash
+# Upload and wait for ingest to complete
+go run main.go upload --wait opengraph.json
+
+# Just wait for pending jobs to finish (no file upload)
+go run main.go upload --wait
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--wait` | `false` | Wait for all ingest jobs to complete |
+| `--wait-timeout` | `300` | Maximum seconds to wait for ingest completion |
+| `--wait-interval` | `5` | Seconds between status checks |
+
+### Run Cypher Queries via CLI
+
+The `cypher` command executes a Cypher query against BloodHound CE and prints the raw JSON response to stdout:
+
+```bash
+go run main.go cypher 'MATCH (n) RETURN labels(n) AS kind, count(n) AS total ORDER BY total DESC'
+```
+
+Pipe through `jq` for pretty-printing or field extraction:
+
+```bash
+go run main.go cypher 'MATCH (n:RZNetwork) RETURN n.displayname LIMIT 5' | jq .
+```
+
+### Purge BloodHound CE Data
+
+The `purge` command deletes all collected graph data, file ingest history, and data quality history:
+
+```bash
+go run main.go purge
+```
+
+This is useful for starting fresh before loading a new dataset.
 
 ### TODO: Configure Custom Icons
 
@@ -131,7 +186,7 @@ For the complete schema (every node kind, edge, and property), see [QUERIES.md](
 
 ## Example Cypher Queries
 
-All queries run in the BloodHound CE **Explore → Cypher** tab. For 70+ queries organized by difficulty and category, see [QUERIES.md](QUERIES.md).
+All queries run in the BloodHound CE **Explore → Cypher** tab or via `go run main.go cypher '<query>'`. For 75+ queries organized by difficulty and category, see [QUERIES.md](QUERIES.md).
 
 ### Simple — What do I have?
 
@@ -155,12 +210,14 @@ LIMIT 20
 
 ### Moderate — Identity & Correlation
 
-SSH key reuse — find assets sharing the same host key:
+SSH key reuse — find keys shared across multiple assets:
 
 ```cypher
-MATCH (a1:RZAsset)-[:RZHasSSHKey]->(key:RZSSHKey)<-[:RZHasSSHKey]-(a2:RZAsset)
-WHERE id(a1) < id(a2)
-RETURN key.fingerprint, key.key_type, a1.displayname AS host1, a2.displayname AS host2
+MATCH (a:RZAsset)-[:RZHasSSHKey]->(key:RZSSHKey)
+WITH key, collect(DISTINCT a.displayname) AS hosts
+WHERE size(hosts) > 1
+RETURN key.fingerprint, key.key_type, hosts
+ORDER BY size(hosts) DESC
 LIMIT 20
 ```
 
@@ -222,7 +279,19 @@ ORDER BY ssh_keys + tls_certs + gateways + favicons + bacnet_devs + serials DESC
 LIMIT 20
 ```
 
-See [QUERIES.md](QUERIES.md) for the full collection including quirky/surprising results.
+See [QUERIES.md](QUERIES.md) for the full collection including inter-asset relationships and quirky/surprising results.
+
+### Validating Queries
+
+The `test_queries.sh` script extracts every query from QUERIES.md and runs each one via the `cypher` CLI command:
+
+```bash
+# Full run: convert sample data, purge, upload, wait, then test all queries
+./test_queries.sh
+
+# Skip data loading — just test queries against existing data
+./test_queries.sh --skip-load
+```
 
 ## Supported Data Sources
 
