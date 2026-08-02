@@ -29,6 +29,7 @@ See the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cyp
   - [Infrastructure Fingerprinting](#infrastructure-fingerprinting)
   - [Windows / Active Directory](#windows--active-directory)
   - [Vulnerabilities](#vulnerabilities)
+  - [Out-of-Band Management](#out-of-band-management)
 - [4 — Advanced Queries](#4--advanced-queries)
   - [Cross-Source Correlation](#cross-source-correlation)
   - [Exposure & Risk](#exposure--risk)
@@ -46,6 +47,8 @@ See the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cyp
 | Kind | Description |
 |------|-------------|
 | `RZAsset` | A network asset (runZero-discovered) |
+| `RZOOBDevice` | An out-of-band management device (oobscan-discovered) |
+| `RZManagedHost` | A machine named only by the controller that manages it, never scanned directly |
 | `RZService` | A network service running on an asset |
 | `RZNetwork` | An IP subnet (/24 IPv4, /56 IPv6) |
 | `RZDomain` | A DNS / AD domain |
@@ -82,6 +85,7 @@ See the [Cypher documentation](https://bloodhound.specterops.io/analyze-data/cyp
 | Edge | Direction | Description |
 |------|-----------|-------------|
 | `RZHasService` / `RZRunsOnAsset` | Asset ↔ Service | Service relationship |
+| `RZManagesHost` / `RZManagedByBMC` | Controller ↔ Host | The controller administers that machine out of band. Carries `method` and `evidence` |
 | `RZInsideOfSubnet` / `RZSubnetContains` | Asset ↔ Network | Subnet membership |
 | `RZPartOfDomain` / `RZDomainContains` | Asset ↔ Domain | Domain membership |
 | `RZPartOfVLAN` / `RZVLANContains` | Asset ↔ VLAN | VLAN membership |
@@ -612,6 +616,106 @@ WITH v, count(a) AS affected_hosts
 RETURN v.displayname, v.source, v.severity, affected_hosts
 ORDER BY affected_hosts DESC
 LIMIT 20
+```
+
+---
+
+### Out-of-Band Management
+
+`RZManagesHost` joins a management controller to the machine it administers. The
+edge is derived from what the controller discloses about itself: an HPE iLO
+publishes the server's address in the pre-auth `/xmldata` NIC list, and a Dell
+iDRAC answering SNMP serves both the managed server's NIC table and its own
+neighbour cache, which join on a MAC. Every edge carries the `method` that
+produced it and the `evidence` field it came from.
+
+Because a MAC is globally unique the join is never scoped to a subnet, so the
+managed machine is frequently in a different network from its controller.
+
+#### Every controller and the machine it manages
+
+```cypher
+MATCH p = (b:RZOOBDevice)-[:RZManagesHost]->(h)
+RETURN p
+```
+
+#### Controllers whose managed machine is in a different network
+
+The segmentation case: reaching the management interface reaches a host the
+management network is supposed to be separate from.
+
+```cypher
+MATCH (b:RZOOBDevice)-[:RZManagesHost]->(h)
+MATCH (b)-[:RZInsideOfSubnet]->(bn:RZNetwork)
+MATCH (h)-[:RZInsideOfSubnet]->(hn:RZNetwork)
+WHERE bn <> hn
+RETURN b.displayname AS controller, bn.displayname AS mgmt_net,
+       h.displayname AS host, hn.displayname AS host_net
+```
+
+#### Managed machines that were never scanned directly
+
+These exist in the graph only because a controller named them.
+
+```cypher
+MATCH (b:RZOOBDevice)-[r:RZManagesHost]->(h:RZManagedHost)
+WHERE h.inferred = true
+RETURN b.displayname AS controller, h.displayname AS host,
+       r.method AS method, r.evidence AS evidence
+```
+
+#### Reverse: from a production host to the controller that owns it
+
+```cypher
+MATCH (h)-[r:RZManagedByBMC]->(b:RZOOBDevice)
+RETURN h.displayname AS host, b.displayname AS controller,
+       b.vendor AS vendor, r.method AS method
+```
+
+#### How each management edge was derived
+
+```cypher
+MATCH ()-[r:RZManagesHost]->()
+RETURN r.method AS method, count(*) AS edges
+ORDER BY edges DESC
+```
+
+#### The full chain: one compromised host to every host in the estate
+
+The domino argument as a traversal. A compromised host reaches its own controller
+over the chassis interface, that controller shares a segment with every other
+controller, and each of those manages a host of its own.
+
+`RZInsideOfSubnet` here says the controllers share a segment. It does not assert
+they can reach each other, which depends on whether that segment is flat. Treat
+the result as the hypothesis to go and test.
+
+```cypher
+MATCH p = (h {demorole:'foothold'})-[:RZManagedByBMC]->(b1:RZOOBDevice)
+          -[:RZInsideOfSubnet]->(:RZNetwork)-[:RZSubnetContains]->(b2:RZOOBDevice)
+          -[:RZManagesHost]->(h2)
+WHERE b1 <> b2
+RETURN p
+```
+
+#### Blast radius from a single host
+
+```cypher
+MATCH (h {demorole:'foothold'})-[:RZManagedByBMC]->(b1:RZOOBDevice)
+      -[:RZInsideOfSubnet]->(:RZNetwork)-[:RZSubnetContains]->(b2:RZOOBDevice)
+      -[:RZManagesHost]->(h2)
+WHERE b1 <> b2
+RETURN count(DISTINCT b2) AS controllers, count(DISTINCT h2) AS hosts
+```
+
+#### Controllers that both disclose their host and answer a default community
+
+```cypher
+MATCH (b:RZOOBDevice)-[:RZManagesHost]->(h)
+MATCH (b)-[:RZHasVuln]->(v:RZVuln)
+WHERE v.vuln_id CONTAINS 'snmp'
+RETURN b.displayname AS controller, h.displayname AS host,
+       collect(DISTINCT v.vuln_id) AS findings
 ```
 
 ---
