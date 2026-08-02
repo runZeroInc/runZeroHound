@@ -65,6 +65,11 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 		if len(ph.Names) > 0 {
 			props["names"] = strings.Join(ph.Names, ",")
 			props["name"] = ph.Names[0]
+		} else {
+			// BloodHound labels a node by its name property and falls back to
+			// the raw node ID, which reads as "rz-oobscan-192.0.2.20" in the
+			// graph view. An address is a better label than an internal ID.
+			props["name"] = label
 		}
 		if ph.OS != "" {
 			props["os"] = ph.OS
@@ -348,6 +353,73 @@ func BuildOpenGraph(hosts []*ParsedHost) ([]*bloodhound.Node, []*bloodhound.Edge
 		}
 	}
 
+	// Management edges.
+	//
+	// A controller that discloses the machine it manages gets an edge to that
+	// machine, and the reverse edge back. This is a different relationship from
+	// a neighbour observation: the controller has authority over the target, so
+	// reaching the controller is equivalent to reaching the host, and the two
+	// are frequently in different segments.
+	byAddress := make(map[string]string)
+	for _, ph := range hosts {
+		id := hostNodeID(ph)
+		for _, addr := range ph.Addresses {
+			if _, seen := byAddress[addr]; !seen {
+				byAddress[addr] = id
+			}
+		}
+	}
+	inferred := make(map[string]bool)
+	for _, ph := range hosts {
+		if len(ph.ManagedAddresses) == 0 || len(ph.Addresses) == 0 {
+			continue
+		}
+		bmcID := hostNodeID(ph)
+		for _, m := range ph.ManagedAddresses {
+			targetID, known := byAddress[m.Address]
+			if !known {
+				// The managed machine was not itself scanned. The edge is then
+				// the only thing that names it, so the node is synthesised and
+				// marked inferred rather than dropped.
+				targetID = "rz-managed-" + strings.ReplaceAll(m.Address, ":", "-")
+				if !inferred[targetID] {
+					inferred[targetID] = true
+					nodes = append(nodes, &bloodhound.Node{
+						ID:    targetID,
+						Kinds: []string{"RZManagedHost"},
+						Properties: map[string]any{
+							"displayname":  m.Address,
+							"name":         m.Address,
+							"ip_addresses": m.Address,
+							"source":       "oobscan",
+							"inferred":     true,
+							"inferred_by":  m.Method,
+						},
+					})
+					if subnetID, network := subnetFor(m.Address); subnetID != "" {
+						subnets[network]++
+						edges = append(edges,
+							edgeBetween(targetID, "RZInsideOfSubnet", subnetID),
+							edgeBetween(subnetID, "RZSubnetContains", targetID),
+						)
+					}
+				}
+			}
+			props := map[string]any{"method": m.Method}
+			if m.Evidence != "" {
+				props["evidence"] = m.Evidence
+			}
+			if len(ph.Addresses) > 0 {
+				props["controller"] = ph.Addresses[0]
+			}
+			props["managed_address"] = m.Address
+			edges = append(edges,
+				edgeWithProps(bmcID, "RZManagesHost", targetID, props),
+				edgeWithProps(targetID, "RZManagedByBMC", bmcID, props),
+			)
+		}
+	}
+
 	// Build subnet nodes
 	for network := range subnets {
 		bip := strings.Split(network, "/")
@@ -440,6 +512,8 @@ func sourceKind(ft FileType) string {
 		return "RZOneSixtyOneHost"
 	case FileTypeNexpose:
 		return "RZNexposeHost"
+	case FileTypeOobscan:
+		return "RZOOBDevice"
 	default:
 		return "RZAsset"
 	}
@@ -505,6 +579,33 @@ func sanitizeFP(fp string) string {
 }
 
 // edgeBetween creates a directed edge between two node IDs.
+// edgeWithProps is edgeBetween with attributes recording how the edge was
+// derived, so a management edge can be traced back to its disclosure.
+func edgeWithProps(from, kind, to string, props map[string]any) *bloodhound.Edge {
+	e := edgeBetween(from, kind, to)
+	e.Properties = props
+	return e
+}
+
+// subnetFor returns the aggregation subnet node ID and network for an address,
+// using the same /24 and /56 boundaries as the main pass. It returns empty
+// strings for an address that should not be placed in a subnet.
+func subnetFor(addr string) (string, string) {
+	mask := "24"
+	if strings.Contains(addr, ":") {
+		mask = "56"
+	}
+	_, ipNet, err := net.ParseCIDR(addr + "/" + mask)
+	if err != nil {
+		return "", ""
+	}
+	if shouldSkipIP(net.ParseIP(addr)) {
+		return "", ""
+	}
+	network := ipNet.String()
+	return "rz-network-" + network, network
+}
+
 func edgeBetween(from, kind, to string) *bloodhound.Edge {
 	return &bloodhound.Edge{
 		Start: bloodhound.EdgeDesc{Value: from, MatchBy: "id"},

@@ -28,6 +28,7 @@ const (
 	FileTypeOneSixtyOne           // onesixtyone SNMP scanner output
 	FileTypeNexpose               // Rapid7 Nexpose/InsightVM XML report
 	FileTypeQualysCSV             // Qualys VM scan CSV report
+	FileTypeOobscan               // oobscan out-of-band scanner NDJSON
 )
 
 // String returns a human-readable name for the file type.
@@ -59,6 +60,8 @@ func (ft FileType) String() string {
 		return "nexpose"
 	case FileTypeQualysCSV:
 		return "qualys-csv"
+	case FileTypeOobscan:
+		return "oobscan"
 	default:
 		return "unknown"
 	}
@@ -130,6 +133,12 @@ func DetectFileType(path string) (FileType, error) {
 			bytes.Contains(trimmed, []byte("NexposeReport")):
 			return FileTypeNexpose, nil
 		}
+	}
+
+	// 3a. oobscan NDJSON: a "host" scalar plus a field only oobscan emits. It
+	// has to run before the runZero JSONL fallback, which would otherwise take it.
+	if looksLikeOobscanFile(path) {
+		return FileTypeOobscan, nil
 	}
 
 	// 3b. Shodan JSONL detection: first line is a JSON object with "ip_str" key

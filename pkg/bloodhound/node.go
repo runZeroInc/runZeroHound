@@ -24,4 +24,7 @@ type Edge struct {
 	Kind  string   `json:"kind,omitempty"`
 	Start EdgeDesc `json:"start,omitempty"`
 	End   EdgeDesc `json:"end,omitempty"`
+	// Properties are optional edge attributes. Open Graph accepts them and
+	// they are how an edge records which disclosure produced it.
+	Properties map[string]any `json:"properties,omitempty"`
 }

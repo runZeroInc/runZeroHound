@@ -35,6 +35,12 @@ type ParsedHost struct {
 	// (e.g. SNMP ARP cache entries, MAC table entries, CDP/LLDP neighbours).
 	SubAssets []SubAsset
 
+	// ManagedAddresses are the addresses of machines this host administers out
+	// of band. It is set for a management controller that discloses the
+	// machine it is attached to, which is a different relationship from a
+	// neighbour observation: the controller has authority over the target.
+	ManagedAddresses []ManagedAddress
+
 	// Vulns holds vulnerabilities discovered on this host.
 	Vulns []ParsedVuln
 
@@ -94,6 +100,17 @@ type SubAsset struct {
 	VLAN string
 	// Attributes holds extra key→value metadata.
 	Attributes map[string]string
+}
+
+// ManagedAddress is one machine administered by a management controller,
+// together with the disclosure that revealed it.
+type ManagedAddress struct {
+	// Address is the managed machine's IP address.
+	Address string
+	// Method names the disclosure, e.g. "ilo-xmldata" or "snmp-arp-join".
+	Method string
+	// Evidence is the specific object or field the address came from.
+	Evidence string
 }
 
 // ParsedService represents one observed network service.

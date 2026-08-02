@@ -53,6 +53,7 @@ Supported input types (auto-detected):
   masscan      Masscan XML (-oX) or JSON (-oJ) output
   shodan       Shodan JSONL export
   nexpose      Rapid7 Nexpose/InsightVM XML report
+  oobscan      oobscan out-of-band scanner NDJSON
 
 Use -o/--output to specify the output file (default: stdout).
 `,
@@ -202,6 +203,14 @@ func generateOpenGraph(inputFiles []string, outputFD *os.File) error {
 			result, err := input.ParseShodan(path)
 			if err != nil {
 				return fmt.Errorf("parse shodan %s: %w", path, err)
+			}
+			nodes, edges := input.BuildOpenGraph(result.Hosts)
+			mergeResult(nodes, edges)
+
+		case input.FileTypeOobscan:
+			result, err := input.ParseOobscan(path)
+			if err != nil {
+				return fmt.Errorf("parse oobscan %s: %w", path, err)
 			}
 			nodes, edges := input.BuildOpenGraph(result.Hosts)
 			mergeResult(nodes, edges)
