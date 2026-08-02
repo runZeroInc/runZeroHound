@@ -9,6 +9,8 @@ github.com/runZeroInc/mac-tracker v0.0.0-20260413163728-11be7a5ca425 h1:tjv7pmd4
 github.com/runZeroInc/mac-tracker v0.0.0-20260413163728-11be7a5ca425/go.mod h1:LBHUvWruM0xxMryaHDt9qP1JC5tq7rGXeOEdUEf4keM=
 github.com/runZeroInc/mac-tracker v0.0.0-20260802005448-11f3faf568b2 h1:PVS5XuLQqXZcfOvqgKJVi3JVPFEahX9jRZey9pA9qIY=
 github.com/runZeroInc/mac-tracker v0.0.0-20260802005448-11f3faf568b2/go.mod h1:LBHUvWruM0xxMryaHDt9qP1JC5tq7rGXeOEdUEf4keM=
+github.com/runZeroInc/mac-tracker v0.0.0-20260802162707-38238983fd58 h1:HmuDgSlNMR1TJwztHLFa2N4ILx38UmGwUHNJK0XMPno=
+github.com/runZeroInc/mac-tracker v0.0.0-20260802162707-38238983fd58/go.mod h1:LBHUvWruM0xxMryaHDt9qP1JC5tq7rGXeOEdUEf4keM=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/spf13/cobra v1.10.2 h1:DMTTonx5m65Ic0GOoRY2c16WCbHxOOw6xxezuLaBpcU=
 github.com/spf13/cobra v1.10.2/go.mod h1:7C1pvHqHw5A4vrJfjNwvOdzYu0Gml16OCs2GRiTUUS4=

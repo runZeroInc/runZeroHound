@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	github.com/gofrs/uuid/v5 v5.5.0
-	github.com/runZeroInc/mac-tracker v0.0.0-20260802005448-11f3faf568b2
+	github.com/runZeroInc/mac-tracker v0.0.0-20260802162707-38238983fd58
 	github.com/spf13/cobra v1.10.2
 )
 
