@@ -1,8 +1,13 @@
-# runZeroHound
+# ZeroHound (aka runZeroHound)
 
-Bring runZero Exposure Management into BloodHound via [OpenGraph](https://bloodhound.specterops.io/opengraph/overview).
+Bring Exposure Management data into BloodHound via [OpenGraph](https://bloodhound.specterops.io/opengraph/overview).
 
 Read our [initial blog post](https://www.runzero.com/blog/introducing-runzerohound/).
+
+runZeroHound is now just `ZeroHound` to make it clear that this is a general-purpose loader/correlation tool for BloodHound OpenGraph and not specific to runZero data. The entites still prefix with `RZ` to avoid conflicting with other imports in the same database.
+
+ZeroHound imports data from Nmap, runZero, Qualys, snmpwalk, Tenable (Nessus), OpenVAS/GVM, Masscan, Shodan, NetBox, and many more!
+
 
 ## Getting Started
 
@@ -330,6 +335,7 @@ runZeroHound can ingest data from any of the following sources:
 | **Shodan** | JSONL | `ip_str` in JSON | IPs, hostnames, OS, services, TLS certs, SSH keys, vulnerabilities |
 | **NetBox** | JSON API export | `count`+`results` JSON | IPs, hostnames, device types, roles, platforms, sites, racks |
 | **snmpwalk** | Text output | OID = TYPE: VALUE pattern | IPs, MACs, hostnames, OS (sysDescr), SNMP engine IDs, ARP cache, MAC table |
+| **oobscan** | JSONL | gzip header or JSON lines  | Detailed data from out-of-band device scans |
 
 ### Ideal Nmap Command
 
